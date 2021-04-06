@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang='en'>
+<head>
+  <meta charset="utf-8" />
+  <title>Hello world!</title>
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-csv/0.71/jquery.csv-0.71.min.js"></script>
+  <script type="text/JavaScript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.10.1/jquery.min.js" ></script>
+  <script src="jquery-csv.js"></script>
+  <!-- <script src="jquery-csv.js"></script> -->
+  <link type="text/css" rel="stylesheet"
+        href="{{ url_for('static',
+              filename='hello.css')}}" />
+
+        <style>
+        .collapsible {
+            background-color: #777;
+            color: white;
+            cursor: pointer;
+            padding: 18px;
+            width: 100%;
+            border: none;
+            text-align: left;
+            outline: none;
+            font-size: 15px;
+        }
+        
+        .active, .collapsible:hover {
+            background-color: #555;
+        }
+        
+        .content {
+            padding: 0 18px;
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.2s ease-out;
+            background-color: #f1f1f1;
+        }
+        </style>
+
+
+
+</head>
+<body>
+
+
+    <script>
+
+        $( document ).ready(function() {
+            console.log( "ready!" );
+
+            // const data = require('./employees.json');
+            // console.log(data);
+
+            // $.get( "us_migration_subset.csv", function( CSVdata) {
+            //     // CSVdata is populated with the file contents
+            //     // ready to be converted into an Array
+            //     data = $.csv.toArray(CSVdata);
+            //     console.log(data)
+            // });
+
+            // var data;
+            //   $.ajax({
+            //     type: "GET",  
+            //     url: "us_migration_subset.csv",
+            //     dataType: "text",       
+            //     success: function(response)  
+            //     {
+            //     data = $.csv.toArrays(response);
+            //     generateHtmlTable(data);
+            //     }   
+            //   });
+
+            // console.log(data);
+
+            $.get( "./us_migration_subset.csv", function(CSVdata) {
+              // CSVdata is populated with the file contents
+              // ready to be converted into an Array
+                data = $.csv.toArray(CSVdata);
+                console.log(data)
+            });
+
+        });
+
+
+    </script>
+
+    <p>Collapsible Set:</p>
+    <button class="collapsible">Economic Factors</button>
+    <div class="content">
+        <!-- <ul> -->
+        <label for="sending_salary_worker">Salaried Workers:</label>
+        <input type="number" id="sending_salary_worker" name="sending_salary_worker" min="1" max="5"><br>
+        <label for="sending_self_employed">Self Employed:</label>
+        <input type="number" id="sending_self_employed" name="sending_self_employed" min="1" max="5"><br>
+        <label for="sending_sum_income">Total Income:</label>
+        <input type="number" id="sending_sum_income" name="sending_sum_income" min="1" max="5"><br>
+        <label for="sending_unknown_employment_status">Unknown Employment Status</label>
+        <input type="number" id="sending_unknown_employment_status" name="sending_unknown_employment_status" min="1" max="5"><br>
+        <label for="sending_unknown_employment_status">Unknown Employment Status</label>
+        <input type="number" id="sending_unknown_employment_status" name="sending_unknown_employment_status" min="1" max="5"><br>        <!-- </ul> -->
+      <!-- <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.</p> -->
+    </div>
+    <button class="collapsible">Demographic Factors</button>
+    <div class="content">
+        <label for="sending_citizen_unspecified">Citizen Unspecified:</label>
+        <input type="number" id="sending_citizen_unspecified" name="sending_citizen_unspecified" min="1" max="5"><br>
+        <label for="sending_citizenship_unknown">Citizenship Unkown</label>
+        <input type="number" id="sending_citizenship_unknown" name="sending_citizenship_unknown" min="1" max="5"><br>
+        <label for="sending_indigeneity">Indigeneity</label>
+        <input type="number" id="sending_indigeneity" name="sending_indigeneity" min="1" max="5"><br>
+        <label for="sending_marriage_unknown">Marriage Unkown:</label>
+        <input type="number" id="sending_marriage_unknown" name="sending_marriage_unknown" min="1" max="5"><br>
+        <label for="sending_married">Married:</label>
+        <input type="number" id="sending_married" name="sending_married" min="1" max="5"><br>        <!-- </ul> -->
+    </div>
+    <button class="collapsible">Household Factors</button>
+    <div class="content">
+        <label for="sending_household_not_owned">Household not owned:</label>
+        <input type="number" id="sending_household_not_owned" name="sending_household_not_owned" min="1" max="5"><br>
+        <label for="sending_household_owned">Household owned:</label>
+        <input type="number" id="sending_household_owned" name="sending_household_owned" min="1" max="5"><br>
+        <label for="sending_household_owned_unknown">Household owned unknown:</label>
+        <input type="number" id="sending_household_owned_unknown" name="sending_household_owned_unknown" min="1" max="5"><br>
+        <label for="sending_internet">Internet:</label>
+        <input type="number" id="sending_internet" name="sending_internet" min="1" max="5"><br>
+        <label for="sending_internet_unknown">Internet Unknown:</label>
+        <input type="number" id="sending_internet_unknown" name="sending_internet_unknown" min="1" max="5"><br>        <!-- </ul> -->
+        <label for="sending_no_internet">No internet:</label>
+        <input type="number" id="sending_no_internet" name="sending_no_internet" min="1" max="5"><br>
+        <label for="sending_rural">Sending Rural</label>
+        <input type="number" id="sending_rural" name="sending_rural" min="1" max="5"><br>        <!-- </ul> -->
+        <label for="sending_urban">Sending Urban</label>
+        <input type="number" id="sending_urban" name="sending_urban" min="1" max="5"><br>        <!-- </ul> -->
+    </div>
+    <button class="collapsible">Administrative Level Factors</button>
+    <div class="content">
+        <label for="sending_total_pop">Total Population:</label>
+        <input type="number" id="sending_total_pop" name="sending_total_pop" min="1" max="5"><br>
+    </div>
+
+
+
+
+
+
+    <!-- Economic:
+    '', '', '','',
+    'sending_unpaid_worker','sending_weighted_avg_income',
+    'sending_weighted_avg_income_abroad',
+    'sending_weighted_avg_no_income_abroad',
+    'sending_weighted_avg_unknown_income_abroad',
+    
+    
+    Demographic
+    '', '',
+    '','', '', 'sending_no_indigeneity',
+    'sending_not_citizen','sending_separated','sending_single','sending_unknown_indigeneity','sending_widowed
+    
+    -->
+
+
+    <script>
+        var coll = document.getElementsByClassName("collapsible");
+        var i;
+        
+        for (i = 0; i < coll.length; i++) {
+          coll[i].addEventListener("click", function() {
+            this.classList.toggle("active");
+            var content = this.nextElementSibling;
+            if (content.style.maxHeight){
+              content.style.maxHeight = null;
+            } else {
+              content.style.maxHeight = content.scrollHeight + "px";
+            } 
+          });
+        }
+        </script>
+
+</body>
+</html>

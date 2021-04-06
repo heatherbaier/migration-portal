@@ -1,0 +1,204 @@
+<head>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.0/css/bootstrap.min.css">
+    <script src="http://cdn.leafletjs.com/leaflet-0.7/leaflet.js"></script>
+    <link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet-0.6.4/leaflet.css"/>
+    <script src="https://code.jquery.com/jquery-2.1.4.min.js"></script>
+</head>
+
+<style>
+    html, body, #map {
+        height: 100%;
+        width: 100%;
+    }
+</style>
+
+<script>
+
+function update_adm() {
+
+    var adm_choice = document.getElementById("adm_choices").value;
+    console.log(adm_choice);
+
+    // Post the list of selected Issuer Id's back to Flask
+    fetch('/', {
+
+        // When the data gets POSTed back to Flask, it'll be in JSON format
+        headers: {
+        'Content-Type': 'application/json'
+        },
+
+        // Send the data back as a POST request
+        method: 'POST',
+
+        // Here's where you construct the JSON
+        body: JSON.stringify({
+            "adm_id": adm_choice
+        })
+
+        // ...and then send it off
+        }).then(function (response) {
+            return response.text();
+        }).then(function (text) {
+            console.log('POST response: ');
+            console.log(JSON.parse(text));
+            var arr = JSON.parse(text)
+            for (var key in arr) {
+                // console.log(key + " -> " + arr[key])
+                document.getElementById(key).value = arr[key];
+            };
+    });
+
+    console.log("about to enter update_map function");
+
+    // Post the list of selected Issuer Id's back to Flask
+    fetch('/update_map', {
+
+        
+
+        // When the data gets POSTed back to Flask, it'll be in JSON format
+        headers: {
+        'Content-Type': 'application/json'
+        },
+
+        // Send the data back as a POST request
+        method: 'POST',
+
+        // Here's where you construct the JSON
+        body: JSON.stringify({
+            "adm_id": adm_choice
+        })
+
+        // ...and then send it off
+        }).then(function (response) {
+            return response.text();
+        }).then(function (text) {
+            console.log('POST response: ');
+            console.log(text);
+            document.getElementById("mapDiv").innerHTML = text;
+        });
+
+}
+
+
+function pred_muni() {
+
+    var adm_choice = document.getElementById("adm_choices").value;
+    console.log(adm_choice);
+
+    var nodes = document.querySelectorAll("input[type=number]");
+
+    var vals = [];
+
+    console.log("NODES");
+    console.log(nodes);
+
+    for (var i=0; i<nodes.length; i++) {
+        vals.push(nodes[i].value);
+    }
+
+
+    // Post the list of selected Issuer Id's back to Flask
+    fetch('/pred_muni', {
+
+    // When the data gets POSTed back to Flask, it'll be in JSON format
+    headers: {
+    'Content-Type': 'application/json'
+    },
+
+    // Send the data back as a POST request
+    method: 'POST',
+
+    // Here's where you construct the JSON
+    body: JSON.stringify({
+        "adm_id": adm_choice,
+        'values': vals
+    })
+
+    // ...and then send it off
+    }).then(function (response) {
+        return response.text();
+    }).then(function (text) {
+        console.log('POST response: ');
+        var pred = JSON.parse(text);
+        document.getElementById("pred").innerHTML = pred['pred'];
+    });
+
+
+
+        // Post the list of selected Issuer Id's back to Flask
+        fetch('/plot_social_sig', {
+
+        // When the data gets POSTed back to Flask, it'll be in JSON format
+        headers: {
+        'Content-Type': 'application/json'
+        },
+
+        // Send the data back as a POST request
+        method: 'POST',
+
+        // Here's where you construct the JSON
+        body: JSON.stringify({
+            "adm_id": adm_choice,
+            'values': vals
+        })
+
+        // ...and then send it off
+        }).then(function (response) {
+            return response.text();
+        }).then(function (text) {
+            console.log('POST response: ');
+            var ss = JSON.parse(text);
+            console.log(ss);
+            console.log(ss['url']);
+            // document.getElementById("social_sig").src = ss['url'];
+            // document.getElementById("pred").innerHTML = pred['pred'];
+        });
+
+} 
+
+</script>
+
+
+
+
+<div style="width: 100%; margin-top: 20px; margin-bottom: 20px;">
+
+    <div style="margin-left: 10px; margin-right: 10px; width:35%; float:left; background-color: gainsboro; padding: 20px; border-radius: 8px; ">
+
+        <h4>Sending municipality:</h4>
+        <select name="adm_choices" id="adm_choices">
+            {% for adm in adms %}
+                <option value={{ adm }}>{{ adm }}</option>
+            {% endfor %}
+        </select>
+
+        <input type="button" id='select_adm' value="Update migration data" onclick="update_adm()"><br>
+
+        <br><br>
+
+        {% for obj in dta %}
+            <label id="label_{{ obj[0] }}" style="font-weight: normal;">{{ obj[0] }}</label>
+            <input type="number" id="{{ obj[0] }}" value="{{ obj[1] }}"><br>
+        {% endfor %}
+
+        <input type="button" id='select_adm' value="Predict number of migrants" onclick="pred_muni()"><br>
+
+    </div>
+
+    <div style="width:55%; float:left">
+
+        <h4>Predicted number of migrants from selected municipality: </h4> <div id="pred"></div>
+        <h4>Total number of migrants across all municipalities: </h4> 
+
+        <div style="width:100%; float:left" id='mapDiv'>
+
+            {{ map | safe }}
+
+        </div>
+
+        <!-- <img id = "social_sig" src="/static/images/im1.png"> -->
+
+    </div>
+
+</div>
+
