@@ -67,7 +67,7 @@ def get_centroids(gdf):
 
 MATCH_PATH = "./gB_IPUMS_match.csv"
 MIG_PATH = "./us_migration.csv"
-GDF_PATH = "/Users/heatherbaier/Desktop/CAOE/site/MEX/geoBoundariesSimplified-3_0_0-MEX-ADM2.shp"
+GDF_PATH = "/home/hbaier/Desktop/portal/data/MEX/MEX_ADM2_fixedInternalTopology.shp"
 
 gdf, gdf_json, mig = prep_data(MATCH_PATH, MIG_PATH, GDF_PATH)
 
