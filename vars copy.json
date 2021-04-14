@@ -23,7 +23,7 @@
     "perc_private_facility_hlthfac", "perc_other_hlthfac", "perc_no_facility_used_hlthfac"],
 
 
- "Education": ["perc_yes_school", "perc_no_school", "perc_no_literacy", "perc_yes_literacy", "perc_less_than_primary_edu", 
+ "Education": ["perc_yes_school", "perc_yes_literacy", "perc_less_than_primary_edu", 
     "perc_primary_edu", "perc_secondary_edu", "perc_university_edu", "avg_yrschool"],
 
 
