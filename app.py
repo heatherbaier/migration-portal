@@ -18,10 +18,27 @@ import matplotlib.image as mpimg
 
 import json
 
+import numpy as np
+
 
 
 # Create the application.
 APP = flask.Flask(__name__)
+
+
+
+
+from pandas import json_normalize
+import geojson
+
+
+GEOJSON_PATH = "./geoBoundariesSimplified-3_0_0-MEX-ADM2.geojson"
+DATA_PATH = "./mex_migration_allvars_subset.csv"
+MATCH_PATH = "./gB_IPUMS_match.csv"
+
+
+with open(GEOJSON_PATH) as f:
+    geodata_collection = geojson.load(f)
 
 
 
@@ -39,7 +56,21 @@ def index():
 
 
     if request.method == "GET":
-        df = pd.read_csv("./mex_migration_allvars_subset.csv")
+
+        # Read in migration data
+        df = pd.read_csv(DATA_PATH)
+
+        # Get the number of migrants to send to HTML for stat box
+        total_migrants = df['num_persons_to_us'].sum()
+
+        # Get the data for the number of migrants histogram
+        hist = {}
+        hist_data, hist_labels = np.histogram(df['num_persons_to_us'], bins = 20)
+        hist['data'] = list(hist_data)
+        hist["labels"] = [round(i, 2) for i in list(hist_labels)]
+
+
+
         municipality_ids = df['sending'].unique()
         df_var_cols = [i for i in df.columns if i not in ['sending','number_moved']]
         # print(request)
@@ -98,7 +129,9 @@ def index():
                                   health_data = health,
                                   edu_data = edu,
                                   employ_data = employ,
-                                  hhold_data = hhold)#, municipality_ids = municipality_ids)
+                                  hhold_data = hhold,
+                                  total_migrants = total_migrants,
+                                  hist = hist)#, municipality_ids = municipality_ids)
 
 
 
@@ -106,23 +139,56 @@ def index():
 
 
 
-import geojson
-with open("./geoBoundariesSimplified-3_0_0-MEX-ADM2.geojson") as f:
-    geodata_collection = geojson.load(f)
+
+
+
+
+def convert_to_pandas(geodata_collection, MATCH_PATH, DATA_PATH):
+
+    df = json_normalize(geodata_collection["features"])
+    df["B"] = df['properties.shapeID'].str.split("-").str[3]
+    match_df = pd.read_csv(MATCH_PATH)[['shapeID', 'MUNI2015']]
+    match_df["B"] = match_df['shapeID'].str.split("-").str[3]
+    dta = pd.read_csv(DATA_PATH)
+
+    ref_dict = dict(zip(match_df['B'], match_df['MUNI2015']))
+
+    df['sending'] = df['B'].map(ref_dict)
+
+    merged = pd.merge(df, dta, on = 'sending')
+
+    print(merged.num_persons_to_us.value_counts())
+
+    return merged
+
+
+convert_to_pandas(geodata_collection, MATCH_PATH, DATA_PATH)
 
 
 
 @APP.route('/geojson-features', methods=['GET'])
 def get_all_points():
+
+
+    feature_df = convert_to_pandas(geodata_collection, MATCH_PATH, DATA_PATH)
+
+
+    coords = feature_df['geometry.coordinates']
+    types = feature_df['geometry.type']
+    num_migrants = feature_df['num_persons_to_us']
+
+
     features = []
-    for geo_feature in geodata_collection[0:-1]:
+    for i in range(0, len(feature_df)):
         features.append({
             "type": "Feature",
             "geometry": {
-                "type": geo_feature['geometry']['type'],
-                "coordinates": geo_feature['geometry']['coordinates']
+                "type": types[i],
+                "coordinates": coords[i],
+                "num_migrants": num_migrants[i]
             }
         })
+
     return jsonify(features)
 
 
