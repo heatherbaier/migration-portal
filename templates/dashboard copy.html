@@ -398,7 +398,7 @@ L.tileLayer('https://tiles.stadiamaps.com/tiles/alidade_smooth_dark/{z}/{x}/{y}{
 // Create the drawnPolys group
 var drawnPolys = new L.featureGroup().addTo(mymap);
 
-// Add the drawn control to the map
+// Add the draw control to the map
 var drawControl = new L.Control.Draw({ 
 
     draw: {
@@ -417,6 +417,10 @@ var drawControl = new L.Control.Draw({
 mymap.addControl(drawControl);
 
 
+// Make an empty global variable to store the shapeID's of the polygons that overlap COMPLETLEY with any of the polgyons a user draws
+window.selected_polys = [];
+
+
 // What happens when a shape is drawn/created
 mymap.on(L.Draw.Event.CREATED, e => {
 
@@ -428,6 +432,8 @@ mymap.on(L.Draw.Event.CREATED, e => {
     
     // Add the layer to the drawnPolys LayerGroup
     drawnPolys.addLayer(layer);
+
+    console.log(drawnPolys);
     
     // Zoom in to the drawn poly
     mymap.fitBounds(layer.getBounds());
@@ -435,7 +441,65 @@ mymap.on(L.Draw.Event.CREATED, e => {
    // Get the layers in the geoJSON layer (no need rn but leaving in for reference)
     var polygons = window.poly.getLayers();
 
+
+    for (i = 0; i < polygons.length; i++) {
+        if (layer.getBounds().contains(polygons[i].getBounds())) {
+            // console.log(polygons[i].feature.properties.shapeID)
+            window.selected_polys.push(polygons[i].feature.properties.shapeID)
+        }
+
+    }
+
+    console.log("Municipalities within selected area: ");
+    console.log(window.selected_polys);
+
 });
+
+
+// Function to remove a given shapeID from a list
+function arrayRemove(arr, value) { 
+    return arr.filter(function(ele){  return ele != value; });
+}
+
+
+// What happens when a shape is deleted
+mymap.on(L.Draw.Event.DELETED, e => {
+
+    // Get a list of the layers that are being deleted
+    var poly_being_removed = e.layers;
+
+    // Get a list of the polygons on the map
+    var polygons = window.poly.getLayers();
+
+    // For each of the polygons being removed...
+    poly_being_removed.eachLayer(function(layer) {
+
+        // Make an empty list to store the polgyon ID's that are no longer overlapping with a drawn polgyon
+        ids_to_be_removed = [];
+
+        // For every polygon currently on the map...
+        for (i = 0; i < polygons.length; i++) {
+
+            // If it intersects with any of the polgyons being removed then add that shapeID to the ids_to_be_removed list
+            if (layer.getBounds().contains(polygons[i].getBounds())) {
+                ids_to_be_removed.push(polygons[i].feature.properties.shapeID)
+            }
+        }
+
+    });
+
+
+    // Remove all of the ID's in ids_to_be_removed from the list of selected polygons
+    for (i = 0; i < ids_to_be_removed.length; i++) {
+        window.selected_polys = arrayRemove(window.selected_polys, ids_to_be_removed[i])
+    }
+
+    // CELEBRATE GOOD TIMES
+    console.log("NOW SELECTED POLYS: ");
+    console.log(window.selected_polys);
+
+});
+
 
 
 

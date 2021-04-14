@@ -169,10 +169,13 @@ def get_all_points():
 
     feature_df = convert_to_pandas(geodata_collection, MATCH_PATH, DATA_PATH)
 
+    print(feature_df.columns)
+
 
     coords = feature_df['geometry.coordinates']
     types = feature_df['geometry.type']
     num_migrants = feature_df['num_persons_to_us']
+    shapeIDs = feature_df['properties.shapeID']
 
     features = []
     for i in range(0, len(feature_df)):
@@ -182,7 +185,8 @@ def get_all_points():
                 "type": types[i],
                 "coordinates": coords[i]
             },
-            "properties": {'num_migrants': num_migrants[i]}
+            "properties": {'num_migrants': num_migrants[i],
+                           'shapeID': shapeIDs[i]}
         })
 
     return jsonify(features)
