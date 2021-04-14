@@ -1,11 +1,10 @@
-{"Economic": ["sum_income", "sum_earned_income", "perc_yes_remitt"],
+{"Economic": ["sum_income", "perc_yes_remitt"],
 
 
- "Deomographic": ["avg_nfams", "avg_ncouples", "avg_nmothers", "avg_nfathers", "perc_yes_citizen", "perc_yes_indig",  "perc_yes_speakind", 
+ "Deomographic": ["avg_nfams", "avg_ncouples", "perc_yes_citizen", "perc_yes_indig",  "perc_yes_speakind", 
     "perc_yes_and_spanish_speakind", "perc_yes_only_indig_speakind", "avg_age", "total_pop"],
 
-"Family": ["avg_eldch_age", "avg_yngch_age", "perc_single", "perc_married", "perc_separated", "perc_widowed", 
-    "avg_chborn", "avg_chsurv", "avg_num_years_from_last_birth"],
+"Family": ["perc_single", "perc_married", "perc_separated", "avg_chsurv", "avg_num_years_from_last_birth"],
 
  "Employment": ["perc_employed",  "perc_senior_officials", "perc_professionals", "perc_technicians_associate_professionals", "perc_clerks", 
         "perc_service_workers", "perc_agri_fish_workers", "perc_trades_workers", "perc_machine_operators", "perc_elementary_occupations", 

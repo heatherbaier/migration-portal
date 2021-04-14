@@ -7,6 +7,8 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.2/Chart.min.js"></script>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" integrity="sha512-xodZBNTC5n17Xt2atTPuE1HxjVMSvLVW9ocqUKLsCC5CXdbqCmblAshOMAS6/keqq/sMZMZ19scR4PsZChSR7A==" crossorigin=""/>
     <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js" integrity="sha512-XQoYMqMTK8LvdxXYG3nZ448hOEQiglfqkJs1NOQV44cWnUrBc8PkAOcXy20w0vlaXaVUearIOBhiXZ5V3ynxwA==" crossorigin=""></script>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+
 
 
     <style>
@@ -23,7 +25,7 @@
             z-index: 1;
             top: 0;
             left: 0;
-            background-color: #0E0C28;
+            background-color: #F0F0F0;
             overflow-x: hidden;
             padding-top: 20px;
         }
@@ -33,7 +35,7 @@
             padding: 6px 8px 6px 16px;
             text-decoration: none;
             font-size: 20px;
-            color: #71748D;
+            color: black;
             display: block;
             border: none;
             background: none;
@@ -49,7 +51,7 @@
 
         /* On mouse-over */
         .sidenav a:hover, .dropdown-btn:hover {
-            color: #f1f1f1;
+            color: black;
         }
 
         /* Main content */
@@ -61,13 +63,13 @@
             margin-left: 750px; /* Same as the width of the sidenav */
             font-size: 20px; /* Increased text to enable scrolling */
             /* padding: 0px 10px; */
-            background-color: #EFEFF6;
+            background-color: #F0F0F0;
         }
 
         /* Add an active class to the active dropdown button */
         .active {
-            background-color: #71748D;
-            color: white;
+            /* background-color: white; */
+            color: black;
             margin-right: 20px;
             padding-right: 50px;
         }
@@ -75,20 +77,25 @@
         /* Dropdown container (hidden by default). Optional: add a lighter background color and some left padding to change the design of the dropdown content */
         .dropdown-container {
             display: none;
-            background-color: #71748D;
+            background-color: white;
+            padding-top: 8px;
             padding-left: 8px;
-            margin-left:20px;
+            margin-left:60px;
             margin-right:20px;
-            border-bottom-left-radius: 4px;
-            border-bottom-right-radius: 4px;
+            border-radius: 10px;
+            /* border-bottom-right-radius: 4px; */
             padding: 20px;
             font-family: Roboto;
+            font-size: 18px;
+            box-shadow: 10px 5px 5px lightgray;
         }
 
         /* Optional: Style the caret down icon */
         .fa-caret-down {
             float: right;
             padding-right: 8px;
+            padding-left: 10px;
+
             /* margin-right: 50px; */
         }
 
@@ -102,8 +109,77 @@
 
         #mapid { height: 600px; width: 1200px; }
 
+        .material-icons {
+            padding: 10px;
+            color: #404040;
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 10px 5px 5px lightgray;
+        }
+
+        .g-icon {
+            box-shadow: 10px 5px 5px lightgray;
+        }
+
+        input[type=number] {
+
+            border-radius: 20px;
+            text-align: center;
+            outline: none;
+            width: 80px;
+            height: 30px;
+            font-family: Roboto;
+            font-size: 18px;
+
+        }
 
 
+        h4 {
+            padding: 6px 8px 0px 16px;
+            text-decoration: none;
+            font-size: 20px;
+            color: black;
+            display: block;
+            border: none;
+            background: none;
+            width: 100%;
+            text-align: left;
+            outline: none;
+            margin-left: 20px;
+            margin-right: 20px;
+            padding-right: 50px;
+            font-family: Roboto;
+            font-weight: normal;
+        }
+
+
+        h5 {
+            color: #0E0C28; 
+            font-weight: normal; 
+            font-family: Roboto;
+            padding: 10px; 
+            text-align: center;
+        }
+
+
+        h1 {
+            padding: 6px 8px 0px 16px;
+            margin-left: 20px;
+            color: #0E0C28; 
+            font-family: Roboto; 
+            font-weight: normal; 
+            font-size: 28px; 
+            font-weight: bolder;
+        }
+
+
+        .stat-box {
+            background-color: white; 
+            width: 400px;
+            height: 150px; 
+            border-radius: 10px;
+            box-shadow: 10px 5px 5px lightgray;
+        }
 
         /* Some media queries for responsiveness */
         @media screen and (max-height: 450px) {
@@ -124,123 +200,88 @@
 
     <div class="sidenav">
 
-        <!-- <a href="#about">About</a>
-        <a href="#services">Services</a>
-        <a href="#clients">Clients</a>
-        <a href="#contact">Contact</a> -->
-<!-- 
-        <h4>Sending municipality:</h4>
-        <select name="munic-options" id="munic-options" class="munic-options">
-            {% for municipality in municipality_ids %}
-                <option value={{ municipality }}>{{ municipality }}</option>
-            {% endfor %}
-        </select> -->
+        <h1>Migration Data Portal</h1>
 
+        <h4>Adjustable sociodemographic variables:</h4>
 
-        <button class="dropdown-btn">Economic Variables 
-            <i class="fa fa-caret-down"></i>
-        </button>
+        <button class="dropdown-btn"><i class="material-icons">cloud</i>Economic Variables <i class="fa fa-caret-down"></i></button>
 
         <div class="dropdown-container">
             {% for econ_var in econ_data %}
-                <input type="number" id="{{ econ_var[0] }}" value="{{ econ_var[1] }}">
-                <label id="label_{{ econ_var[0] }}" style="font-weight: normal;">{{ econ_var[0] }}</label><br>
-                
+                <input type="number" id="{{ econ_var[0] }}-change" value="0">
+                <label id="label_{{ econ_var[0] }}" style="font-weight: normal;">{{ econ_var[0] }}</label><br><br>                
             {% endfor %}
         </div>
 
 
-        <button class="dropdown-btn">Demographic Variables 
-            <i class="fa fa-caret-down"></i>
-        </button>
-
+        <button class="dropdown-btn"><i class="material-icons">people</i>Demographic Variables<i class="fa fa-caret-down"></i></button>
         <div class="dropdown-container">
             {% for demog_var in demog_data %}
-                <input type="number" id="{{ demog_var[0] }}" value="{{ demog_var[1] }}">
-                <label id="label_{{ demog_var[0] }}" style="font-weight: normal;">{{ demog_var[0] }}</label><br>
+                <input type="number" id="{{ demog_var[0] }}-change" value="0">
+                <label id="label_{{ demog_var[0] }}" style="font-weight: normal;">{{ demog_var[0] }}</label><br><br>   
             {% endfor %}
         </div>
 
 
-        <button class="dropdown-btn">Marriage & Fertility Variables
-            <i class="fa fa-caret-down"></i>
-        </button>
-
+        <button class="dropdown-btn"><i class="material-icons">pregnant_woman</i>Marriage & Fertility Variables<i class="fa fa-caret-down"></i></button>
         <div class="dropdown-container">
             {% for family_var in family_data %}
-                <input type="number" id="{{ family_var[0] }}" value="{{ family_var[1] }}">
-                <label id="label_{{ family_var[0] }}" style="font-weight: normal;">{{ family_var[0] }}</label><br>
+                <input type="number" id="{{ family_var[0] }}-change" value="0">
+                <label id="label_{{ family_var[0] }}" style="font-weight: normal;">{{ family_var[0] }}</label><br><br>   
             {% endfor %}
         </div>
 
 
-        <button class="dropdown-btn">Health Variables 
-            <i class="fa fa-caret-down"></i>
-        </button>
-
+        <button class="dropdown-btn"><i class="material-icons">health_and_safety</i>Health Variables <i class="fa fa-caret-down"></i></button>
         <div class="dropdown-container">
             {% for health_var in health_data %}
-                <input type="number" id="{{ health_var[0] }}" value="{{ health_var[1] }}">
-                <label id="label_{{ health_var[0] }}" style="font-weight: normal;">{{ health_var[0] }}</label><br>
+                <input type="number" id="{{ health_var[0] }}-change" value="0">
+                <label id="label_{{ health_var[0] }}" style="font-weight: normal;">{{ health_var[0] }}</label><br><br>   
             {% endfor %}
         </div>
 
-        <button class="dropdown-btn">Occupational Variables 
-            <i class="fa fa-caret-down"></i>
-        </button>
 
+        <button class="dropdown-btn"><i class="material-icons">meeting_room</i>Occupational Variables <i class="fa fa-caret-down"></i></button>
         <div class="dropdown-container">
             {% for employ_var in employ_data %}
-                <input type="number" id="{{ employ_var[0] }}" value="{{ employ_var[1] }}">
-                <label id="label_{{ employ_var[0] }}" style="font-weight: normal;">{{ employ_var[0] }}:</label><br>
+                <input type="number" id="{{ employ_var[0] }}-change" value="0">
+                <label id="label_{{ employ_var[0] }}" style="font-weight: normal;">{{ employ_var[0] }}</label><br><br>   
             {% endfor %}
         </div>
 
 
-        <button class="dropdown-btn">Education Variables
-            <i class="fa fa-caret-down"></i>
-        </button>
-
+        <button class="dropdown-btn"><i class="material-icons">local_library</i>Education Variables<i class="fa fa-caret-down"></i></button>
         <div class="dropdown-container">
             {% for edu_var in edu_data %}
-                <input type="number" id="{{ edu_var[0] }}" value="{{ edu_var[1] }}">
-                <label id="label_{{ edu_var[0] }}" style="font-weight: normal;">{{ edu_var[0] }}</label><br>
+                <input type="number" id="{{ edu_var[0] }}-change" value="0">
+                <label id="label_{{ edu_var[0] }}" style="font-weight: normal;">{{ edu_var[0] }}</label><br><br>   
             {% endfor %}
         </div>
 
 
-        <button class="dropdown-btn">Household Variables 
-            <i class="fa fa-caret-down"></i>
-        </button>
-
+        <button class="dropdown-btn"><i class="material-icons">home</i>Household Variables<i class="fa fa-caret-down"></i></button>
         <div class="dropdown-container">
             {% for hhold_var in hhold_data %}
-                <input type="number" id="{{ hhold_var[0] }}" value="{{ hhold_var[1] }}">
-                <label id="label_{{ hhold_var[0] }}" style="font-weight: normal;">{{ hhold_var[0] }}</label><br>
+                <input type="number" id="{{ hhold_var[0] }}-change" value="0">
+                <label id="label_{{ hhold_var[0] }}" style="font-weight: normal;">{{ hhold_var[0] }}</label><br><br>   
             {% endfor %}
         </div>
-
-
-        <!-- <a href="#contact">Search</a> -->
 
     </div>
 
     <div class="main">
 
-        <!-- <div id="header" style="background-color: white; height: 100px"> -->
-            <h2 style="color: #0E0C28; font-family: Roboto; font-weight: normal; font-size: 28px; ">Migration Data Portal</h2>
-        <!-- </div> -->
-
+       
         <div>
 
             <div style="width: 30%; float: left;">
-                <div id="num-migrants" style="background-color: #71748D; width: 400px; height: 150px; border-radius: 10px;">
-                    <h4 style="color: #0E0C28; font-family: Roboto; font-weight: normal; font-size: 24px; padding: 10px; text-align: center;">Total number of migrants</h4> 
-                    <h4 style="color: #0E0C28; font-family: Roboto; font-weight: normal; font-size: 20px; padding: 10px; text-align: center;">xx</h4> 
+                <div id="num-migrants" class="stat-box">
+                    <h5>Total number of migrants</h4> 
+                    <h5>xx</h4> 
                 </div>
-                <div id="change-num-migrants" style="background-color: #71748D; width: 400px; height: 150px; border-radius: 10px; color: #0E0C28">
-                    <h4 style="color: #0E0C28; font-family: Roboto; font-weight: normal; font-size: 24px; padding: 10px; text-align: center;">Change in number of migrants</h4> 
-                    <h4 style="color: #0E0C28; font-family: Roboto; font-weight: normal; font-size: 20px; padding: 10px; text-align: center;">-yy</h4> 
+                <div id="change-num-migrants" class="stat-box">
+                    <h5>Change in number of migrants</h4> 
+                    <h5>-yy</h4> 
                 </div>
             </div>
 
@@ -280,8 +321,8 @@ for (i = 0; i < dropdown.length; i++) {
 
 
 var ctx = document.getElementById("myChart").getContext('2d');
-var dataValues = [12, 19, 3, 5];
-var dataLabels = [0, 1, 2, 3, 4];
+var dataValues = [12, 19, 3, 5, 1,2,3,4,5,6];
+var dataLabels = [0, 1, 2, 3, 45,6,7,8,9,10];
 var myChart = new Chart(ctx, {
   type: 'bar',
   data: {
@@ -289,7 +330,7 @@ var myChart = new Chart(ctx, {
     datasets: [{
       label: 'Group A',
       data: dataValues,
-      backgroundColor: 'rgba(255, 99, 132, 1)',
+      backgroundColor: '#151A54',
     }]
   },
   options: {
@@ -298,7 +339,7 @@ var myChart = new Chart(ctx, {
         display: false,
         barPercentage: 1.3,
         ticks: {
-            max: 3,
+            max: 20,
         }
      }, {
         display: true,
