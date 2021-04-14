@@ -11,6 +11,12 @@
 
 
 
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.5.1/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.5.1/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+
+
+
     <style>
         body {
             font-family: "Lato", sans-serif;
@@ -107,7 +113,11 @@
 
         canvas { max-width: 800px; }
 
-        #mapid { height: 600px; width: 1200px; }
+        #mapid { 
+            height: 1000px; 
+            width: 1425px; 
+            padding-top: 20px;
+        }
 
         .material-icons {
             padding: 10px;
@@ -289,10 +299,14 @@
                 <canvas id="myChart" width="200px" height="100px"></canvas>
             </div>
 
+            <br>
+
+            <div id="mapid"></div>
+
         </div>
 
         
-        <div id="mapid"></div>
+        
 
 
     </div>
@@ -362,10 +376,37 @@ var myChart = new Chart(ctx, {
 
 
 
-var mymap = L.map('mapid').setView([51.505, -0.09], 13);
-L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+var mymap = L.map('mapid').setView([23.6345, -92.5528], zoom_start=5);
+L.tileLayer('https://tiles.stadiamaps.com/tiles/alidade_smooth_dark/{z}/{x}/{y}{r}.png', {
+	maxZoom: 20,
+	attribution: '&copy; <a href="https://stadiamaps.com/">Stadia Maps</a>, &copy; <a href="https://openmaptiles.org/">OpenMapTiles</a> &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors'
 }).addTo(mymap);
+
+
+function polygon_style(feature) {
+  return {
+    fillColor: 'green',
+    weight: .5,
+    opacity: 1,
+    color: 'white',
+    fillOpacity: 0.5
+  };
+}
+
+
+
+axios.get('http://127.0.0.1:5000/geojson-features')
+            .then(response => {
+
+                var polys = L.geoJSON(response.data, {style: polygon_style})//.addTo(mymap);
+
+                polys.addTo(mymap);
+
+            })
+
+
+
+
 // var marker = L.marker([51.5, -0.09]).addTo(mymap);
 // var circle = L.circle([51.508, -0.11], {
 //     color: 'red',

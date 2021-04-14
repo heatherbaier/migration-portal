@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 import geopandas as gpd
-from flask import request
+from flask import request, jsonify
 import pandas as pd
 import geojson
 import folium
@@ -103,6 +103,27 @@ def index():
 
 
     # return dict(adms.iloc[0].T)
+
+
+
+import geojson
+with open("./geoBoundariesSimplified-3_0_0-MEX-ADM2.geojson") as f:
+    geodata_collection = geojson.load(f)
+
+
+
+@APP.route('/geojson-features', methods=['GET'])
+def get_all_points():
+    features = []
+    for geo_feature in geodata_collection[0:-1]:
+        features.append({
+            "type": "Feature",
+            "geometry": {
+                "type": geo_feature['geometry']['type'],
+                "coordinates": geo_feature['geometry']['coordinates']
+            }
+        })
+    return jsonify(features)
 
 
 
