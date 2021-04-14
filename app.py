@@ -1,40 +1,24 @@
-#!/usr/bin/env python
-
+from flask import request, jsonify, Response
+from pandas import json_normalize
 import geopandas as gpd
-from flask import request, jsonify
 import pandas as pd
+import numpy as np
 import geojson
 import folium
 import flask
-
-# from helpers import *
-
-import io
-from flask import Response
-from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
-from matplotlib.figure import Figure
-import matplotlib.pyplot as plt
-import matplotlib.image as mpimg
-
 import json
-
-import numpy as np
-
+import io
 
 
 # Create the application.
 APP = flask.Flask(__name__)
 
 
-
-
-from pandas import json_normalize
-import geojson
-
-
 GEOJSON_PATH = "./geoBoundariesSimplified-3_0_0-MEX-ADM2.geojson"
 DATA_PATH = "./mex_migration_allvars_subset.csv"
 MATCH_PATH = "./gB_IPUMS_match.csv"
+
+
 
 
 with open(GEOJSON_PATH) as f:
@@ -69,23 +53,20 @@ def index():
         hist['data'] = list(hist_data)
         hist["labels"] = [round(i, 2) for i in list(hist_labels)]
 
-
-
         municipality_ids = df['sending'].unique()
         df_var_cols = [i for i in df.columns if i not in ['sending','number_moved']]
         cur_data = df[df['sending'] == 20240]
 
-        print(cur_data)
-
+        # Open the variables JSON and the JSON containing the pretty translation of the variables
         with open("./vars copy.json", "r") as f:
             grouped_vars = json.load(f)
 
         with open("./var_map.json", "r") as f2:
             var_names = json.load(f2)
 
-        print(var_names)        
-
-
+        # Get all of the variables to send to Flask
+        # TO-DO: PUT THIS IN A FUNCTION SOMEWHERE
+        # WAIT IS THIS EVEN NECCESSARY IF WE ARE ONLY DOING PERCENTAGE INCREASES RIP
         econ = cur_data[grouped_vars['Economic']]
         econ = map_column_names(var_names, econ)
         econ = zip(econ.columns, econ.iloc[0].to_list())
@@ -114,12 +95,7 @@ def index():
         hhold = map_column_names(var_names, hhold)
         hhold = zip(hhold.columns, hhold.iloc[0].to_list())
 
-
-    
-
-    
-    # adms = adms[df_var_cols]
-
+    # Merry Christmas HTML
     return flask.render_template('dashboard copy.html', 
                                   municipality_ids = municipality_ids, 
                                   econ_data = econ,
@@ -130,7 +106,7 @@ def index():
                                   employ_data = employ,
                                   hhold_data = hhold,
                                   total_migrants = total_migrants,
-                                  hist = hist)#, municipality_ids = municipality_ids)
+                                  hist = hist)
 
 
 
@@ -142,41 +118,48 @@ def index():
 
 
 
-def convert_to_pandas(geodata_collection, MATCH_PATH, DATA_PATH):
+def convert_to_pandas(geodata_collection, MATCH_PATH, DATA_PATH):\
 
+    # Normalize the geoJSON as a pandas dataframe
     df = json_normalize(geodata_collection["features"])
+
+    # Get the B unique ID column (akgkjklajkljlk)
     df["B"] = df['properties.shapeID'].str.split("-").str[3]
+
+    # Read in the dataframe for matching and get the B unique ID column
     match_df = pd.read_csv(MATCH_PATH)[['shapeID', 'MUNI2015']]
     match_df["B"] = match_df['shapeID'].str.split("-").str[3]
+
+    # Read in the migration data
     dta = pd.read_csv(DATA_PATH)
 
+    # Match the IPUMS ID's to the gB ID's
     ref_dict = dict(zip(match_df['B'], match_df['MUNI2015']))
-
     df['sending'] = df['B'].map(ref_dict)
 
+    # Mix it all together
     merged = pd.merge(df, dta, on = 'sending')
 
     return merged
 
 
-convert_to_pandas(geodata_collection, MATCH_PATH, DATA_PATH)
 
 
 
 @APP.route('/geojson-features', methods=['GET'])
 def get_all_points():
 
-
+    # Convert the geoJSON to a dataframe and merge it to the migration data
     feature_df = convert_to_pandas(geodata_collection, MATCH_PATH, DATA_PATH)
 
-    print(feature_df.columns)
-
-
+    # Make lists of all of the features we want available to the Leaflet map
     coords = feature_df['geometry.coordinates']
     types = feature_df['geometry.type']
     num_migrants = feature_df['num_persons_to_us']
     shapeIDs = feature_df['properties.shapeID']
+    shapeNames = feature_df['properties.shapeName']
 
+    # For each of the polygons in the data frame, append it and it's data to a list of dicts to be sent as a JSON back to the Leaflet map
     features = []
     for i in range(0, len(feature_df)):
         features.append({
@@ -186,12 +169,23 @@ def get_all_points():
                 "coordinates": coords[i]
             },
             "properties": {'num_migrants': num_migrants[i],
-                           'shapeID': shapeIDs[i]}
+                           'shapeID': shapeIDs[i],
+                           'shapeName': shapeNames[i]
+                          }
         })
 
     return jsonify(features)
 
 
+
+
+
+
+
+# from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
+# from matplotlib.figure import Figure
+# import matplotlib.pyplot as plt
+# import matplotlib.image as mpimg
 
 
 # @APP.route('/', methods=['GET','POST'])

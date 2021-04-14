@@ -192,6 +192,17 @@
             font-weight: bolder;
         }
 
+        h2 {
+            /* padding: 6px 8px 0px 16px; */
+            /* margin-left: 20px; */
+            color: #0E0C28; 
+            font-family: Roboto; 
+            /* font-weight: normal;  */
+            /* font-size: 15px;  */
+            /* font-weight: bolder; */
+        }
+
+
 
         .stat-box {
             background-color: white; 
@@ -562,7 +573,8 @@ function highlightFeature(e) {
 // On each feature, highlight/remove highlight when hovered over, zoom when clicked and add popup
 function onEachFeature(feature, layer) {
 
-    layer.bindPopup('<h1>Number of migrants</h1><h1>'+feature.properties.num_migrants+'</h1>');
+    layer.bindPopup('<h2>Municipality: ' + feature.properties.shapeName + '</h2>' + 
+                    '<h2>Number of migrants: ' + feature.properties.num_migrants + '</h2>');
 
     layer.on({
         mouseover: highlightFeature,
