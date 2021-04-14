@@ -73,7 +73,6 @@ def index():
 
         municipality_ids = df['sending'].unique()
         df_var_cols = [i for i in df.columns if i not in ['sending','number_moved']]
-        # print(request)
         cur_data = df[df['sending'] == 20240]
 
         print(cur_data)
@@ -157,8 +156,6 @@ def convert_to_pandas(geodata_collection, MATCH_PATH, DATA_PATH):
 
     merged = pd.merge(df, dta, on = 'sending')
 
-    print(merged.num_persons_to_us.value_counts())
-
     return merged
 
 
@@ -177,16 +174,15 @@ def get_all_points():
     types = feature_df['geometry.type']
     num_migrants = feature_df['num_persons_to_us']
 
-
     features = []
     for i in range(0, len(feature_df)):
         features.append({
             "type": "Feature",
             "geometry": {
                 "type": types[i],
-                "coordinates": coords[i],
-                "num_migrants": num_migrants[i]
-            }
+                "coordinates": coords[i]
+            },
+            "properties": {'num_migrants': num_migrants[i]}
         })
 
     return jsonify(features)

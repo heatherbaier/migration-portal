@@ -14,6 +14,8 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.5.1/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.5.1/dist/leaflet.js"></script>
     <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/0.4.2/leaflet.draw.css"/>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/0.4.2/leaflet.draw.js"></script>
 
 
 
@@ -382,15 +384,62 @@ var myChart = new Chart(ctx, {
 
 
 
+// MIGRATION MAP
 
 
-var mymap = L.map('mapid').setView([23.6345, -92.5528], zoom_start=5);
+// Create the map and add the basemap tiles
+var mymap = L.map('mapid').setView([23.6345, -102.5528], zoom_start=6);
 L.tileLayer('https://tiles.stadiamaps.com/tiles/alidade_smooth_dark/{z}/{x}/{y}{r}.png', {
 	maxZoom: 20,
 	attribution: '&copy; <a href="https://stadiamaps.com/">Stadia Maps</a>, &copy; <a href="https://openmaptiles.org/">OpenMapTiles</a> &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors'
 }).addTo(mymap);
 
 
+// Create the drawnPolys group
+var drawnPolys = new L.featureGroup().addTo(mymap);
+
+// Add the drawn control to the map
+var drawControl = new L.Control.Draw({ 
+
+    draw: {
+            circle: true, 
+            circlemarker: false, 
+            polyline : false,
+            marker   : false,
+            polygon  : true,
+            rectangle: true
+        },
+    edit: {
+           featureGroup: drawnPolys, 
+           remove: true}
+        });
+
+mymap.addControl(drawControl);
+
+
+// What happens when a shape is drawn/created
+mymap.on(L.Draw.Event.CREATED, e => {
+
+    // Save the layer as an object
+    var layer = e.layer;
+
+    // Add the drawn layer to the map
+    mymap.addLayer(layer);
+    
+    // Add the layer to the drawnPolys LayerGroup
+    drawnPolys.addLayer(layer);
+    
+    // Zoom in to the drawn poly
+    mymap.fitBounds(layer.getBounds());
+   
+   // Get the layers in the geoJSON layer (no need rn but leaving in for reference)
+    var polygons = window.poly.getLayers();
+
+});
+
+
+
+// Function to color the polygons by number of migrants
 function getColor(d) {
     return d > 1000 ? '#800026' :
            d > 500  ? '#BD0026' :
@@ -402,9 +451,11 @@ function getColor(d) {
                       '#FFEDA0';
 }
 
+
+// Function to style the polygons
 function polygon_style(feature) {
   return {
-    fillColor: getColor(feature.num_migrants),
+    fillColor: getColor(feature.properties.num_migrants),
     weight: .5,
     opacity: 1,
     color: 'white',
@@ -413,45 +464,67 @@ function polygon_style(feature) {
 }
 
 
+// Removes highlight from polygons when cursor is not over them
+function resetHighlight(e) {
+    window.poly.resetStyle(e.target);
+}
 
 
+// Zooms to a clicked on polygon
+function zoomToFeature(e) {
+    mymap.fitBounds(e.target.getBounds());
+}
+
+
+// Highlights a polygon when hovered over
+function highlightFeature(e) {
+
+    var layer = e.target;
+
+    layer.setStyle({
+        weight: 5,
+        color: '#666',
+        dashArray: '',
+        fillOpacity: 0.7
+    });
+
+    if (!L.Browser.ie && !L.Browser.opera && !L.Browser.edge) {
+        layer.bringToFront();
+    }
+
+}
+
+
+// On each feature, highlight/remove highlight when hovered over, zoom when clicked and add popup
+function onEachFeature(feature, layer) {
+
+    layer.bindPopup('<h1>Number of migrants</h1><h1>'+feature.properties.num_migrants+'</h1>');
+
+    layer.on({
+        mouseover: highlightFeature,
+        mouseout: resetHighlight,
+        click: zoomToFeature
+    });
+
+}
+
+
+// Create the window.poly global variable
+window.poly;
+
+// Function to get the data from the Flask function/URL (TO-DO: REMOVE ALL OF THE FUNCTIONS FROM HERE AND USE WINDOW.POLY TO EDIT THEM)
 axios.get('http://127.0.0.1:5000/geojson-features')
 
             .then(response => {
 
-                function resetHighlight(e) {
-                    polys.resetStyle(e.target);
-                }
 
-                function onEachFeature(feature, layer) {
-                    layer.on({
-                        mouseover: highlightFeature,
-                        mouseout: resetHighlight,
-                        click: zoomToFeature
-                    });
-                }
 
-                function zoomToFeature(e) {
-                    mymap.fitBounds(e.target.getBounds());
-                }
 
-                function highlightFeature(e) {
-                    var layer = e.target;
 
-                    layer.setStyle({
-                        weight: 5,
-                        color: '#666',
-                        dashArray: '',
-                        fillOpacity: 0.7
-                    });
-
-                    if (!L.Browser.ie && !L.Browser.opera && !L.Browser.edge) {
-                        layer.bringToFront();
-                    }
-
-                }
 
                 var polys = L.geoJSON(response.data, {style: polygon_style, onEachFeature: onEachFeature})//.addTo(mymap);
+
+                window.poly = polys;
 
                 polys.addTo(mymap);
 
