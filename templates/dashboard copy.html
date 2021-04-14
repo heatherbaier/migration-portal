@@ -202,13 +202,34 @@
             /* font-weight: bolder; */
         }
 
+        .predict-button {
+            background-color: #0E0C28;
+            color: white;
+            height: 50px;
+            font-size: 18px;
+            border-radius: 10px;
+            font-family: Roboto; 
+            box-shadow: 10px 5px 5px lightgray;
+            margin-left: 100px;
+            width: 500px;
+            font-weight: bolder;
+            cursor: pointer;
+            /* padding-top: 20px; */
+        }
 
+        
+        /* On mouse-over */
+        .predict-button:hover {
+            background-color: white;
+            border-color: #0E0C28;
+            color: #0E0C28;
+        }
 
         .stat-box {
             background-color: white; 
             width: 400px;
             height: 150px; 
-            border-radius: 10px;
+            border-radius: 15px;
             box-shadow: 10px 5px 5px lightgray;
         }
 
@@ -297,6 +318,9 @@
                 <label id="label_{{ hhold_var[0] }}" style="font-weight: normal;">{{ hhold_var[0] }}</label><br><br>   
             {% endfor %}
         </div>
+
+        <br><br>
+        <div><button class="predict-button">Predict new migration pattern</button></div>
 
     </div>
 
