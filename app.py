@@ -1,13 +1,21 @@
 from flask import request, jsonify, Response
+import torchvision.models as models
+from sklearn import preprocessing
 from pandas import json_normalize
 import geopandas as gpd
 import pandas as pd
 import numpy as np
+import importlib
 import geojson
 import folium
+import torch
 import flask
 import json
 import io
+
+import socialSigNoDrop
+importlib.reload(socialSigNoDrop)
+from helpers import *
 
 
 # Create the application.
@@ -17,7 +25,9 @@ APP = flask.Flask(__name__)
 GEOJSON_PATH = "./geoBoundariesSimplified-3_0_0-MEX-ADM2.geojson"
 DATA_PATH = "./mex_migration_allvars_subset.csv"
 MATCH_PATH = "./gB_IPUMS_match.csv"
-
+MODEL_PATH = "./socialSig_MEX_12epochs_real.torch"
+# MIG_DATA_PATH = "./test.csv"
+# MIG_DATA = pd.read_csv(MIG_DATA_PATH)
 
 
 
@@ -31,6 +41,15 @@ def map_column_names(var_names, df):
         if df.columns[i] in var_names.keys():
             df = df.rename(columns = {df.columns[i]: var_names[df.columns[i]] })
     return df
+
+
+
+
+
+# def edit_migration_data(MIG_DATA, selected_municipalities):
+#     mig_data_dropped = MIG_DATA[MIG_DATA['']]
+
+
 
 
 
@@ -148,12 +167,6 @@ def convert_to_pandas(geodata_collection, MATCH_PATH, DATA_PATH):
 
 def switch_column_names(MATCH_PATH, DATA_PATH):
 
-    # # Normalize the geoJSON as a pandas dataframe
-    # df = json_normalize(geodata_collection["features"])
-
-    # # Get the B unique ID column (akgkjklajkljlk)
-    # df["B"] = df['properties.shapeID'].str.split("-").str[3]
-
     # Read in the dataframe for matching and get the B unique ID column
     match_df = pd.read_csv(MATCH_PATH)[['shapeID', 'MUNI2015']]
     match_df["B"] = match_df['shapeID'].str.split("-").str[3]
@@ -207,6 +220,18 @@ def get_all_points():
 
 
 
+def predict_row(values_ar, X):
+    
+    device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+    inception = torch.hub.load('pytorch/vision:v0.9.0', 'inception_v3', pretrained=True)
+    model = socialSigNoDrop.socialSigNet_Inception(X=X, outDim = 1, inception = inception).to(device)
+    checkpoint = torch.load(MODEL_PATH)
+    model.load_state_dict(checkpoint['model_state_dict'])
+
+    print(values_ar)
+
+
+
 
 @APP.route('/predict_migration', methods=['GET', 'POST'])
 def predict_migration():
@@ -236,8 +261,6 @@ def predict_migration():
     # Change the 'pretty' variable names back to their originals so we can edit the dataframe
     column_names = [reverse_var_names[i] if i in reverse_var_names.keys() else i for i in column_names]
 
-    
-
     # Multiply the columns by their respective percent changes
     for i in range(0, len(column_names)):
 
@@ -254,8 +277,45 @@ def predict_migration():
             dta_selected[column_names[i]] = dta_selected[column_names[i]] + to_add
 
 
-    print(dta_selected.head())
+    # print(dta_selected.head())
 
+    # print(dta_selected.shape)
+
+    ids_order = dta_selected['sending']
+
+
+    dta_dropped = dta[~dta['sending'].isin(selected_municipalities)]
+
+
+    # TEMP DUMMY VARAIBLES (THIS NEEDS TO BE FIXED WHEN YOU INPUT THE CORRECT TRAINED MODEL)
+    dta_dropped['DUMMY'] = [i for i in range(0, len(dta_dropped))]
+    dta_selected['DUMMY'] = [i for i in range(0, len(dta_selected))]
+
+
+    print(dta_dropped.shape)
+    dta_appended = dta_dropped.append(dta_selected)
+    dta_appended = dta_appended.drop(['sending'], axis = 1)
+    print(dta_appended.shape)
+
+    X = dta_appended.loc[:, dta_appended.columns != "num_persons_to_us"].values
+    mMScale = preprocessing.MinMaxScaler()
+    X = mMScale.fit_transform(X)
+
+    muns_to_pred = X[-len(selected_municipalities):]
+
+    print(len(muns_to_pred))
+
+    # dta_selected = dta_selected.drop(['sending', 'num_persons_to_us'], axis = 1)
+    # print(dta_selected.shape)
+
+
+
+    for municipality in muns_to_pred:
+        predict_row(municipality, X)
+
+
+
+    
         # dta_selected[column_names[i]] = dta_selected[column_names[i]] * float(percent_changes[i])
 
 

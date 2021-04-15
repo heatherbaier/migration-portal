@@ -256,7 +256,7 @@
 
         <h4>Adjustable sociodemographic variables:</h4>
 
-        <button class="dropdown-btn"><i class="material-icons">cloud</i><span style="padding-left: 20px;">Economic Variables</span> <i class="fa fa-caret-down"></i></button>
+        <button class="dropdown-btn"><i class="material-icons">paid</i><span style="padding-left: 20px;">Economic Variables</span> <i class="fa fa-caret-down"></i></button>
 
         <div class="dropdown-container">
             {% for econ_var in econ_data %}
@@ -447,7 +447,7 @@ var drawnPolys = new L.featureGroup().addTo(mymap);
 var drawControl = new L.Control.Draw({ 
 
     draw: {
-            circle: true, 
+            circle: false, 
             circlemarker: false, 
             polyline : false,
             marker   : false,
@@ -485,7 +485,6 @@ mymap.on(L.Draw.Event.CREATED, e => {
    
    // Get the layers in the geoJSON layer (no need rn but leaving in for reference)
     var polygons = window.poly.getLayers();
-
 
     for (i = 0; i < polygons.length; i++) {
         if (layer.getBounds().contains(polygons[i].getBounds())) {
@@ -565,7 +564,7 @@ function getColor(d) {
 function polygon_style(feature) {
   return {
     fillColor: getColor(feature.properties.num_migrants),
-    weight: .5,
+    weight: .2,
     opacity: 1,
     color: 'white',
     fillOpacity: 0.5
@@ -660,7 +659,7 @@ function predict_migration() {
 
 
 
-        // Post the list of selected Issuer Id's back to Flask
+        // Post the list of selected municipality Id's back to Flask
         fetch('/predict_migration', {
 
             // When the data gets POSTed back to Flask, it'll be in JSON format
