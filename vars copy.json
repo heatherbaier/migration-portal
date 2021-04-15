@@ -10,8 +10,7 @@
         "perc_service_workers", "perc_agri_fish_workers", "perc_trades_workers", "perc_machine_operators", "perc_elementary_occupations", 
         "perc_armed_forces",  "perc_self_employed", "perc_wage_worker", "perc_unpaid_worker", "perc_walking_trnwrk", 
          "perc_walk_bicycle_or_motorcycle_trnwrk", "perc_bicycle_trnwrk", "perc_public_transport_trnwrk",
-          "perc_disabled", "perc_inactive_empstat", "perc_unknown_empstat", 
-          "perc_no_lab", "perc_yes_lab"],
+          "perc_disabled", "perc_yes_lab"],
 
 
  "Health": ["perc_imss_issste_hlthcov", "perc_imss_pemex_military_naval_hlthcov", "perc_imss_public_insurance_hlthcov", 

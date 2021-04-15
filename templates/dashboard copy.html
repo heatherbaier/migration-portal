@@ -256,71 +256,71 @@
 
         <h4>Adjustable sociodemographic variables:</h4>
 
-        <button class="dropdown-btn"><i class="material-icons">cloud</i>Economic Variables <i class="fa fa-caret-down"></i></button>
+        <button class="dropdown-btn"><i class="material-icons">cloud</i><span style="padding-left: 20px;">Economic Variables</span> <i class="fa fa-caret-down"></i></button>
 
         <div class="dropdown-container">
             {% for econ_var in econ_data %}
-                <input type="number" id="{{ econ_var[0] }}-change" value="0">
+                <input type="number" id="{{ econ_var[0] }}" value="0">
                 <label id="label_{{ econ_var[0] }}" style="font-weight: normal;">{{ econ_var[0] }}</label><br><br>                
             {% endfor %}
         </div>
 
 
-        <button class="dropdown-btn"><i class="material-icons">people</i>Demographic Variables<i class="fa fa-caret-down"></i></button>
+        <button class="dropdown-btn"><i class="material-icons">people</i><span style="padding-left: 20px;">Demographic Variables</span><i class="fa fa-caret-down"></i></button>
         <div class="dropdown-container">
             {% for demog_var in demog_data %}
-                <input type="number" id="{{ demog_var[0] }}-change" value="0">
+                <input type="number" id="{{ demog_var[0] }}" value="0">
                 <label id="label_{{ demog_var[0] }}" style="font-weight: normal;">{{ demog_var[0] }}</label><br><br>   
             {% endfor %}
         </div>
 
 
-        <button class="dropdown-btn"><i class="material-icons">pregnant_woman</i>Marriage & Fertility Variables<i class="fa fa-caret-down"></i></button>
+        <button class="dropdown-btn"><i class="material-icons">pregnant_woman</i><span style="padding-left: 20px;">Marriage & Fertility Variables</span><i class="fa fa-caret-down"></i></button>
         <div class="dropdown-container">
             {% for family_var in family_data %}
-                <input type="number" id="{{ family_var[0] }}-change" value="0">
+                <input type="number" id="{{ family_var[0] }}" value="0">
                 <label id="label_{{ family_var[0] }}" style="font-weight: normal;">{{ family_var[0] }}</label><br><br>   
             {% endfor %}
         </div>
 
 
-        <button class="dropdown-btn"><i class="material-icons">health_and_safety</i>Health Variables <i class="fa fa-caret-down"></i></button>
+        <button class="dropdown-btn"><i class="material-icons">health_and_safety</i><span style="padding-left: 20px;">Health Variables</span><i class="fa fa-caret-down"></i></button>
         <div class="dropdown-container">
             {% for health_var in health_data %}
-                <input type="number" id="{{ health_var[0] }}-change" value="0">
+                <input type="number" id="{{ health_var[0] }}" value="0">
                 <label id="label_{{ health_var[0] }}" style="font-weight: normal;">{{ health_var[0] }}</label><br><br>   
             {% endfor %}
         </div>
 
 
-        <button class="dropdown-btn"><i class="material-icons">meeting_room</i>Occupational Variables <i class="fa fa-caret-down"></i></button>
+        <button class="dropdown-btn"><i class="material-icons">meeting_room</i><span style="padding-left: 20px;">Occupational Variables</span><i class="fa fa-caret-down"></i></button>
         <div class="dropdown-container">
             {% for employ_var in employ_data %}
-                <input type="number" id="{{ employ_var[0] }}-change" value="0">
+                <input type="number" id="{{ employ_var[0] }}" value="0">
                 <label id="label_{{ employ_var[0] }}" style="font-weight: normal;">{{ employ_var[0] }}</label><br><br>   
             {% endfor %}
         </div>
 
 
-        <button class="dropdown-btn"><i class="material-icons">local_library</i>Education Variables<i class="fa fa-caret-down"></i></button>
+        <button class="dropdown-btn"><i class="material-icons">local_library</i><span style="padding-left: 20px;">Education Variables</span><i class="fa fa-caret-down"></i></button>
         <div class="dropdown-container">
             {% for edu_var in edu_data %}
-                <input type="number" id="{{ edu_var[0] }}-change" value="0">
+                <input type="number" id="{{ edu_var[0] }}" value="0">
                 <label id="label_{{ edu_var[0] }}" style="font-weight: normal;">{{ edu_var[0] }}</label><br><br>   
             {% endfor %}
         </div>
 
 
-        <button class="dropdown-btn"><i class="material-icons">home</i>Household Variables<i class="fa fa-caret-down"></i></button>
+        <button class="dropdown-btn"><i class="material-icons">home</i><span style="padding-left: 20px;">Household Variables</span><i class="fa fa-caret-down"></i></button>
         <div class="dropdown-container">
             {% for hhold_var in hhold_data %}
-                <input type="number" id="{{ hhold_var[0] }}-change" value="0">
+                <input type="number" id="{{ hhold_var[0] }}" value="0">
                 <label id="label_{{ hhold_var[0] }}" style="font-weight: normal;">{{ hhold_var[0] }}</label><br><br>   
             {% endfor %}
         </div>
 
         <br><br>
-        <div><button class="predict-button">Predict new migration pattern</button></div>
+        <div><button class="predict-button" onclick="predict_migration()">Predict new migration pattern</button></div>
 
     </div>
 
@@ -341,7 +341,9 @@
             </div>
 
             <div style="width: 70%; float: right;">
-                <canvas id="myChart" width="200px" height="100px"></canvas>
+                <!-- <div style="background-color: white; border-radius: 15px; box-shadow: 10px 5px 5px lightgray;"> -->
+                    <canvas id="myChart" width="200px" height="100px"></canvas>
+                <!-- </div> -->
             </div>
 
             <br>
@@ -374,6 +376,14 @@ for (i = 0; i < dropdown.length; i++) {
   }
   });
 }
+
+
+
+
+
+
+
+
 
 
 
@@ -615,20 +625,75 @@ window.poly;
 // Function to get the data from the Flask function/URL (TO-DO: REMOVE ALL OF THE FUNCTIONS FROM HERE AND USE WINDOW.POLY TO EDIT THEM)
 axios.get('http://127.0.0.1:5000/geojson-features')
 
-            .then(response => {
+    .then(response => {
+
+        var polys = L.geoJSON(response.data, {style: polygon_style, onEachFeature: onEachFeature})//.addTo(mymap);
+        window.poly = polys;
+        polys.addTo(mymap);
+
+    })
 
 
 
 
 
 
-                var polys = L.geoJSON(response.data, {style: polygon_style, onEachFeature: onEachFeature})//.addTo(mymap);
 
-                window.poly = polys;
 
-                polys.addTo(mymap);
+function predict_migration() {
 
+    console.log("here!!");
+
+    console.log("Selected polygon ID's: ");
+
+    console.log(window.selected_polys);
+
+
+    var column_names = [];
+    var percent_changes = [];
+    var inputs = document.getElementsByTagName('input');
+    for (i = 0; i < inputs.length; ++i) {
+        // deal with inputs[index] element.
+        column_names.push(inputs[i].id);
+        percent_changes.push(inputs[i].value);
+    }
+
+
+
+        // Post the list of selected Issuer Id's back to Flask
+        fetch('/predict_migration', {
+
+            // When the data gets POSTed back to Flask, it'll be in JSON format
+            headers: {
+            'Content-Type': 'application/json'
+            },
+
+            // Send the data back as a POST request
+            method: 'POST',
+
+            // Here's where you construct the JSON
+            body: JSON.stringify({
+                "selected_municipalities": window.selected_polys,
+                "column_names": column_names,
+                "percent_changes": percent_changes
             })
+
+            // ...and then send it off
+            }).then(function (response) {
+                return response.text();
+            }).then(function (text) {
+                console.log('made it back here!');
+                // console.log(JSON.parse(text));
+                // var arr = JSON.parse(text)
+                // for (var key in arr) {
+                //     // console.log(key + " -> " + arr[key])
+                //     document.getElementById(key).value = arr[key];
+                // };
+
+            });
+
+        }
+
 
 </script>
 

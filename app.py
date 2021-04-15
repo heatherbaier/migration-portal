@@ -118,7 +118,7 @@ def index():
 
 
 
-def convert_to_pandas(geodata_collection, MATCH_PATH, DATA_PATH):\
+def convert_to_pandas(geodata_collection, MATCH_PATH, DATA_PATH):
 
     # Normalize the geoJSON as a pandas dataframe
     df = json_normalize(geodata_collection["features"])
@@ -142,6 +142,33 @@ def convert_to_pandas(geodata_collection, MATCH_PATH, DATA_PATH):\
 
     return merged
 
+
+
+
+
+def switch_column_names(MATCH_PATH, DATA_PATH):
+
+    # # Normalize the geoJSON as a pandas dataframe
+    # df = json_normalize(geodata_collection["features"])
+
+    # # Get the B unique ID column (akgkjklajkljlk)
+    # df["B"] = df['properties.shapeID'].str.split("-").str[3]
+
+    # Read in the dataframe for matching and get the B unique ID column
+    match_df = pd.read_csv(MATCH_PATH)[['shapeID', 'MUNI2015']]
+    match_df["B"] = match_df['shapeID'].str.split("-").str[3]
+
+    # Read in the migration data
+    dta = pd.read_csv(DATA_PATH)
+
+    # Match the IPUMS ID's to the gB ID's
+    ref_dict = dict(zip(match_df['MUNI2015'], match_df['B']))
+    dta['sending'] = dta['sending'].map(ref_dict)
+
+    # # Mix it all together
+    # merged = pd.merge(df, dta, on = 'sending')
+
+    return dta
 
 
 
@@ -178,6 +205,65 @@ def get_all_points():
 
 
 
+
+
+
+@APP.route('/predict_migration', methods=['GET', 'POST'])
+def predict_migration():
+    print("we made it!")
+
+    # Parse the selected municipalities and get their unique B ID's
+    selected_municipalities = request.json['selected_municipalities']
+    selected_municipalities = [i.split("-")[3] for i in selected_municipalities]
+    print("Selected municipalities: ", selected_municipalities)
+
+    # Read in the migration data and subset it tot he selected municipalities
+    dta = switch_column_names(MATCH_PATH, DATA_PATH)
+    dta_selected = dta[dta['sending'].isin(selected_municipalities)]
+    print(dta_selected.shape)
+
+    # Parse the edited input variables and switch all of the 0's in percent_changes to 1 (neccessary for multiplying later on)
+    column_names = request.json['column_names']
+    percent_changes = request.json['percent_changes']
+    percent_changes = [i if i != '0' else '1' for i in percent_changes]
+
+
+    # Open the var_map JSON and reverse the dictionary
+    with open("./var_map.json", "r") as f2:
+        var_names = json.load(f2)
+    reverse_var_names = dict([(value, key) for key, value in var_names.items()])
+
+    # Change the 'pretty' variable names back to their originals so we can edit the dataframe
+    column_names = [reverse_var_names[i] if i in reverse_var_names.keys() else i for i in column_names]
+
+    
+
+    # Multiply the columns by their respective percent changes
+    for i in range(0, len(column_names)):
+
+        if float(percent_changes[i]) < 0:
+            percentage = abs(float(percent_changes[i])) * .01
+            to_subtract = percentage * dta_selected[column_names[i]]
+            # print("Percent change: ", percentage)
+            # print("Percent change of value: ", hm)
+            dta_selected[column_names[i]] = dta_selected[column_names[i]] - to_subtract
+
+        else:
+            percentage = abs(float(percent_changes[i])) * .01
+            to_add = percentage * dta_selected[column_names[i]]
+            dta_selected[column_names[i]] = dta_selected[column_names[i]] + to_add
+
+
+    print(dta_selected.head())
+
+        # dta_selected[column_names[i]] = dta_selected[column_names[i]] * float(percent_changes[i])
+
+
+
+
+    
+
+    return {'yo': 'waddup'}
 
 
 
