@@ -97,6 +97,8 @@
             padding-left: 8px;
             margin-left:60px;
             margin-right:20px;
+            margin-top:20px;
+            margin-bottom:20px;
             border-radius: 10px;
             /* border-bottom-right-radius: 4px; */
             padding: 20px;
@@ -210,7 +212,7 @@
             border-radius: 10px;
             font-family: Roboto; 
             box-shadow: 10px 5px 5px lightgray;
-            margin-left: 100px;
+            margin-left: 110px;
             width: 500px;
             font-weight: bolder;
             cursor: pointer;
@@ -230,6 +232,12 @@
             width: 400px;
             height: 150px; 
             border-radius: 15px;
+            box-shadow: 10px 5px 5px lightgray;
+        }
+
+
+        hr {
+            margin-left: 40px;
             box-shadow: 10px 5px 5px lightgray;
         }
 
@@ -321,6 +329,21 @@
 
         <br><br>
         <div><button class="predict-button" onclick="predict_migration()">Predict new migration pattern</button></div>
+
+        <br><br>
+
+        <hr>
+
+        <br>
+
+        <div>
+            <h2 style="margin-left: 40px">Directions to user:</h2>
+            <ol style="margin-left: 40px; font-size: 20px; font-family: Roboto; line-height: 1.6;">
+                <li>Click on either the polygon or rectanlge icons on the map to draw an area of interest (AOI) over municipalities you wish to manipualte data for. You can draw as many AOI's as you wish. To delete an AOI, click on the trash can icon on the map, then click on the AOI you wish to delte and hit 'save' next to the trash can icon.</li>
+                <li>Click on any of the variable drop downs above to view associated variables that are available to manipulate. Then, type in a percentage increase or decrease to change the value of the variable for the municiaplities you choose on the map. For example, if you'd like to increase the Total Income of selected municipalities by 10%, click on 'Economic Variables and type '10' into the input box next to income.</li>
+                <li>Once you are happy with your selections, click 'Predict new migration pattern' and wait for the update migration predictions.</li>
+            </ol>
+        </div>
 
     </div>
 
@@ -491,7 +514,6 @@ mymap.on(L.Draw.Event.CREATED, e => {
             // console.log(polygons[i].feature.properties.shapeID)
             window.selected_polys.push(polygons[i].feature.properties.shapeID)
         }
-
     }
 
     console.log("Municipalities within selected area: ");
@@ -628,7 +650,7 @@ axios.get('http://127.0.0.1:5000/geojson-features')
 
         var polys = L.geoJSON(response.data, {style: polygon_style, onEachFeature: onEachFeature})//.addTo(mymap);
         window.poly = polys;
-        polys.addTo(mymap);
+        window.poly.addTo(mymap);
 
     })
 
@@ -647,51 +669,60 @@ function predict_migration() {
 
     console.log(window.selected_polys);
 
+    // Make two new variables to store column name sand their associated percentage change values
+    var column_names = [],
+        percent_changes = [];
 
-    var column_names = [];
-    var percent_changes = [];
-    var inputs = document.getElementsByTagName('input');
+    // Grab all of the percent change inputs
+    var inputs = document.getElementsByTagName('input');\
+
+    // For all of the inputs, append the ID and value to their respective lists
     for (i = 0; i < inputs.length; ++i) {
-        // deal with inputs[index] element.
         column_names.push(inputs[i].id);
         percent_changes.push(inputs[i].value);
     }
 
+    // Post all of the variable ID's and their percent changes back to Flaks
+    fetch('/predict_migration', {
 
-
-        // Post the list of selected municipality Id's back to Flask
-        fetch('/predict_migration', {
-
-            // When the data gets POSTed back to Flask, it'll be in JSON format
-            headers: {
+        // When the data gets POSTed back to Flask, it'll be in JSON format
+        headers: {
             'Content-Type': 'application/json'
-            },
+        },
 
-            // Send the data back as a POST request
-            method: 'POST',
+        // Send the data back as a POST request
+        method: 'POST',
 
-            // Here's where you construct the JSON
-            body: JSON.stringify({
-                "selected_municipalities": window.selected_polys,
-                "column_names": column_names,
-                "percent_changes": percent_changes
-            })
+        // Here's where you construct the JSON
+        body: JSON.stringify({
 
-            // ...and then send it off
-            }).then(function (response) {
-                return response.text();
-            }).then(function (text) {
-                console.log('made it back here!');
-                // console.log(JSON.parse(text));
-                // var arr = JSON.parse(text)
-                // for (var key in arr) {
-                //     // console.log(key + " -> " + arr[key])
-                //     document.getElementById(key).value = arr[key];
-                // };
+            "selected_municipalities": window.selected_polys,
+            "column_names": column_names,
+            "percent_changes": percent_changes
 
-            });
+        })
 
-        }
+        // ...and then send it off
+        }).then(function (response) {
+            return response.text();
+        }).then(function (text) {
+
+            // Remove the current migration data layer from the map
+            mymap.removeLayer(window.poly);
+
+            // Convert the new migration data into a leaflet geoJSON
+            var polys = L.geoJSON(JSON.parse(text), {style: polygon_style, onEachFeature: onEachFeature})//.addTo(mymap);
+
+            // Update the global window.poly variable & add it to the map
+            window.poly = polys;
+            window.poly.addTo(mymap);
+
+            // Zoom the map back out to all of Mexico                
+            mymap.fitBounds(window.poly.getBounds());
+
+        });
+
+    }
 
 
 </script>

@@ -15,7 +15,7 @@ import io
 
 import socialSigNoDrop
 importlib.reload(socialSigNoDrop)
-from helpers import *
+# from helpers import *
 
 
 # Create the application.
@@ -228,7 +228,11 @@ def predict_row(values_ar, X):
     checkpoint = torch.load(MODEL_PATH)
     model.load_state_dict(checkpoint['model_state_dict'])
 
-    print(values_ar)
+    input = torch.reshape(torch.tensor(values_ar, dtype = torch.float32), (1, 287)).to(device)
+    model.eval()
+    pred = model(input).detach().cpu().numpy()[0][0]
+
+    return pred
 
 
 
@@ -267,23 +271,14 @@ def predict_migration():
         if float(percent_changes[i]) < 0:
             percentage = abs(float(percent_changes[i])) * .01
             to_subtract = percentage * dta_selected[column_names[i]]
-            # print("Percent change: ", percentage)
-            # print("Percent change of value: ", hm)
             dta_selected[column_names[i]] = dta_selected[column_names[i]] - to_subtract
-
         else:
             percentage = abs(float(percent_changes[i])) * .01
             to_add = percentage * dta_selected[column_names[i]]
             dta_selected[column_names[i]] = dta_selected[column_names[i]] + to_add
 
 
-    # print(dta_selected.head())
-
-    # print(dta_selected.shape)
-
-    ids_order = dta_selected['sending']
-
-
+    # Get a data frame with all of the data that wasn't edited
     dta_dropped = dta[~dta['sending'].isin(selected_municipalities)]
 
 
@@ -291,178 +286,60 @@ def predict_migration():
     dta_dropped['DUMMY'] = [i for i in range(0, len(dta_dropped))]
     dta_selected['DUMMY'] = [i for i in range(0, len(dta_selected))]
 
-
-    print(dta_dropped.shape)
+    # Then re-append the updated data to the larger dataframe incorporating user input
     dta_appended = dta_dropped.append(dta_selected)
     dta_appended = dta_appended.drop(['sending'], axis = 1)
-    print(dta_appended.shape)
 
+    # Scale the data frame for the model
     X = dta_appended.loc[:, dta_appended.columns != "num_persons_to_us"].values
     mMScale = preprocessing.MinMaxScaler()
     X = mMScale.fit_transform(X)
 
+    # Grab just the municaplities that we edited
     muns_to_pred = X[-len(selected_municipalities):]
 
-    print(len(muns_to_pred))
-
-    # dta_selected = dta_selected.drop(['sending', 'num_persons_to_us'], axis = 1)
-    # print(dta_selected.shape)
-
-
-
-    for municipality in muns_to_pred:
-        predict_row(municipality, X)
-
-
-
+    # Predict each of them
+    predictions = [predict_row(i, X) for i in muns_to_pred]
     
-        # dta_selected[column_names[i]] = dta_selected[column_names[i]] * float(percent_changes[i])
+    # Update the migration numbers in the dataframe and re-append it tot the wider dataframe
+    dta_selected['num_persons_to_us'] = predictions
+    dta_final = dta_dropped.append(dta_selected)
+
+    # Normalize the geoJSON as a pandas dataframe
+    geoDF = json_normalize(geodata_collection["features"])
+
+    # Get the B unique ID column (akgkjklajkljlk)
+    geoDF["B"] = geoDF['properties.shapeID'].str.split("-").str[3]
+    geoDF = geoDF.rename(columns = {"B":"sending"})
+
+    # Mix it all together
+    merged = pd.merge(geoDF, dta_final, on = 'sending')
+
+    # # Make lists of all of the features we want available to the Leaflet map
+    coords = merged['geometry.coordinates']
+    types = merged['geometry.type']
+    num_migrants = merged['num_persons_to_us']
+    shapeIDs = merged['sending']
+    shapeNames = merged['properties.shapeName']
+
+    # For each of the polygons in the data frame, append it and it's data to a list of dicts to be sent as a JSON back to the Leaflet map
+    features = []
+    for i in range(0, len(merged)):
+        features.append({
+            "type": "Feature",
+            "geometry": {
+                "type": types[i],
+                "coordinates": coords[i]
+            },
+            "properties": {'num_migrants': num_migrants[i],
+                           'shapeID': shapeIDs[i],
+                           'shapeName': shapeNames[i]
+                          }
+        })
+
+    return jsonify(features)
+        
 
 
 
-
-    
-
-    return {'yo': 'waddup'}
-
-
-
-
-# from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
-# from matplotlib.figure import Figure
-# import matplotlib.pyplot as plt
-# import matplotlib.image as mpimg
-
-
-# @APP.route('/', methods=['GET','POST'])
-# def index():
-#     """ Displays the index page accessible at '/' """
-#     df = pd.read_csv("./us_migration.csv")
-#     df_var_cols = [i for i in df.columns if i not in ['sending','US_MIG_05_10']]
-
-#     if request.method == 'POST':
-#         print("In POST")
-#         print("Selected province: ", request.json['adm_id'])
-#         adms = df[df['sending'] == int(request.json['adm_id'])]
-#         adms = adms[df_var_cols]
-#         return dict(adms.iloc[0].T)
-
-#     if request.method == 'GET':
-#         print("In GET")
-#         adms = df['sending'].unique()
-#         df = df[df_var_cols]
-#         dta = zip(df.columns, df.iloc[0].to_list())
-
-#         m = folium.Map(location=[23.6345, -92.5528], zoom_start=5)
-
-#         folium.Choropleth(
-#             geo_data=gdf_json,
-#             name="choropleth",
-#             data=mig,
-#             columns=["B", "US_MIG_05_10"],
-#             key_on="feature.properties.B",
-#             fill_color="YlGn",
-#             fill_opacity=1,
-#             weight= 1,
-#             legend_name="Number of migrants",
-#         ).add_to(m)
-
-#         polys = folium.features.GeoJson(gdf_json, style_function=style_function).add_to(m)
-
-#         return flask.render_template('index.html', dta = dta, map = m._repr_html_(), adms = adms)#, shp = features[0]['geometry']['coordinates'])
-
-
-
-
-# @APP.route('/update_map', methods=['GET','POST'])
-# def update_map():
-
-#     print('here!!')
-
-#     if request.method == 'POST':
-
-#         lat, lng = get_centroids(gdf)
-
-#         m = folium.Map(location=[float(lng), float(lat)], zoom_start=9)
-#         folium.Choropleth(
-#             geo_data=gdf_json,
-#             name="choropleth",
-#             data=mig,
-#             columns=["B", "US_MIG_05_10"],
-#             key_on="feature.properties.B",
-#             fill_color="YlGn",
-#             fill_opacity=1,
-#             weight= 1,
-#             legend_name="Number of migrants",
-#         ).add_to(m)
-
-#         polys = folium.features.GeoJson(gdf_json, style_function=style_function).add_to(m)
-
-#         return m._repr_html_()
-
-
-
-# @APP.route('/pred_muni', methods=['GET','POST'])
-# def pred_muni():
-#     # if request.method == 'POST':
-#     print("in pred muni function!")
-    
-
-#     new_vals = request.json['values']
-#     new_vals = [float(i) for i in new_vals]
-#     print(new_vals)
-
-#     pred = pred_municipality(int(request.json['adm_id']), model, MIG_PATH, new_vals)
-
-#     pred = pred.item()
-#     print(pred)
-
-#     return {'pred': pred}
-
-
-
-# @APP.route('/plot_social_sig', methods=['GET','POST'])
-# def plot_png():
-#     df = pd.read_csv("./figs2/im" + str(1) + ".csv")
-#     mpimg.imsave("./static/images/im2.png", np.reshape(np.array(df["0"]), (224,224)))
-#     return {'url': "/static/images/im2.png"}
-
-# # def create_figure():
-# #     df = pd.read_csv("./figs2/im" + str(1) + ".csv")
-# #     mpimg.imsave("./pics9/im" + str(1) + ".png", np.reshape(np.array(df["0"]), (224,224)))
-# #     return {'url': "./pics9/im" + str(1) + ".png"}
-
-
-
-
-if __name__ == '__main__':
-    APP.debug=True
-    APP.run()
-
-
-
-
-
-
-# Economic:
-# 'sending_salary_worker', 'sending_self_employed', 'sending_sum_income','sending_unknown_employment_status',
-# 'sending_unpaid_worker','sending_weighted_avg_income',
-# 'sending_weighted_avg_income_abroad',
-# 'sending_weighted_avg_no_income_abroad',
-# 'sending_weighted_avg_unknown_income_abroad',
-
-
-# Demographic
-# 'sending_citizen_unspecified', 'sending_citizenship_unknown',
-# 'sending_indigeneity','sending_marriage_unknown', 'sending_married', 'sending_no_indigeneity',
-# 'sending_not_citizen','sending_separated','sending_single','sending_unknown_indigeneity','sending_widowed
-
-
-# Household
-# 'sending_household_not_owned', 'sending_household_owned',
-# 'sending_household_owned_unknown', 'sending_internet', 'sending_internet_unknown',
-# 'sending_no_internet','sending_rural','sending_urban',
-
-
-# Administrative:
-# 'sending_total_pop',
+        
