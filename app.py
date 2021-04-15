@@ -315,6 +315,15 @@ def predict_migration():
     # Mix it all together
     merged = pd.merge(geoDF, dta_final, on = 'sending')
 
+
+    total_migrants = merged['num_persons_to_us'].sum()
+    total_migrants = {'total_migrants': total_migrants}
+    
+
+    with open('predicted_migrants.json', 'w') as outfile:
+        json.dump(total_migrants, outfile)
+
+
     # # Make lists of all of the features we want available to the Leaflet map
     coords = merged['geometry.coordinates']
     types = merged['geometry.type']
@@ -342,4 +351,33 @@ def predict_migration():
 
 
 
-        
+
+@APP.route('/update_stats', methods=['GET'])
+def update_stats():
+
+    # Read in migration data
+    df = pd.read_csv(DATA_PATH)
+
+    # Get the number of migrants to send to HTML for stat box
+    total_migrants = df['num_persons_to_us'].sum()
+
+
+    with open("./predicted_migrants.json") as json_file:
+        predicted_migrants = json.load(json_file)
+    predicted_migrants = predicted_migrants['total_migrants']
+
+    p_change = ((round(predicted_migrants, 0) - total_migrants) / total_migrants) * 100
+    change = round(predicted_migrants, 0) - total_migrants
+
+    # if change > 0:
+        # 
+
+    return {'change': change,
+            'p_change': round(p_change, 2),
+            'predicted_migrants': round(predicted_migrants, 0)}
+
+
+
+if __name__ == '__main__':
+    APP.debug=True
+    APP.run()
