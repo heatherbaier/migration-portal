@@ -1,6 +1,8 @@
 <!DOCTYPE html>
 <html>
 <head>
+
+    <title>Migration Data Portal</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
     <link href='https://fonts.googleapis.com/css?family=Roboto' rel='stylesheet'>
@@ -8,22 +10,11 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" integrity="sha512-xodZBNTC5n17Xt2atTPuE1HxjVMSvLVW9ocqUKLsCC5CXdbqCmblAshOMAS6/keqq/sMZMZ19scR4PsZChSR7A==" crossorigin=""/>
     <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js" integrity="sha512-XQoYMqMTK8LvdxXYG3nZ448hOEQiglfqkJs1NOQV44cWnUrBc8PkAOcXy20w0vlaXaVUearIOBhiXZ5V3ynxwA==" crossorigin=""></script>
     <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
-
-
-
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.5.1/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.5.1/dist/leaflet.js"></script>
     <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/0.4.2/leaflet.draw.css"/>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/0.4.2/leaflet.draw.js"></script>
-
-
-
-    <script type="text/javascript">
-        var hist_data = {{ hist.data }}
-        var hist_labels = {{ hist.labels }}
-    </script>
-
 
 
     <style>
@@ -294,15 +285,13 @@
     <div class="sidenav">
 
         <h1>Migration Data Portal</h1>
-
         <h4>Adjustable sociodemographic variables:</h4>
 
         <button class="dropdown-btn"><i class="material-icons">paid</i><span style="padding-left: 20px;">Economic Variables</span> <i class="fa fa-caret-down"></i></button>
-
         <div class="dropdown-container">
             {% for econ_var in econ_data %}
-                <input type="number" id="{{ econ_var[0] }}" value="0">
-                <label id="label_{{ econ_var[0] }}" style="font-weight: normal;">{{ econ_var[0] }}</label><br><br>                
+                <input type="number" id="{{ econ_var }}" value="0">
+                <label id="label_{{ econ_var }}" style="font-weight: normal;">{{ econ_var }}</label><br><br>                
             {% endfor %}
         </div>
 
@@ -310,8 +299,8 @@
         <button class="dropdown-btn"><i class="material-icons">people</i><span style="padding-left: 20px;">Demographic Variables</span><i class="fa fa-caret-down"></i></button>
         <div class="dropdown-container">
             {% for demog_var in demog_data %}
-                <input type="number" id="{{ demog_var[0] }}" value="0">
-                <label id="label_{{ demog_var[0] }}" style="font-weight: normal;">{{ demog_var[0] }}</label><br><br>   
+                <input type="number" id="{{ demog_var }}" value="0">
+                <label id="label_{{ demog_var }}" style="font-weight: normal;">{{ demog_var }}</label><br><br>   
             {% endfor %}
         </div>
 
@@ -319,8 +308,8 @@
         <button class="dropdown-btn"><i class="material-icons">pregnant_woman</i><span style="padding-left: 20px;">Marriage & Fertility Variables</span><i class="fa fa-caret-down"></i></button>
         <div class="dropdown-container">
             {% for family_var in family_data %}
-                <input type="number" id="{{ family_var[0] }}" value="0">
-                <label id="label_{{ family_var[0] }}" style="font-weight: normal;">{{ family_var[0] }}</label><br><br>   
+                <input type="number" id="{{ family_var }}" value="0">
+                <label id="label_{{ family_var }}" style="font-weight: normal;">{{ family_var }}</label><br><br>   
             {% endfor %}
         </div>
 
@@ -328,8 +317,8 @@
         <button class="dropdown-btn"><i class="material-icons">health_and_safety</i><span style="padding-left: 20px;">Health Variables</span><i class="fa fa-caret-down"></i></button>
         <div class="dropdown-container">
             {% for health_var in health_data %}
-                <input type="number" id="{{ health_var[0] }}" value="0">
-                <label id="label_{{ health_var[0] }}" style="font-weight: normal;">{{ health_var[0] }}</label><br><br>   
+                <input type="number" id="{{ health_var }}" value="0">
+                <label id="label_{{ health_var }}" style="font-weight: normal;">{{ health_var }}</label><br><br>   
             {% endfor %}
         </div>
 
@@ -337,8 +326,8 @@
         <button class="dropdown-btn"><i class="material-icons">meeting_room</i><span style="padding-left: 20px;">Occupational Variables</span><i class="fa fa-caret-down"></i></button>
         <div class="dropdown-container">
             {% for employ_var in employ_data %}
-                <input type="number" id="{{ employ_var[0] }}" value="0">
-                <label id="label_{{ employ_var[0] }}" style="font-weight: normal;">{{ employ_var[0] }}</label><br><br>   
+                <input type="number" id="{{ employ_var }}" value="0">
+                <label id="label_{{ employ_var }}" style="font-weight: normal;">{{ employ_var }}</label><br><br>   
             {% endfor %}
         </div>
 
@@ -346,8 +335,8 @@
         <button class="dropdown-btn"><i class="material-icons">local_library</i><span style="padding-left: 20px;">Education Variables</span><i class="fa fa-caret-down"></i></button>
         <div class="dropdown-container">
             {% for edu_var in edu_data %}
-                <input type="number" id="{{ edu_var[0] }}" value="0">
-                <label id="label_{{ edu_var[0] }}" style="font-weight: normal;">{{ edu_var[0] }}</label><br><br>   
+                <input type="number" id="{{ edu_var }}" value="0">
+                <label id="label_{{ edu_var }}" style="font-weight: normal;">{{ edu_var }}</label><br><br>   
             {% endfor %}
         </div>
 
@@ -355,18 +344,15 @@
         <button class="dropdown-btn"><i class="material-icons">home</i><span style="padding-left: 20px;">Household Variables</span><i class="fa fa-caret-down"></i></button>
         <div class="dropdown-container">
             {% for hhold_var in hhold_data %}
-                <input type="number" id="{{ hhold_var[0] }}" value="0">
-                <label id="label_{{ hhold_var[0] }}" style="font-weight: normal;">{{ hhold_var[0] }}</label><br><br>   
+                <input type="number" id="{{ hhold_var }}" value="0">
+                <label id="label_{{ hhold_var }}" style="font-weight: normal;">{{ hhold_var }}</label><br><br>   
             {% endfor %}
         </div>
 
         <br><br>
         <div><button class="predict-button" onclick="predict_migration()">Predict new migration pattern</button></div>
-
         <br><br>
-
         <hr>
-
         <br>
 
         <div>
@@ -397,118 +383,43 @@
             </div>
             <div class="item-s4">
                 <h5 style="font-weight: bolder;">Change in average age of migrants</h4> 
-                    <div><h5 style="float:left; margin-left: 80px; margin-bottom:0px; margin-top:0px" id='avg_age_change'></h5><i id='page_change_icon' class="material-icons" style="margin-"></i><h5 style="float: right; margin-right: 80px; margin-bottom:0px; margin-top: 0px" id='pavg_age_change'></h4></div>
+                <div><h5 style="float:left; margin-left: 80px; margin-bottom:0px; margin-top:0px" id='avg_age_change'></h5><i id='page_change_icon' class="material-icons" style="margin-"></i><h5 style="float: right; margin-right: 80px; margin-bottom:0px; margin-top: 0px" id='pavg_age_change'></h4></div>
             </div>
         </div>
 
-       
-        <!-- <div> -->
 
-
-                <!-- <div style="width: 30%; float: left;">
-                    <div id="num-migrants" class="stat-box">
-                        <h5 style="font-weight: bolder;">Total number of migrants</h4> 
-                        <h5 id='total_migrants'>{{ total_migrants }}</h4> 
-                    </div>
-                    <div id="change-num-migrants" class="stat-box">
-                        <h5 style="font-weight: bolder;">Change in number of migrants</h4> 
-                        <div><h5 style="float:left; margin-left: 80px; margin-bottom:0px; margin-top:0px" id='change_migrants'></h5><i id='pchange_icon' class="material-icons" style="margin-"></i><h5 style="float:right; margin-right: 80px; margin-bottom:0px; margin-top:0px" id='pchange_migrants'></h4></div>
-                    </div>
-                </div>
-
-                <div style="width: 70%; float: right;">
-                        <canvas id="myChart" width="200px" height="100px"></canvas>
-                </div> -->
-
-
-            <!-- <div> -->
-
-                <div id="mapid"></div>
-
-            <!-- </div> -->
-
-        <!-- </div> -->
-
-        
-        
-
+        <div id="mapid"></div>
 
     </div>
 
 </section>
 
+
+
+
 <script>
+
+
 /* Loop through all dropdown buttons to toggle between hiding and showing its dropdown content - This allows the user to have multiple dropdowns without any conflict */
-var dropdown = document.getElementsByClassName("dropdown-btn");
 var i;
+var dropdown = document.getElementsByClassName("dropdown-btn");
 
 for (i = 0; i < dropdown.length; i++) {
-  dropdown[i].addEventListener("click", function() {
-  this.classList.toggle("active");
-  var dropdownContent = this.nextElementSibling;
-  if (dropdownContent.style.display === "block") {
-  dropdownContent.style.display = "none";
-  } else {
-  dropdownContent.style.display = "block";
-  }
-  });
+    dropdown[i].addEventListener("click", function() {
+        this.classList.toggle("active");
+        var dropdownContent = this.nextElementSibling;
+        if (dropdownContent.style.display === "block") {
+            dropdownContent.style.display = "none";
+        } else {
+            dropdownContent.style.display = "block";
+        }
+    });
 }
 
 
 
 
-
-
-
-
-
-
-
-
-
-// var ctx = document.getElementById("myChart").getContext('2d');
-// var dataValues = hist_data;
-// var dataLabels = hist_labels;
-// var myChart = new Chart(ctx, {
-//   type: 'bar',
-//   data: {
-//     labels: dataLabels,
-//     datasets: [{
-//       label: 'Group A',
-//       data: dataValues,
-//       backgroundColor: '#151A54',
-//     }]
-//   },
-//   options: {
-//     scales: {
-//       xAxes: [{
-//         display: false,
-//         barPercentage: 1.3,
-//         ticks: {
-//             max: 10,
-//         }
-//      }, {
-//         display: true,
-//         ticks: {
-//             autoSkip: false,
-//             max: 4,
-//         }
-//       }],
-//       yAxes: [{
-//         ticks: {
-//           beginAtZero:true
-//         }
-//       }]
-//     }
-//   }
-// });
-
-
-
-
 // MIGRATION MAP
-
-
 // Create the map and add the basemap tiles
 var mymap = L.map('mapid').setView([23.6345, -102.5528], zoom_start = 7);
 L.tileLayer('https://tiles.stadiamaps.com/tiles/alidade_smooth_dark/{z}/{x}/{y}{r}.png', {
@@ -711,17 +622,7 @@ axios.get('http://127.0.0.1:5000/geojson-features')
 
 
 
-
-
-
-
 function predict_migration() {
-
-    console.log("here!!");
-
-    console.log("Selected polygon ID's: ");
-
-    console.log(window.selected_polys);
 
     // Make two new variables to store column name sand their associated percentage change values
     var column_names = [],
@@ -777,56 +678,38 @@ function predict_migration() {
         });
 
 
-
         // Function to get the data from the Flask function/URL (TO-DO: REMOVE ALL OF THE FUNCTIONS FROM HERE AND USE WINDOW.POLY TO EDIT THEM)
         axios.get('http://127.0.0.1:5000/update_stats')
 
             .then(response => {
 
-                console.log(response.data['change']);
-                console.log(response.data['p_change']);
-
-
-                // document.getElementById("total-migrants").value
-
-                // console.log(document.getElementById("total_migrants").text);
-
-
+                // Update all of the HTML text that doesn't involve the trending icon
                 document.getElementById("total_migrants").innerHTML = response.data['predicted_migrants'];
                 document.getElementById("change_migrants").innerHTML = response.data['change'];
                 document.getElementById("avg_age").innerHTML = response.data['avg_age'];
                 document.getElementById("avg_age_change").innerHTML = response.data['avg_age_change'];
+                document.getElementById("pchange_migrants").innerHTML = response.data['p_change'].toString().concat("%");
+                document.getElementById("pavg_age_change").innerHTML = response.data['pavg_age_change'].toString().concat("%");
 
+                // if p_change is greater than 1, make icon green & trending_up and vice versa
                 if (response.data['p_change'] > 0) {
-                    document.getElementById("pchange_migrants").innerHTML = response.data['p_change'].toString().concat("%");
                     document.getElementById("pchange_icon").innerHTML = 'trending_up'
                     document.getElementById("pchange_icon").style.color = 'green'
                 } else {
-                    document.getElementById("pchange_migrants").innerHTML = response.data['p_change'].toString().concat("%");
+                    // document.getElementById("pchange_migrants").innerHTML = response.data['p_change'].toString().concat("%");
                     document.getElementById("pchange_icon").innerHTML = 'trending_down'
                     document.getElementById("pchange_icon").style.color = 'red'
-                    // document.getElementById("pchange_icon").style.box-shaow = '0px 0px 0px'
                 }
 
-
+                // if pavg_age_change is greater than 1, make icon green & trending_up and vice versa
                 if (response.data['pavg_age_change'] > 0) {
-                    document.getElementById("pavg_age_change").innerHTML = response.data['pavg_age_change'].toString().concat("%");
                     document.getElementById("page_change_icon").innerHTML = 'trending_up'
                     document.getElementById("page_change_icon").style.color = 'green'
                 } else {
-                    document.getElementById("pavg_age_change").innerHTML = response.data['pavg_age_change'].toString().concat("%");
+                    // document.getElementById("pavg_age_change").innerHTML = response.data['pavg_age_change'].toString().concat("%");
                     document.getElementById("page_change_icon").innerHTML = 'trending_down'
                     document.getElementById("page_change_icon").style.color = 'red'
                 }
-
-
-
-
-                
-
-
-                // $("h4.total_migrants").text(response.data['predicted_migrants']);
-
 
             });
 
@@ -837,3 +720,5 @@ function predict_migration() {
 
 </body>
 </html> 
+
+

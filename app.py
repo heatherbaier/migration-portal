@@ -15,111 +15,49 @@ import io
 
 import socialSigNoDrop
 importlib.reload(socialSigNoDrop)
-# from helpers import *
+from app_helpers import *
 
 
 # Create the application.
 APP = flask.Flask(__name__)
 
 
-GEOJSON_PATH = "./geoBoundariesSimplified-3_0_0-MEX-ADM2.geojson"
-DATA_PATH = "./mex_migration_allvars_subset.csv"
-MATCH_PATH = "./gB_IPUMS_match.csv"
-MODEL_PATH = "./socialSig_MEX_12epochs_real.torch"
-# MIG_DATA_PATH = "./test.csv"
-# MIG_DATA = pd.read_csv(MIG_DATA_PATH)
-
-
-
-with open(GEOJSON_PATH) as f:
-    geodata_collection = geojson.load(f)
-
-
-
-def map_column_names(var_names, df):
-    for i in range(0, len(df.columns)):
-        if df.columns[i] in var_names.keys():
-            df = df.rename(columns = {df.columns[i]: var_names[df.columns[i]] })
-    return df
-
-
-
-
-
-# def edit_migration_data(MIG_DATA, selected_municipalities):
-#     mig_data_dropped = MIG_DATA[MIG_DATA['']]
-
-
-
 
 
 @APP.route('/', methods=['GET','POST'])
 def index():
-    """ Displays the index page accessible at '/' """
+
+    # Read in migration data
+    df = pd.read_csv(DATA_PATH)
+
+    # Get the number of migrants to send to HTML for stat box
+    total_migrants = df['num_persons_to_us'].sum()
+
+    # Get the data for the number of migrants histogram
+    hist = {}
+    hist_data, hist_labels = np.histogram(df['num_persons_to_us'], bins = 20)
+    hist['data'] = list(hist_data)
+    hist["labels"] = [round(i, 2) for i in list(hist_labels)]
+
+    municipality_ids = df['sending'].unique()
+    df_var_cols = [i for i in df.columns if i not in ['sending','number_moved']]
+
+    df['avg_age_weight'] = df['avg_age'] * df['num_persons_to_us']
+    print("Average age: ", df['avg_age'].mean())
+    print("Average age: ", df['avg_age_weight'].sum() / df['num_persons_to_us'].sum())
+    avg_age = df['avg_age_weight'].sum() / df['num_persons_to_us'].sum()
+
+    # Open the variables JSON and the JSON containing the pretty translation of the variables
+    with open("./vars.json", "r") as f:
+        grouped_vars = json.load(f)
+
+    with open("./var_map.json", "r") as f2:
+        var_names = json.load(f2)
+
+    # Get all of the variables to send to Flask
+    econ, demog, family, health, edu, employ, hhold = get_column_lists(df, var_names, grouped_vars)
 
 
-    if request.method == "GET":
-
-        # Read in migration data
-        df = pd.read_csv(DATA_PATH)
-
-        # Get the number of migrants to send to HTML for stat box
-        total_migrants = df['num_persons_to_us'].sum()
-
-        # Get the data for the number of migrants histogram
-        hist = {}
-        hist_data, hist_labels = np.histogram(df['num_persons_to_us'], bins = 20)
-        hist['data'] = list(hist_data)
-        hist["labels"] = [round(i, 2) for i in list(hist_labels)]
-
-        municipality_ids = df['sending'].unique()
-        df_var_cols = [i for i in df.columns if i not in ['sending','number_moved']]
-
-        df['avg_age_weight'] = df['avg_age'] * df['num_persons_to_us']
-        print("Average age: ", df['avg_age'].mean())
-        print("Average age: ", df['avg_age_weight'].sum() / df['num_persons_to_us'].sum())
-        avg_age = df['avg_age_weight'].sum() / df['num_persons_to_us'].sum()
-
-
-        cur_data = df[df['sending'] == 20240]
-
-        # Open the variables JSON and the JSON containing the pretty translation of the variables
-        with open("./vars.json", "r") as f:
-            grouped_vars = json.load(f)
-
-        with open("./var_map.json", "r") as f2:
-            var_names = json.load(f2)
-
-        # Get all of the variables to send to Flask
-        # TO-DO: PUT THIS IN A FUNCTION SOMEWHERE
-        # WAIT IS THIS EVEN NECCESSARY IF WE ARE ONLY DOING PERCENTAGE INCREASES RIP
-        econ = cur_data[grouped_vars['Economic']]
-        econ = map_column_names(var_names, econ)
-        econ = zip(econ.columns, econ.iloc[0].to_list())
-        
-        demog = cur_data[grouped_vars['Deomographic']]
-        demog = map_column_names(var_names, demog)
-        demog = zip(demog.columns, demog.iloc[0].to_list())
-
-        family = cur_data[grouped_vars['Family']]
-        family = map_column_names(var_names, family)
-        family = zip(family.columns, family.iloc[0].to_list())
-
-        employ = cur_data[grouped_vars['Employment']]
-        employ = map_column_names(var_names, employ)
-        employ = zip(employ.columns, employ.iloc[0].to_list())
-
-        health = cur_data[grouped_vars['Health']]
-        health = map_column_names(var_names, health)
-        health = zip(health.columns, health.iloc[0].to_list())
-
-        edu = cur_data[grouped_vars['Education']]
-        edu = map_column_names(var_names, edu)
-        edu = zip(edu.columns, edu.iloc[0].to_list())
-
-        hhold = cur_data[grouped_vars['Household']]
-        hhold = map_column_names(var_names, hhold)
-        hhold = zip(hhold.columns, hhold.iloc[0].to_list())
 
     # Merry Christmas HTML
     return flask.render_template('index.html', 
@@ -134,62 +72,6 @@ def index():
                                   total_migrants = total_migrants,
                                   avg_age = round(avg_age, 2),
                                   hist = hist)
-
-
-
-    # return dict(adms.iloc[0].T)
-
-
-
-
-
-
-
-def convert_to_pandas(geodata_collection, MATCH_PATH, DATA_PATH):
-
-    # Normalize the geoJSON as a pandas dataframe
-    df = json_normalize(geodata_collection["features"])
-
-    # Get the B unique ID column (akgkjklajkljlk)
-    df["B"] = df['properties.shapeID'].str.split("-").str[3]
-
-    # Read in the dataframe for matching and get the B unique ID column
-    match_df = pd.read_csv(MATCH_PATH)[['shapeID', 'MUNI2015']]
-    match_df["B"] = match_df['shapeID'].str.split("-").str[3]
-
-    # Read in the migration data
-    dta = pd.read_csv(DATA_PATH)
-
-    # Match the IPUMS ID's to the gB ID's
-    ref_dict = dict(zip(match_df['B'], match_df['MUNI2015']))
-    df['sending'] = df['B'].map(ref_dict)
-
-    # Mix it all together
-    merged = pd.merge(df, dta, on = 'sending')
-
-    return merged
-
-
-
-
-
-def switch_column_names(MATCH_PATH, DATA_PATH):
-
-    # Read in the dataframe for matching and get the B unique ID column
-    match_df = pd.read_csv(MATCH_PATH)[['shapeID', 'MUNI2015']]
-    match_df["B"] = match_df['shapeID'].str.split("-").str[3]
-
-    # Read in the migration data
-    dta = pd.read_csv(DATA_PATH)
-
-    # Match the IPUMS ID's to the gB ID's
-    ref_dict = dict(zip(match_df['MUNI2015'], match_df['B']))
-    dta['sending'] = dta['sending'].map(ref_dict)
-
-    # # Mix it all together
-    # merged = pd.merge(df, dta, on = 'sending')
-
-    return dta
 
 
 
@@ -228,19 +110,7 @@ def get_all_points():
 
 
 
-def predict_row(values_ar, X):
-    
-    device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-    inception = torch.hub.load('pytorch/vision:v0.9.0', 'inception_v3', pretrained=True)
-    model = socialSigNoDrop.socialSigNet_Inception(X=X, outDim = 1, inception = inception).to(device)
-    checkpoint = torch.load(MODEL_PATH)
-    model.load_state_dict(checkpoint['model_state_dict'])
 
-    input = torch.reshape(torch.tensor(values_ar, dtype = torch.float32), (1, 287)).to(device)
-    model.eval()
-    pred = model(input).detach().cpu().numpy()[0][0]
-
-    return pred
 
 
 
@@ -390,8 +260,6 @@ def update_stats():
     avg_age_change = avg_age - og_avg_age
     p_avg_age_change = ((round(avg_age, 0) - og_avg_age) / og_avg_age) * 100
 
-    # if change > 0:
-        # 
 
     return {'change': change,
             'p_change': round(p_change, 2),
