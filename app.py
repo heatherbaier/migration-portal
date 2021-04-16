@@ -315,7 +315,7 @@ def predict_migration():
     # Mix it all together
     merged = pd.merge(geoDF, dta_final, on = 'sending')
 
-
+    print("NUMBER OF PERSONS TO US: ", merged['num_persons_to_us'].sum())
     total_migrants = merged['num_persons_to_us'].sum()
     total_migrants = {'total_migrants': total_migrants}
     
