@@ -247,6 +247,9 @@
             box-shadow: 0px 0px 0px white;
         }
 
+        #page_change_icon {
+            box-shadow: 0px 0px 0px white;
+        }
 
         .item-s1 { grid-area: s1; }
         .item-s2 { grid-area: s2; }
@@ -394,9 +397,11 @@
             </div>
             <div class="item-s3">
                 <h5 style="font-weight: bolder;">Average age of migrants</h4> 
+                    <h5 id='avg_age'>{{ avg_age }}</h4> 
             </div>
             <div class="item-s4">
                 <h5 style="font-weight: bolder;">Change in average age of migrants</h4> 
+                    <div><h5 style="float:left; margin-left: 80px; margin-bottom:0px; margin-top:0px" id='avg_age_change'></h5><i id='page_change_icon' class="material-icons" style="margin-"></i><h5 style="float: right; margin-right: 80px; margin-bottom:0px; margin-top: 0px" id='pavg_age_change'></h4></div>
             </div>
         </div>
 
@@ -793,6 +798,8 @@ function predict_migration() {
 
                 document.getElementById("total_migrants").innerHTML = response.data['predicted_migrants'];
                 document.getElementById("change_migrants").innerHTML = response.data['change'];
+                document.getElementById("avg_age").innerHTML = response.data['avg_age'];
+                document.getElementById("avg_age_change").innerHTML = response.data['avg_age_change'];
 
                 if (response.data['p_change'] > 0) {
                     document.getElementById("pchange_migrants").innerHTML = response.data['p_change'].toString().concat("%");
@@ -804,6 +811,22 @@ function predict_migration() {
                     document.getElementById("pchange_icon").style.color = 'red'
                     // document.getElementById("pchange_icon").style.box-shaow = '0px 0px 0px'
                 }
+
+
+                if (response.data['pavg_age_change'] > 0) {
+                    document.getElementById("pavg_age_change").innerHTML = response.data['pavg_age_change'].toString().concat("%");
+                    document.getElementById("page_change_icon").innerHTML = 'trending_up'
+                    document.getElementById("page_change_icon").style.color = 'green'
+                } else {
+                    document.getElementById("pavg_age_change").innerHTML = response.data['pavg_age_change'].toString().concat("%");
+                    document.getElementById("page_change_icon").innerHTML = 'trending_down'
+                    document.getElementById("page_change_icon").style.color = 'red'
+                }
+
+
+
+
+                
 
 
                 // $("h4.total_migrants").text(response.data['predicted_migrants']);

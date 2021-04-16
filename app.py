@@ -74,6 +74,13 @@ def index():
 
         municipality_ids = df['sending'].unique()
         df_var_cols = [i for i in df.columns if i not in ['sending','number_moved']]
+
+        df['avg_age_weight'] = df['avg_age'] * df['num_persons_to_us']
+        print("Average age: ", df['avg_age'].mean())
+        print("Average age: ", df['avg_age_weight'].sum() / df['num_persons_to_us'].sum())
+        avg_age = df['avg_age_weight'].sum() / df['num_persons_to_us'].sum()
+
+
         cur_data = df[df['sending'] == 20240]
 
         # Open the variables JSON and the JSON containing the pretty translation of the variables
@@ -125,6 +132,7 @@ def index():
                                   employ_data = employ,
                                   hhold_data = hhold,
                                   total_migrants = total_migrants,
+                                  avg_age = round(avg_age, 2),
                                   hist = hist)
 
 
@@ -317,7 +325,16 @@ def predict_migration():
 
     print("NUMBER OF PERSONS TO US: ", merged['num_persons_to_us'].sum())
     total_migrants = merged['num_persons_to_us'].sum()
-    total_migrants = {'total_migrants': total_migrants}
+
+
+
+    merged['avg_age_weight'] = merged['avg_age'] * merged['num_persons_to_us']
+    print("Average age: ", merged['avg_age'].mean())
+    print("Average age: ", merged['avg_age_weight'].sum() / merged['num_persons_to_us'].sum())
+    avg_age = merged['avg_age_weight'].sum() / merged['num_persons_to_us'].sum()
+
+
+    total_migrants = {'total_migrants': total_migrants, 'avg_age': avg_age}
     
 
     with open('predicted_migrants.json', 'w') as outfile:
@@ -360,22 +377,28 @@ def update_stats():
 
     # Get the number of migrants to send to HTML for stat box
     total_migrants = df['num_persons_to_us'].sum()
+    og_avg_age = df['avg_age'].mean()
 
 
     with open("./predicted_migrants.json") as json_file:
-        predicted_migrants = json.load(json_file)
-    predicted_migrants = predicted_migrants['total_migrants']
+        predictions = json.load(json_file)
+    predicted_migrants = predictions['total_migrants']
+    avg_age = predictions['avg_age']
 
     p_change = ((round(predicted_migrants, 0) - total_migrants) / total_migrants) * 100
     change = round(predicted_migrants, 0) - total_migrants
+    avg_age_change = avg_age - og_avg_age
+    p_avg_age_change = ((round(avg_age, 0) - og_avg_age) / og_avg_age) * 100
 
     # if change > 0:
         # 
 
     return {'change': change,
             'p_change': round(p_change, 2),
-            'predicted_migrants': round(predicted_migrants, 0)}
-
+            'predicted_migrants': round(predicted_migrants, 0),
+            'avg_age': round(avg_age, 2),
+            'avg_age_change': round(avg_age_change, 2),
+            'pavg_age_change': round(p_avg_age_change, 2)}
 
 
 if __name__ == '__main__':
