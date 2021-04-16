@@ -122,7 +122,7 @@ def index():
         hhold = zip(hhold.columns, hhold.iloc[0].to_list())
 
     # Merry Christmas HTML
-    return flask.render_template('dashboard copy.html', 
+    return flask.render_template('index.html', 
                                   municipality_ids = municipality_ids, 
                                   econ_data = econ,
                                   demog_data = demog,

@@ -1,136 +1,747 @@
+<!DOCTYPE html>
+<html>
 <head>
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.0/css/bootstrap.min.css">
-    <script src="http://cdn.leafletjs.com/leaflet-0.7/leaflet.js"></script>
-    <link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet-0.6.4/leaflet.css"/>
-    <script src="https://code.jquery.com/jquery-2.1.4.min.js"></script>
-</head>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link href='https://fonts.googleapis.com/css?family=Roboto' rel='stylesheet'>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.2/Chart.min.js"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" integrity="sha512-xodZBNTC5n17Xt2atTPuE1HxjVMSvLVW9ocqUKLsCC5CXdbqCmblAshOMAS6/keqq/sMZMZ19scR4PsZChSR7A==" crossorigin=""/>
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js" integrity="sha512-XQoYMqMTK8LvdxXYG3nZ448hOEQiglfqkJs1NOQV44cWnUrBc8PkAOcXy20w0vlaXaVUearIOBhiXZ5V3ynxwA==" crossorigin=""></script>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
 
-<style>
-    html, body, #map {
-        height: 100%;
-        width: 100%;
-    }
-</style>
 
-<script>
 
-function update_adm() {
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.5.1/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.5.1/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/0.4.2/leaflet.draw.css"/>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/0.4.2/leaflet.draw.js"></script>
 
-    var adm_choice = document.getElementById("adm_choices").value;
-    console.log(adm_choice);
 
-    // Post the list of selected Issuer Id's back to Flask
-    fetch('/', {
 
-        // When the data gets POSTed back to Flask, it'll be in JSON format
-        headers: {
-        'Content-Type': 'application/json'
-        },
+    <script type="text/javascript">
+        var hist_data = {{ hist.data }}
+        var hist_labels = {{ hist.labels }}
+    </script>
 
-        // Send the data back as a POST request
-        method: 'POST',
 
-        // Here's where you construct the JSON
-        body: JSON.stringify({
-            "adm_id": adm_choice
-        })
 
-        // ...and then send it off
-        }).then(function (response) {
-            return response.text();
-        }).then(function (text) {
-            console.log('POST response: ');
-            console.log(JSON.parse(text));
-            var arr = JSON.parse(text)
-            for (var key in arr) {
-                // console.log(key + " -> " + arr[key])
-                document.getElementById(key).value = arr[key];
-            };
-    });
+    <style>
+        body {
+            font-family: "Lato", sans-serif;
+        }
 
-    console.log("about to enter update_map function");
+        /* Fixed sidenav, full height */
+        .sidenav {
+            height: 100%;
+            width: 800px;
+            /* float: left; */
+            position: fixed;
+            z-index: 1;
+            top: 0;
+            left: 0;
+            background-color: #F0F0F0;
+            overflow-x: hidden;
+            padding-top: 20px;
+        }
 
-    // Post the list of selected Issuer Id's back to Flask
-    fetch('/update_map', {
+        /* Style the sidenav links and the dropdown button */
+        .sidenav a, .dropdown-btn {
+            padding: 6px 8px 15px 16px;
+            text-decoration: none;
+            font-size: 24px;
+            color: black;
+            display: block;
+            border: none;
+            background: none;
+            width: 100%;
+            text-align: left;
+            cursor: pointer;
+            outline: none;
+            margin-left: 20px;
+            margin-right: 20px;
+            padding-right: 50px;
+            font-family: Roboto;
+        }
+
+        /* On mouse-over */
+        .sidenav a:hover, .dropdown-btn:hover {
+            color: black;
+        }
+
+        /* Main content */
+        .main {
+            /* width: 75%; */
+            /* float: right; */
+            /* padding-left:10px; */
+            height: 100%;
+            /* margin-top: 50px; */
+            margin-left: 850px; /* Same as the width of the sidenav */
+            font-size: 20px; /* Increased text to enable scrolling */
+            /* padding: 0px 10px; */
+            background-color: #F0F0F0;
+        }
+
+        /* Add an active class to the active dropdown button */
+        .active {
+            /* background-color: white; */
+            color: black;
+            margin-right: 20px;
+            padding-right: 50px;
+        }
+
+        /* Dropdown container (hidden by default). Optional: add a lighter background color and some left padding to change the design of the dropdown content */
+        .dropdown-container {
+            display: none;
+            background-color: white;
+            padding-top: 8px;
+            padding-left: 8px;
+            margin-left:60px;
+            margin-right:20px;
+            margin-top:20px;
+            margin-bottom:20px;
+            border-radius: 10px;
+            /* border-bottom-right-radius: 4px; */
+            padding: 20px;
+            font-family: Roboto;
+            font-size: 18px;
+            box-shadow: 10px 5px 5px lightgray;
+        }
+
+        /* Optional: Style the caret down icon */
+        .fa-caret-down {
+            float: right;
+            padding-right: 8px;
+            padding-left: 10px;
+
+            /* margin-right: 50px; */
+        }
+
+        .munic-options {
+            font-size: 20px;
+            margin-left: 40px;
+        }
+
+
+        canvas { max-width: 800px; }
+
+        #mapid { 
+            /* padding-top: 50px; */
+            height: 1500px; 
+            width: 95%; 
+            padding-top: 20px;
+        }
+
+        .material-icons {
+            padding: 15px;
+            color: #404040;
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 10px 5px 5px lightgray;
+            font-size: 30px;
+        }
+
+        .g-icon {
+            box-shadow: 10px 5px 5px lightgray;
+        }
+
+        input[type=number] {
+
+            border-radius: 20px;
+            text-align: center;
+            outline: none;
+            width: 80px;
+            height: 30px;
+            font-family: Roboto;
+            font-size: 18px;
+
+        }
+
+
+        h4 {
+            padding: 6px 8px 0px 16px;
+            text-decoration: none;
+            font-size: 25px;
+            color: black;
+            display: block;
+            border: none;
+            background: none;
+            width: 100%;
+            text-align: left;
+            outline: none;
+            margin-left: 20px;
+            margin-right: 20px;
+            padding-right: 50px;
+            font-family: Roboto;
+            font-weight: normal;
+        }
+
+
+        h5 {
+            color: #0E0C28; 
+            font-weight: normal; 
+            font-family: Roboto;
+            padding: 10px; 
+            text-align: center;
+            font-size: 24px;
+        }
+
+
+        h1 {
+            padding: 6px 8px 0px 16px;
+            margin-left: 20px;
+            color: #0E0C28; 
+            font-family: Roboto; 
+            font-weight: normal; 
+            font-size: 35px; 
+            font-weight: bolder;
+        }
+
+        h2 {
+            color: #0E0C28; 
+            font-family: Roboto; 
+        }
+
+        .predict-button {
+            background-color: #0E0C28;
+            color: white;
+            height: 70px;
+            font-size: 24px;
+            border-radius: 10px;
+            font-family: Roboto; 
+            box-shadow: 10px 5px 5px lightgray;
+            margin-left: 110px;
+            width: 575px;
+            font-weight: bolder;
+            cursor: pointer;
+            /* padding-top: 20px; */
+        }
 
         
+        /* On mouse-over */
+        .predict-button:hover {
+            background-color: white;
+            border-color: #0E0C28;
+            color: #0E0C28;
+        }
 
-        // When the data gets POSTed back to Flask, it'll be in JSON format
-        headers: {
-        'Content-Type': 'application/json'
+        .stat-box {
+            background-color: white; 
+            width: 400px;
+            height: 150px; 
+            border-radius: 15px;
+            box-shadow: 10px 5px 5px lightgray;
+        }
+
+
+        hr {
+            margin-left: 40px;
+            box-shadow: 10px 5px 5px lightgray;
+        }
+
+        #pchange_icon {
+            box-shadow: 0px 0px 0px white;
+        }
+
+        #page_change_icon {
+            box-shadow: 0px 0px 0px white;
+        }
+
+        .item-s1 { grid-area: s1; }
+        .item-s2 { grid-area: s2; }
+        .item-s3 { grid-area: s3; }
+        .item-s4 { grid-area: s4; }
+
+        .item-s5 { grid-area: s5; }
+
+
+        .grid-container {
+            display: grid;
+            grid-template-areas:
+                's1 s2 s3 s4'
+                's5 s5 s5 s5';
+            grid-gap: 40px;
+            padding: 10px;
+            margin-top: 40px;
+        }
+
+        .grid-container > div {
+            background-color: white;
+            text-align: center;
+            padding: 20px 0;
+            font-size: 30px;
+            box-shadow: 10px 5px 5px lightgray;
+            border-radius: 15px;
+        }
+
+        /* Some media queries for responsiveness */
+        @media screen and (max-height: 450px) {
+            .sidenav {padding-top: 15px;}
+            .sidenav a {font-size: 18px;}
+        }
+    </style>
+
+</head>
+
+
+
+
+
+<body style="background-color: #EFEFF6;">
+
+    <section id="dashboard">
+
+    <div class="sidenav">
+
+        <h1>Migration Data Portal</h1>
+
+        <h4>Adjustable sociodemographic variables:</h4>
+
+        <button class="dropdown-btn"><i class="material-icons">paid</i><span style="padding-left: 20px;">Economic Variables</span> <i class="fa fa-caret-down"></i></button>
+
+        <div class="dropdown-container">
+            {% for econ_var in econ_data %}
+                <input type="number" id="{{ econ_var[0] }}" value="0">
+                <label id="label_{{ econ_var[0] }}" style="font-weight: normal;">{{ econ_var[0] }}</label><br><br>                
+            {% endfor %}
+        </div>
+
+
+        <button class="dropdown-btn"><i class="material-icons">people</i><span style="padding-left: 20px;">Demographic Variables</span><i class="fa fa-caret-down"></i></button>
+        <div class="dropdown-container">
+            {% for demog_var in demog_data %}
+                <input type="number" id="{{ demog_var[0] }}" value="0">
+                <label id="label_{{ demog_var[0] }}" style="font-weight: normal;">{{ demog_var[0] }}</label><br><br>   
+            {% endfor %}
+        </div>
+
+
+        <button class="dropdown-btn"><i class="material-icons">pregnant_woman</i><span style="padding-left: 20px;">Marriage & Fertility Variables</span><i class="fa fa-caret-down"></i></button>
+        <div class="dropdown-container">
+            {% for family_var in family_data %}
+                <input type="number" id="{{ family_var[0] }}" value="0">
+                <label id="label_{{ family_var[0] }}" style="font-weight: normal;">{{ family_var[0] }}</label><br><br>   
+            {% endfor %}
+        </div>
+
+
+        <button class="dropdown-btn"><i class="material-icons">health_and_safety</i><span style="padding-left: 20px;">Health Variables</span><i class="fa fa-caret-down"></i></button>
+        <div class="dropdown-container">
+            {% for health_var in health_data %}
+                <input type="number" id="{{ health_var[0] }}" value="0">
+                <label id="label_{{ health_var[0] }}" style="font-weight: normal;">{{ health_var[0] }}</label><br><br>   
+            {% endfor %}
+        </div>
+
+
+        <button class="dropdown-btn"><i class="material-icons">meeting_room</i><span style="padding-left: 20px;">Occupational Variables</span><i class="fa fa-caret-down"></i></button>
+        <div class="dropdown-container">
+            {% for employ_var in employ_data %}
+                <input type="number" id="{{ employ_var[0] }}" value="0">
+                <label id="label_{{ employ_var[0] }}" style="font-weight: normal;">{{ employ_var[0] }}</label><br><br>   
+            {% endfor %}
+        </div>
+
+
+        <button class="dropdown-btn"><i class="material-icons">local_library</i><span style="padding-left: 20px;">Education Variables</span><i class="fa fa-caret-down"></i></button>
+        <div class="dropdown-container">
+            {% for edu_var in edu_data %}
+                <input type="number" id="{{ edu_var[0] }}" value="0">
+                <label id="label_{{ edu_var[0] }}" style="font-weight: normal;">{{ edu_var[0] }}</label><br><br>   
+            {% endfor %}
+        </div>
+
+
+        <button class="dropdown-btn"><i class="material-icons">home</i><span style="padding-left: 20px;">Household Variables</span><i class="fa fa-caret-down"></i></button>
+        <div class="dropdown-container">
+            {% for hhold_var in hhold_data %}
+                <input type="number" id="{{ hhold_var[0] }}" value="0">
+                <label id="label_{{ hhold_var[0] }}" style="font-weight: normal;">{{ hhold_var[0] }}</label><br><br>   
+            {% endfor %}
+        </div>
+
+        <br><br>
+        <div><button class="predict-button" onclick="predict_migration()">Predict new migration pattern</button></div>
+
+        <br><br>
+
+        <hr>
+
+        <br>
+
+        <div>
+            <h2 style="margin-left: 40px; font-size: 28px;">Directions to user:</h2>
+            <ol style="margin-left: 40px; font-size: 24px; font-family: Roboto; line-height: 1.6;">
+                <li>Click on either the polygon or rectanlge icons on the map to draw an area of interest (AOI) over municipalities you wish to manipualte data for. You can draw as many AOI's as you wish. To delete an AOI, click on the trash can icon on the map, then click on the AOI you wish to delte and hit 'save' next to the trash can icon.</li>
+                <li>Click on any of the variable drop downs above to view associated variables that are available to manipulate. Then, type in a percentage increase or decrease to change the value of the variable for the municiaplities you choose on the map. For example, if you'd like to increase the Total Income of selected municipalities by 10%, click on 'Economic Variables and type '10' into the input box next to income.</li>
+                <li>Once you are happy with your selections, click 'Predict new migration pattern' and wait for the update migration predictions.</li>
+            </ol>
+        </div>
+
+    </div>
+
+    <div class="main">
+
+        <div class="grid-container">
+            <div class="item-s1">
+                <h5 style="font-weight: bolder;">Total number of migrants</h4> 
+                <h5 id='total_migrants'>{{ total_migrants }}</h4> 
+            </div>
+            <div class="item-s2">
+                <h5 style="font-weight: bolder;">Change in number of migrants</h4> 
+                <div><h5 style="float:left; margin-left: 80px; margin-bottom:0px; margin-top:0px" id='change_migrants'></h5><i id='pchange_icon' class="material-icons" style="margin-"></i><h5 style="float:right; margin-right: 80px; margin-bottom:0px; margin-top:0px" id='pchange_migrants'></h4></div>
+            </div>
+            <div class="item-s3">
+                <h5 style="font-weight: bolder;">Average age of migrants</h4> 
+                    <h5 id='avg_age'>{{ avg_age }}</h4> 
+            </div>
+            <div class="item-s4">
+                <h5 style="font-weight: bolder;">Change in average age of migrants</h4> 
+                    <div><h5 style="float:left; margin-left: 80px; margin-bottom:0px; margin-top:0px" id='avg_age_change'></h5><i id='page_change_icon' class="material-icons" style="margin-"></i><h5 style="float: right; margin-right: 80px; margin-bottom:0px; margin-top: 0px" id='pavg_age_change'></h4></div>
+            </div>
+        </div>
+
+       
+        <!-- <div> -->
+
+
+                <!-- <div style="width: 30%; float: left;">
+                    <div id="num-migrants" class="stat-box">
+                        <h5 style="font-weight: bolder;">Total number of migrants</h4> 
+                        <h5 id='total_migrants'>{{ total_migrants }}</h4> 
+                    </div>
+                    <div id="change-num-migrants" class="stat-box">
+                        <h5 style="font-weight: bolder;">Change in number of migrants</h4> 
+                        <div><h5 style="float:left; margin-left: 80px; margin-bottom:0px; margin-top:0px" id='change_migrants'></h5><i id='pchange_icon' class="material-icons" style="margin-"></i><h5 style="float:right; margin-right: 80px; margin-bottom:0px; margin-top:0px" id='pchange_migrants'></h4></div>
+                    </div>
+                </div>
+
+                <div style="width: 70%; float: right;">
+                        <canvas id="myChart" width="200px" height="100px"></canvas>
+                </div> -->
+
+
+            <!-- <div> -->
+
+                <div id="mapid"></div>
+
+            <!-- </div> -->
+
+        <!-- </div> -->
+
+        
+        
+
+
+    </div>
+
+</section>
+
+<script>
+/* Loop through all dropdown buttons to toggle between hiding and showing its dropdown content - This allows the user to have multiple dropdowns without any conflict */
+var dropdown = document.getElementsByClassName("dropdown-btn");
+var i;
+
+for (i = 0; i < dropdown.length; i++) {
+  dropdown[i].addEventListener("click", function() {
+  this.classList.toggle("active");
+  var dropdownContent = this.nextElementSibling;
+  if (dropdownContent.style.display === "block") {
+  dropdownContent.style.display = "none";
+  } else {
+  dropdownContent.style.display = "block";
+  }
+  });
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+// var ctx = document.getElementById("myChart").getContext('2d');
+// var dataValues = hist_data;
+// var dataLabels = hist_labels;
+// var myChart = new Chart(ctx, {
+//   type: 'bar',
+//   data: {
+//     labels: dataLabels,
+//     datasets: [{
+//       label: 'Group A',
+//       data: dataValues,
+//       backgroundColor: '#151A54',
+//     }]
+//   },
+//   options: {
+//     scales: {
+//       xAxes: [{
+//         display: false,
+//         barPercentage: 1.3,
+//         ticks: {
+//             max: 10,
+//         }
+//      }, {
+//         display: true,
+//         ticks: {
+//             autoSkip: false,
+//             max: 4,
+//         }
+//       }],
+//       yAxes: [{
+//         ticks: {
+//           beginAtZero:true
+//         }
+//       }]
+//     }
+//   }
+// });
+
+
+
+
+// MIGRATION MAP
+
+
+// Create the map and add the basemap tiles
+var mymap = L.map('mapid').setView([23.6345, -102.5528], zoom_start = 7);
+L.tileLayer('https://tiles.stadiamaps.com/tiles/alidade_smooth_dark/{z}/{x}/{y}{r}.png', {
+	maxZoom: 20,
+	attribution: '&copy; <a href="https://stadiamaps.com/">Stadia Maps</a>, &copy; <a href="https://openmaptiles.org/">OpenMapTiles</a> &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors'
+}).addTo(mymap);
+
+
+// Create the drawnPolys group
+var drawnPolys = new L.featureGroup().addTo(mymap);
+
+// Add the draw control to the map
+var drawControl = new L.Control.Draw({ 
+
+    draw: {
+            circle: false, 
+            circlemarker: false, 
+            polyline : false,
+            marker   : false,
+            polygon  : true,
+            rectangle: true
         },
-
-        // Send the data back as a POST request
-        method: 'POST',
-
-        // Here's where you construct the JSON
-        body: JSON.stringify({
-            "adm_id": adm_choice
-        })
-
-        // ...and then send it off
-        }).then(function (response) {
-            return response.text();
-        }).then(function (text) {
-            console.log('POST response: ');
-            console.log(text);
-            document.getElementById("mapDiv").innerHTML = text;
+    edit: {
+           featureGroup: drawnPolys, 
+           remove: true}
         });
+
+mymap.addControl(drawControl);
+
+
+// Make an empty global variable to store the shapeID's of the polygons that overlap COMPLETLEY with any of the polgyons a user draws
+window.selected_polys = [];
+
+
+// What happens when a shape is drawn/created
+mymap.on(L.Draw.Event.CREATED, e => {
+
+    // Save the layer as an object
+    var layer = e.layer;
+
+    // Add the drawn layer to the map
+    mymap.addLayer(layer);
+    
+    // Add the layer to the drawnPolys LayerGroup
+    drawnPolys.addLayer(layer);
+
+    console.log(drawnPolys);
+    
+    // Zoom in to the drawn poly
+    mymap.fitBounds(layer.getBounds());
+   
+   // Get the layers in the geoJSON layer (no need rn but leaving in for reference)
+    var polygons = window.poly.getLayers();
+
+    for (i = 0; i < polygons.length; i++) {
+        if (layer.getBounds().contains(polygons[i].getBounds())) {
+            // console.log(polygons[i].feature.properties.shapeID)
+            window.selected_polys.push(polygons[i].feature.properties.shapeID)
+        }
+    }
+
+    console.log("Municipalities within selected area: ");
+    console.log(window.selected_polys);
+
+});
+
+
+// Function to remove a given shapeID from a list
+function arrayRemove(arr, value) { 
+    return arr.filter(function(ele){  return ele != value; });
+}
+
+
+// What happens when a shape is deleted
+mymap.on(L.Draw.Event.DELETED, e => {
+
+    // Get a list of the layers that are being deleted
+    var poly_being_removed = e.layers;
+
+    // Get a list of the polygons on the map
+    var polygons = window.poly.getLayers();
+
+    // For each of the polygons being removed...
+    poly_being_removed.eachLayer(function(layer) {
+
+        // Make an empty list to store the polgyon ID's that are no longer overlapping with a drawn polgyon
+        ids_to_be_removed = [];
+
+        // For every polygon currently on the map...
+        for (i = 0; i < polygons.length; i++) {
+
+            // If it intersects with any of the polgyons being removed then add that shapeID to the ids_to_be_removed list
+            if (layer.getBounds().contains(polygons[i].getBounds())) {
+                ids_to_be_removed.push(polygons[i].feature.properties.shapeID)
+            }
+        }
+
+    });
+
+
+    // Remove all of the ID's in ids_to_be_removed from the list of selected polygons
+    for (i = 0; i < ids_to_be_removed.length; i++) {
+        window.selected_polys = arrayRemove(window.selected_polys, ids_to_be_removed[i])
+    }
+
+    // CELEBRATE GOOD TIMES
+    console.log("NOW SELECTED POLYS: ");
+    console.log(window.selected_polys);
+
+});
+
+
+
+
+// Function to color the polygons by number of migrants
+function getColor(d) {
+    return d > 1000 ? '#800026' :
+           d > 500  ? '#BD0026' :
+           d > 200  ? '#E31A1C' :
+           d > 100  ? '#FC4E2A' :
+           d > 50   ? '#FD8D3C' :
+           d > 20   ? '#FEB24C' :
+           d > 10   ? '#FED976' :
+                      '#FFEDA0';
+}
+
+
+// Function to style the polygons
+function polygon_style(feature) {
+  return {
+    fillColor: getColor(feature.properties.num_migrants),
+    weight: .2,
+    opacity: 1,
+    color: 'white',
+    fillOpacity: 0.5
+  };
+}
+
+
+// Removes highlight from polygons when cursor is not over them
+function resetHighlight(e) {
+    window.poly.resetStyle(e.target);
+}
+
+
+// Zooms to a clicked on polygon
+function zoomToFeature(e) {
+    mymap.fitBounds(e.target.getBounds());
+}
+
+
+// Highlights a polygon when hovered over
+function highlightFeature(e) {
+
+    var layer = e.target;
+
+    layer.setStyle({
+        weight: 5,
+        color: '#666',
+        dashArray: '',
+        fillOpacity: 0.7
+    });
+
+    if (!L.Browser.ie && !L.Browser.opera && !L.Browser.edge) {
+        layer.bringToFront();
+    }
 
 }
 
 
-function pred_muni() {
+// On each feature, highlight/remove highlight when hovered over, zoom when clicked and add popup
+function onEachFeature(feature, layer) {
 
-    var adm_choice = document.getElementById("adm_choices").value;
-    console.log(adm_choice);
+    layer.bindPopup('<h2>Municipality: ' + feature.properties.shapeName + '</h2>' + 
+                    '<h2>Number of migrants: ' + feature.properties.num_migrants + '</h2>');
 
-    var nodes = document.querySelectorAll("input[type=number]");
-
-    var vals = [];
-
-    console.log("NODES");
-    console.log(nodes);
-
-    for (var i=0; i<nodes.length; i++) {
-        vals.push(nodes[i].value);
-    }
-
-
-    // Post the list of selected Issuer Id's back to Flask
-    fetch('/pred_muni', {
-
-    // When the data gets POSTed back to Flask, it'll be in JSON format
-    headers: {
-    'Content-Type': 'application/json'
-    },
-
-    // Send the data back as a POST request
-    method: 'POST',
-
-    // Here's where you construct the JSON
-    body: JSON.stringify({
-        "adm_id": adm_choice,
-        'values': vals
-    })
-
-    // ...and then send it off
-    }).then(function (response) {
-        return response.text();
-    }).then(function (text) {
-        console.log('POST response: ');
-        var pred = JSON.parse(text);
-        document.getElementById("pred").innerHTML = pred['pred'];
+    layer.on({
+        mouseover: highlightFeature,
+        mouseout: resetHighlight,
+        click: zoomToFeature
     });
 
+}
 
 
-        // Post the list of selected Issuer Id's back to Flask
-        fetch('/plot_social_sig', {
+// Create the window.poly global variable
+window.poly;
+
+// Function to get the data from the Flask function/URL (TO-DO: REMOVE ALL OF THE FUNCTIONS FROM HERE AND USE WINDOW.POLY TO EDIT THEM)
+axios.get('http://127.0.0.1:5000/geojson-features')
+
+    .then(response => {
+
+        var polys = L.geoJSON(response.data, {style: polygon_style, onEachFeature: onEachFeature})//.addTo(mymap);
+        window.poly = polys;
+        window.poly.addTo(mymap);
+
+    })
+
+
+
+
+
+
+
+
+function predict_migration() {
+
+    console.log("here!!");
+
+    console.log("Selected polygon ID's: ");
+
+    console.log(window.selected_polys);
+
+    // Make two new variables to store column name sand their associated percentage change values
+    var column_names = [],
+        percent_changes = [];
+
+    // Grab all of the percent change inputs
+    var inputs = document.getElementsByTagName('input');
+
+    // For all of the inputs, append the ID and value to their respective lists
+    for (i = 0; i < inputs.length; ++i) {
+        column_names.push(inputs[i].id);
+        percent_changes.push(inputs[i].value);
+    }
+
+    // Post all of the variable ID's and their percent changes back to Flaks
+    fetch('/predict_migration', {
 
         // When the data gets POSTed back to Flask, it'll be in JSON format
         headers: {
-        'Content-Type': 'application/json'
+            'Content-Type': 'application/json'
         },
 
         // Send the data back as a POST request
@@ -138,67 +749,91 @@ function pred_muni() {
 
         // Here's where you construct the JSON
         body: JSON.stringify({
-            "adm_id": adm_choice,
-            'values': vals
+
+            "selected_municipalities": window.selected_polys,
+            "column_names": column_names,
+            "percent_changes": percent_changes
+
         })
 
         // ...and then send it off
         }).then(function (response) {
             return response.text();
         }).then(function (text) {
-            console.log('POST response: ');
-            var ss = JSON.parse(text);
-            console.log(ss);
-            console.log(ss['url']);
-            // document.getElementById("social_sig").src = ss['url'];
-            // document.getElementById("pred").innerHTML = pred['pred'];
+
+            // Remove the current migration data layer from the map
+            mymap.removeLayer(window.poly);
+
+            // Convert the new migration data into a leaflet geoJSON
+            var polys = L.geoJSON(JSON.parse(text), {style: polygon_style, onEachFeature: onEachFeature})//.addTo(mymap);
+
+            // Update the global window.poly variable & add it to the map
+            window.poly = polys;
+            window.poly.addTo(mymap);
+
+            // Zoom the map back out to all of Mexico                
+            mymap.fitBounds(window.poly.getBounds());
+
         });
 
-} 
+
+
+        // Function to get the data from the Flask function/URL (TO-DO: REMOVE ALL OF THE FUNCTIONS FROM HERE AND USE WINDOW.POLY TO EDIT THEM)
+        axios.get('http://127.0.0.1:5000/update_stats')
+
+            .then(response => {
+
+                console.log(response.data['change']);
+                console.log(response.data['p_change']);
+
+
+                // document.getElementById("total-migrants").value
+
+                // console.log(document.getElementById("total_migrants").text);
+
+
+                document.getElementById("total_migrants").innerHTML = response.data['predicted_migrants'];
+                document.getElementById("change_migrants").innerHTML = response.data['change'];
+                document.getElementById("avg_age").innerHTML = response.data['avg_age'];
+                document.getElementById("avg_age_change").innerHTML = response.data['avg_age_change'];
+
+                if (response.data['p_change'] > 0) {
+                    document.getElementById("pchange_migrants").innerHTML = response.data['p_change'].toString().concat("%");
+                    document.getElementById("pchange_icon").innerHTML = 'trending_up'
+                    document.getElementById("pchange_icon").style.color = 'green'
+                } else {
+                    document.getElementById("pchange_migrants").innerHTML = response.data['p_change'].toString().concat("%");
+                    document.getElementById("pchange_icon").innerHTML = 'trending_down'
+                    document.getElementById("pchange_icon").style.color = 'red'
+                    // document.getElementById("pchange_icon").style.box-shaow = '0px 0px 0px'
+                }
+
+
+                if (response.data['pavg_age_change'] > 0) {
+                    document.getElementById("pavg_age_change").innerHTML = response.data['pavg_age_change'].toString().concat("%");
+                    document.getElementById("page_change_icon").innerHTML = 'trending_up'
+                    document.getElementById("page_change_icon").style.color = 'green'
+                } else {
+                    document.getElementById("pavg_age_change").innerHTML = response.data['pavg_age_change'].toString().concat("%");
+                    document.getElementById("page_change_icon").innerHTML = 'trending_down'
+                    document.getElementById("page_change_icon").style.color = 'red'
+                }
+
+
+
+
+                
+
+
+                // $("h4.total_migrants").text(response.data['predicted_migrants']);
+
+
+            });
+
+    }
+
 
 </script>
 
-
-
-
-<div style="width: 100%; margin-top: 20px; margin-bottom: 20px;">
-
-    <div style="margin-left: 10px; margin-right: 10px; width:35%; float:left; background-color: gainsboro; padding: 20px; border-radius: 8px; ">
-
-        <h4>Sending municipality:</h4>
-        <select name="adm_choices" id="adm_choices">
-            {% for adm in adms %}
-                <option value={{ adm }}>{{ adm }}</option>
-            {% endfor %}
-        </select>
-
-        <input type="button" id='select_adm' value="Update migration data" onclick="update_adm()"><br>
-
-        <br><br>
-
-        {% for obj in dta %}
-            <label id="label_{{ obj[0] }}" style="font-weight: normal;">{{ obj[0] }}</label>
-            <input type="number" id="{{ obj[0] }}" value="{{ obj[1] }}"><br>
-        {% endfor %}
-
-        <input type="button" id='select_adm' value="Predict number of migrants" onclick="pred_muni()"><br>
-
-    </div>
-
-    <div style="width:55%; float:left">
-
-        <h4>Predicted number of migrants from selected municipality: </h4> <div id="pred"></div>
-        <h4>Total number of migrants across all municipalities: </h4> 
-
-        <div style="width:100%; float:left" id='mapDiv'>
-
-            {{ map | safe }}
-
-        </div>
-
-        <!-- <img id = "social_sig" src="/static/images/im1.png"> -->
-
-    </div>
-
-</div>
-
+</body>
+</html> 

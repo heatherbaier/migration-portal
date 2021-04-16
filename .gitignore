@@ -5,3 +5,5 @@ figs2
 static
 
 socialSig_MEX_12epochs_real.torch
+templates/index_old.html
+templates/index_more_old.html
