@@ -1,27 +1,16 @@
-{"Economic": ["sum_income", "sum_earned_income", "weighted_avg_income", "weighted_avg_earned_income", "perc_no_remitt", "perc_yes_remitt",
-     "perc_no_adultfood1", "perc_yes_adultfood1", "perc_no_adultfood2", "perc_yes_adultfood2", "perc_no_adultfood3", "perc_yes_adultfood3", 
-     "perc_no_adultfood4", "perc_yes_adultfood4", "perc_no_adultfood5", "perc_yes_adultfood5", "perc_no_adultfood6", "perc_yes_adultfood6", 
-     "perc_no_childfood1", "perc_yes_childfood1", "perc_no_childfood2", "perc_yes_childfood2", "perc_no_childfood3", "perc_yes_childfood3", 
-     "perc_no_childfood4", "perc_yes_childfood4", "perc_no_childfood5", "perc_yes_childfood5", "perc_no_childfood6", "perc_yes_childfood6"],
+{"Economic": ["sum_income", "perc_yes_remitt"],
 
 
- "Deomographic": ["avg_nfams", "avg_ncouples", "avg_nmothers", "avg_nfathers", "avg_npersons", "perc_native_born_nativity", 
-    "perc_foreign_born_nativity", "perc_yes_citizen", "perc_no_citizen", "perc_yes_indig", "perc_no_indig", "perc_yes_speakind", 
-    "perc_yes_and_spanish_speakind", "perc_yes_only_indig_speakind", "perc_no_speakind", "perc_male", "avg_age", "total_pop"],
+ "Deomographic": ["avg_nfams", "avg_ncouples", "perc_yes_citizen", "perc_yes_indig",  "perc_yes_speakind", 
+    "perc_yes_and_spanish_speakind", "perc_yes_only_indig_speakind", "avg_age", "total_pop"],
 
-"Family": ["avg_eldch_age", "avg_yngch_age", "perc_single", "perc_married", "perc_separated", "perc_widowed", 
-    "perc_marriage_unknown", "avg_chborn", "avg_chsurv", "avg_num_years_from_last_birth", "avg_chdead"],
+"Family": ["perc_single", "perc_married", "perc_separated", "avg_chsurv", "avg_num_years_from_last_birth"],
 
- "Employment": ["perc_employed", "perc_unemployed", "perc_senior_officials", "perc_professionals", "perc_technicians_associate_professionals", "perc_clerks", 
+ "Employment": ["perc_employed",  "perc_senior_officials", "perc_professionals", "perc_technicians_associate_professionals", "perc_clerks", 
         "perc_service_workers", "perc_agri_fish_workers", "perc_trades_workers", "perc_machine_operators", "perc_elementary_occupations", 
-        "perc_armed_forces", "perc_agriculture_fishing_forestry_indgen", "perc_mining_extraction_indgen", "perc_manufacturing_indgen", 
-        "perc_electricity_gas_water_wm_indgen", "perc_construction_indgen", "perc_wholesale_retail_indgen", "perc_hotels_restaurants_indgen",
-         "perc_transportation_storage_indgen", "perc_financial_insurance_indgen", "perc_public_administration_defense_indgen", 
-         "perc_business_real_estate_indgen", "perc_education_indgen", "perc_health_social_work_indgen", 
-         "perc_private_household_services_indgen", "perc_self_employed", "perc_wage_worker", "perc_unpaid_worker", "perc_walking_trnwrk", 
-         "perc_walk_bicycle_or_motorcycle_trnwrk", "perc_bicycle_trnwrk", "perc_public_transport_trnwrk", "perc_special_transport_trnwrk",
-          "perc_other_trnwrk", "perc_disabled", "perc_not_disabled", "perc_inactive_empstat", "perc_unknown_empstat", 
-          "perc_no_lab", "perc_yes_lab"],
+        "perc_armed_forces",  "perc_self_employed", "perc_wage_worker", "perc_unpaid_worker", "perc_walking_trnwrk", 
+         "perc_walk_bicycle_or_motorcycle_trnwrk", "perc_bicycle_trnwrk", "perc_public_transport_trnwrk",
+          "perc_disabled", "perc_yes_lab"],
 
 
  "Health": ["perc_imss_issste_hlthcov", "perc_imss_pemex_military_naval_hlthcov", "perc_imss_public_insurance_hlthcov", 
@@ -33,11 +22,11 @@
     "perc_private_facility_hlthfac", "perc_other_hlthfac", "perc_no_facility_used_hlthfac"],
 
 
- "Education": ["perc_yes_school", "perc_no_school", "perc_no_literacy", "perc_yes_literacy", "perc_less_than_primary_edu", 
+ "Education": ["perc_yes_school", "perc_yes_literacy", "perc_less_than_primary_edu", 
     "perc_primary_edu", "perc_secondary_edu", "perc_university_edu", "avg_yrschool"],
 
 
- "Household": ["avg_room_num", "avg_bedroom_num", "perc_rural", "unrel_ppl", "perc_owned", "perc_not_owned", "perc_yes_electricity", "perc_no_electricity", "perc_piped_inside_dwelling",
+ "Household": ["avg_npersons", "avg_room_num", "avg_bedroom_num", "perc_rural", "unrel_ppl", "perc_owned", "perc_not_owned", "perc_yes_electricity", "perc_no_electricity", "perc_piped_inside_dwelling",
     "perc_piped_within_building", "perc_no_piped_water", "perc_unknown_water_supply", "perc_sewage_system", "perc_septic_tank", "perc_no_sewage_system", 
     "perc_unknown_sewage", "perc_no_fuelcook", "perc_electricity_fuelcook", "perc_petroleum_gas_fuelcook", "perc_wood_charcoal_fuelcook", 
     "perc_other_fuelcook", "perc_no_phone", "perc_yes_phone", "perc_yes_cell", "perc_no_cell", "perc_no_internet", "perc_yes_internet",

@@ -84,7 +84,7 @@ def index():
         cur_data = df[df['sending'] == 20240]
 
         # Open the variables JSON and the JSON containing the pretty translation of the variables
-        with open("./vars copy.json", "r") as f:
+        with open("./vars.json", "r") as f:
             grouped_vars = json.load(f)
 
         with open("./var_map.json", "r") as f2:

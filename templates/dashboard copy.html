@@ -34,7 +34,7 @@
         /* Fixed sidenav, full height */
         .sidenav {
             height: 100%;
-            width: 700px;
+            width: 800px;
             /* float: left; */
             position: fixed;
             z-index: 1;
@@ -47,9 +47,9 @@
 
         /* Style the sidenav links and the dropdown button */
         .sidenav a, .dropdown-btn {
-            padding: 6px 8px 6px 16px;
+            padding: 6px 8px 15px 16px;
             text-decoration: none;
-            font-size: 20px;
+            font-size: 24px;
             color: black;
             display: block;
             border: none;
@@ -76,7 +76,7 @@
             /* padding-left:10px; */
             height: 100%;
             /* margin-top: 50px; */
-            margin-left: 750px; /* Same as the width of the sidenav */
+            margin-left: 850px; /* Same as the width of the sidenav */
             font-size: 20px; /* Increased text to enable scrolling */
             /* padding: 0px 10px; */
             background-color: #F0F0F0;
@@ -133,11 +133,12 @@
         }
 
         .material-icons {
-            padding: 10px;
+            padding: 15px;
             color: #404040;
             background-color: white;
             border-radius: 10px;
             box-shadow: 10px 5px 5px lightgray;
+            font-size: 30px;
         }
 
         .g-icon {
@@ -160,7 +161,7 @@
         h4 {
             padding: 6px 8px 0px 16px;
             text-decoration: none;
-            font-size: 20px;
+            font-size: 25px;
             color: black;
             display: block;
             border: none;
@@ -182,7 +183,7 @@
             font-family: Roboto;
             padding: 10px; 
             text-align: center;
-            font-size: 20px;
+            font-size: 24px;
         }
 
 
@@ -192,30 +193,25 @@
             color: #0E0C28; 
             font-family: Roboto; 
             font-weight: normal; 
-            font-size: 28px; 
+            font-size: 35px; 
             font-weight: bolder;
         }
 
         h2 {
-            /* padding: 6px 8px 0px 16px; */
-            /* margin-left: 20px; */
             color: #0E0C28; 
             font-family: Roboto; 
-            /* font-weight: normal;  */
-            /* font-size: 15px;  */
-            /* font-weight: bolder; */
         }
 
         .predict-button {
             background-color: #0E0C28;
             color: white;
-            height: 50px;
-            font-size: 18px;
+            height: 70px;
+            font-size: 24px;
             border-radius: 10px;
             font-family: Roboto; 
             box-shadow: 10px 5px 5px lightgray;
             margin-left: 110px;
-            width: 500px;
+            width: 575px;
             font-weight: bolder;
             cursor: pointer;
             /* padding-top: 20px; */
@@ -374,8 +370,8 @@
         <br>
 
         <div>
-            <h2 style="margin-left: 40px">Directions to user:</h2>
-            <ol style="margin-left: 40px; font-size: 20px; font-family: Roboto; line-height: 1.6;">
+            <h2 style="margin-left: 40px; font-size: 28px;">Directions to user:</h2>
+            <ol style="margin-left: 40px; font-size: 24px; font-family: Roboto; line-height: 1.6;">
                 <li>Click on either the polygon or rectanlge icons on the map to draw an area of interest (AOI) over municipalities you wish to manipualte data for. You can draw as many AOI's as you wish. To delete an AOI, click on the trash can icon on the map, then click on the AOI you wish to delte and hit 'save' next to the trash can icon.</li>
                 <li>Click on any of the variable drop downs above to view associated variables that are available to manipulate. Then, type in a percentage increase or decrease to change the value of the variable for the municiaplities you choose on the map. For example, if you'd like to increase the Total Income of selected municipalities by 10%, click on 'Economic Variables and type '10' into the input box next to income.</li>
                 <li>Once you are happy with your selections, click 'Predict new migration pattern' and wait for the update migration predictions.</li>
