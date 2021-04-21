@@ -613,6 +613,12 @@ axios.get('http://127.0.0.1:5000/geojson-features')
 
     .then(response => {
 
+        // console.log(response.data);
+
+        // console.log(JSON.parse(response.data));
+
+        // JS
+
         var polys = L.geoJSON(response.data, {style: polygon_style, onEachFeature: onEachFeature})//.addTo(mymap);
         window.poly = polys;
         window.poly.addTo(mymap);

@@ -33,14 +33,8 @@ def index():
     # Get the number of migrants to send to HTML for stat box
     total_migrants = df['num_persons_to_us'].sum()
 
-    # Get the data for the number of migrants histogram
-    hist = {}
-    hist_data, hist_labels = np.histogram(df['num_persons_to_us'], bins = 20)
-    hist['data'] = list(hist_data)
-    hist["labels"] = [round(i, 2) for i in list(hist_labels)]
-
     municipality_ids = df['sending'].unique()
-    df_var_cols = [i for i in df.columns if i not in ['sending','number_moved']]
+    # df_var_cols = [i for i in df.columns if i not in ['sending','number_moved']]
 
     df['avg_age_weight'] = df['avg_age'] * df['num_persons_to_us']
     print("Average age: ", df['avg_age'].mean())
@@ -57,8 +51,6 @@ def index():
     # Get all of the variables to send to Flask
     econ, demog, family, health, edu, employ, hhold = get_column_lists(df, var_names, grouped_vars)
 
-
-
     # Merry Christmas HTML
     return flask.render_template('index.html', 
                                   municipality_ids = municipality_ids, 
@@ -70,8 +62,7 @@ def index():
                                   employ_data = employ,
                                   hhold_data = hhold,
                                   total_migrants = total_migrants,
-                                  avg_age = round(avg_age, 2),
-                                  hist = hist)
+                                  avg_age = round(avg_age, 2))
 
 
 
@@ -81,6 +72,16 @@ def get_all_points():
 
     # Convert the geoJSON to a dataframe and merge it to the migration data
     feature_df = convert_to_pandas(geodata_collection, MATCH_PATH, DATA_PATH)
+
+    print(sum(feature_df['geometry.coordinates'].isna()))
+    print(sum(feature_df['geometry.type'].isna()))
+    print(sum(feature_df['num_persons_to_us'].isna()))
+    print(sum(feature_df['properties.shapeID'].isna()))
+    print(sum(feature_df['properties.shapeName'].isna()))
+
+
+    feature_df['num_persons_to_us'] = feature_df['num_persons_to_us'].fillna(0)
+    
 
     # Make lists of all of the features we want available to the Leaflet map
     coords = feature_df['geometry.coordinates']
@@ -159,14 +160,18 @@ def predict_migration():
     # Get a data frame with all of the data that wasn't edited
     dta_dropped = dta[~dta['sending'].isin(selected_municipalities)]
 
-
-    # TEMP DUMMY VARAIBLES (THIS NEEDS TO BE FIXED WHEN YOU INPUT THE CORRECT TRAINED MODEL)
-    dta_dropped['DUMMY'] = [i for i in range(0, len(dta_dropped))]
-    dta_selected['DUMMY'] = [i for i in range(0, len(dta_selected))]
-
     # Then re-append the updated data to the larger dataframe incorporating user input
     dta_appended = dta_dropped.append(dta_selected)
     dta_appended = dta_appended.drop(['sending'], axis = 1)
+
+
+    # dta_appended = dta_appended.drop(['Unnamed: 0', 'sending'], axis = 1)
+    dta_appended = dta_appended.fillna(0)
+    dta_appended = dta_appended.apply(lambda x: pd.to_numeric(x, errors='coerce'))
+
+    with open("./us_vars.txt", "r") as f:
+        vars = f.read().splitlines()
+    dta_appended = dta_appended[vars]
 
     # Scale the data frame for the model
     X = dta_appended.loc[:, dta_appended.columns != "num_persons_to_us"].values
@@ -211,27 +216,9 @@ def predict_migration():
         json.dump(total_migrants, outfile)
 
 
-    # # Make lists of all of the features we want available to the Leaflet map
-    coords = merged['geometry.coordinates']
-    types = merged['geometry.type']
-    num_migrants = merged['num_persons_to_us']
-    shapeIDs = merged['sending']
-    shapeNames = merged['properties.shapeName']
+    merged['num_persons_to_us'] = merged['num_persons_to_us'].fillna(0)
 
-    # For each of the polygons in the data frame, append it and it's data to a list of dicts to be sent as a JSON back to the Leaflet map
-    features = []
-    for i in range(0, len(merged)):
-        features.append({
-            "type": "Feature",
-            "geometry": {
-                "type": types[i],
-                "coordinates": coords[i]
-            },
-            "properties": {'num_migrants': num_migrants[i],
-                           'shapeID': shapeIDs[i],
-                           'shapeName': shapeNames[i]
-                          }
-        })
+    features = convert_features_to_geojson(merged)
 
     return jsonify(features)
         

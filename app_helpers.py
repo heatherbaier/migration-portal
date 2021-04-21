@@ -19,9 +19,10 @@ importlib.reload(socialSigNoDrop)
 
 
 GEOJSON_PATH = "./geoBoundariesSimplified-3_0_0-MEX-ADM2.geojson"
-DATA_PATH = "./mex_migration_allvars_subset.csv"
+# DATA_PATH = "./mex_migration_allvars_subset.csv"
+DATA_PATH = "./us_migration_allvars.csv"
 MATCH_PATH = "./gB_IPUMS_match.csv"
-MODEL_PATH = "./socialSig_MEX_12epochs_real.torch"
+MODEL_PATH = "./transfer_25epoch_weightedloss_us.torch"
 
 
 
@@ -119,13 +120,40 @@ def switch_column_names(MATCH_PATH, DATA_PATH):
 def predict_row(values_ar, X):
     
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-    inception = torch.hub.load('pytorch/vision:v0.9.0', 'inception_v3', pretrained=True)
-    model = socialSigNoDrop.socialSigNet_Inception(X=X, outDim = 1, inception = inception).to(device)
+    resnet50 = models.resnet50(pretrained=True)
+    model = socialSigNoDrop.scoialSigNet_NoDrop(X=X, outDim = 1, resnet = resnet50).to(device)
     checkpoint = torch.load(MODEL_PATH)
     model.load_state_dict(checkpoint['model_state_dict'])
 
-    input = torch.reshape(torch.tensor(values_ar, dtype = torch.float32), (1, 287)).to(device)
+    input = torch.reshape(torch.tensor(values_ar, dtype = torch.float32), (1, 219)).to(device)
     model.eval()
-    pred = model(input).detach().cpu().numpy()[0][0]
+    pred = model(input, 1).detach().cpu().numpy()[0][0]
 
     return pred
+
+
+
+def convert_features_to_geojson(merged):
+    # # Make lists of all of the features we want available to the Leaflet map
+    coords = merged['geometry.coordinates']
+    types = merged['geometry.type']
+    num_migrants = merged['num_persons_to_us']
+    shapeIDs = merged['sending']
+    shapeNames = merged['properties.shapeName']
+
+    # For each of the polygons in the data frame, append it and it's data to a list of dicts to be sent as a JSON back to the Leaflet map
+    features = []
+    for i in range(0, len(merged)):
+        features.append({
+            "type": "Feature",
+            "geometry": {
+                "type": types[i],
+                "coordinates": coords[i]
+            },
+            "properties": {'num_migrants': num_migrants[i],
+                           'shapeID': shapeIDs[i],
+                           'shapeName': shapeNames[i]
+                          }
+        })
+
+    return features
