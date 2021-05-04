@@ -133,7 +133,8 @@ def predict_migration():
     # Parse the edited input variables and switch all of the 0's in percent_changes to 1 (neccessary for multiplying later on)
     column_names = request.json['column_names']
     percent_changes = request.json['percent_changes']
-    percent_changes = [i if i != '0' else '1' for i in percent_changes]
+    # percent_changes = request.json['percent_changes']
+    percent_changes = [float(i) - 100 if i != '100' else '1' for i in percent_changes]
 
 
     # Open the var_map JSON and reverse the dictionary
