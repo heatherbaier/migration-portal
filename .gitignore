@@ -2,7 +2,7 @@ __pycache__
 
 MEX
 figs2
-static
+
 
 socialSig_MEX_12epochs_real.torch
 transfer_25epoch_weightedloss_us.torch
