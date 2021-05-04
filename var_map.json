@@ -42,7 +42,17 @@
     "perc_primary_edu": "Percentage of population with at least a primary school education",
     "perc_secondary_edu": "Percentage of population with at least a secondary school education",
     "perc_university_edu": "Percentage of population with at least a university school education",
-    "avg_yrschool": "Average number of years a person attended school"
+    "avg_yrschool": "Average number of years a person attended school",
+    "perc_social_security_imss_hlthfac" : "Percentage of population with Social Security - IMSS", 
+    "perc_permex_defense_navy_hlthfac" : "Percentage of population with Pemex, Defense, Navy",
+    "perc_public_insurance_hlthcov" : "Percentage of population with public insurance (New Generation)",
+    "perc_public_workers_issste_hlthfac" : "Percentage of public workers iwth ISSSTE", 
+    "perc_imss_only_hlthcov" : "Percentage of population with IMSS only",
+    "perc_issste_only_hlthcov" : "Percentage of population with ISSSTE only",
+    "perc_no_coverage_hlthcov" : "Percentage of population with no health coverage", 
+    "perc_private_facility_hlthfac" : "Percentage of population using a private healthcare facility", 
+    "perc_no_facility_used_hlthfac" : "Percentage of population using no healthcare facility"
 }
+
 
 

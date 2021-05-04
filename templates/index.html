@@ -265,6 +265,10 @@
             border-radius: 15px;
         }
 
+        #confirm .message {
+            text-align: center;
+         }
+
         /* Some media queries for responsiveness */
         @media screen and (max-height: 450px) {
             .sidenav {padding-top: 15px;}
@@ -643,6 +647,13 @@ function predict_migration() {
         percent_changes.push(inputs[i].value);
     }
 
+    // If there are no municipalities slected, provide the user with the option to either go back and pick some or add the inputted increases to all of them
+    if (window.selected_polys.length == 0) {
+        if (confirm("\nYou haven't selected any municipalities on the map.\n\nPress OK to apply your variable changes to all of the municipalities in Mexico or Cancel to go back and choose a subset of municipalities.") != true) {
+            return 
+        }
+    }
+
     // Post all of the variable ID's and their percent changes back to Flaks
     fetch('/predict_migration', {
 
@@ -688,9 +699,6 @@ function predict_migration() {
         axios.get('http://127.0.0.1:5000/update_stats')
 
             .then(response => {
-
-
-                // document.getElementById("TestsDiv").style.display = "block";
 
                 // Update all of the HTML text that doesn't involve the trending icon
                 document.getElementById("total_migrants").innerHTML = response.data['predicted_migrants'];

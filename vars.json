@@ -13,13 +13,9 @@
           "perc_disabled", "perc_yes_lab"],
 
 
- "Health": ["perc_imss_issste_hlthcov", "perc_imss_pemex_military_naval_hlthcov", "perc_imss_public_insurance_hlthcov", 
-    "perc_imss_other_hlthcov", "perc_issste_pemex_military_naval_hlthcov", "perc_issste_public_insurance_hlthcov", 
-    "perc_issste_other_hlthcov", "perc_pemex_military_naval_public_insurance_hlthcov", "perc_pemex_military_naval_other_hlthcov", 
-    "perc_public_insurance_other_hlthcov", "perc_no_coverage_hlthcov", "perc_imss_only_hlthcov", "perc_issste_only_hlthcov", 
-    "perc_pemex_military_naval_hlthcov", "perc_public_insurance_hlthcov", "perc_other_hlthcov", "perc_social_security_imss_hlthfac", 
-    "perc_permex_defense_navy_hlthfac", "perc_public_workers_issste_hlthfac", "perc_ministry_of_public_health_hlthfac", 
-    "perc_private_facility_hlthfac", "perc_other_hlthfac", "perc_no_facility_used_hlthfac"],
+ "Health": ["perc_social_security_imss_hlthfac", "perc_permex_defense_navy_hlthfac", "perc_public_insurance_hlthcov", "perc_public_workers_issste_hlthfac", 
+   "perc_imss_only_hlthcov", "perc_issste_only_hlthcov", "perc_no_coverage_hlthcov", "perc_private_facility_hlthfac", "perc_no_facility_used_hlthfac"],
+
 
 
  "Education": ["perc_yes_school", "perc_yes_literacy", "perc_less_than_primary_edu", 

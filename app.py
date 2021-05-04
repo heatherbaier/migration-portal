@@ -125,9 +125,15 @@ def predict_migration():
     selected_municipalities = [i.split("-")[3] for i in selected_municipalities]
     print("Selected municipalities: ", selected_municipalities)
 
-    # Read in the migration data and subset it tot he selected municipalities
+    # Read in the migration data and subset it to the selected municipalities
     dta = switch_column_names(MATCH_PATH, DATA_PATH)
+
+    if len(selected_municipalities) == 0:
+        selected_municipalities = dta['sending'].to_list()
+        print("Selected municipalities since none were selected: ", selected_municipalities)
+
     dta_selected = dta[dta['sending'].isin(selected_municipalities)]
+    dta_selected = dta_selected.dropna(subset = ['sending'])
     print(dta_selected.shape)
 
     # Parse the edited input variables and switch all of the 0's in percent_changes to 1 (neccessary for multiplying later on)
@@ -135,7 +141,6 @@ def predict_migration():
     percent_changes = request.json['percent_changes']
     # percent_changes = request.json['percent_changes']
     percent_changes = [float(i) - 100 if i != '100' else '1' for i in percent_changes]
-
 
     # Open the var_map JSON and reverse the dictionary
     with open("./var_map.json", "r") as f2:
@@ -164,7 +169,6 @@ def predict_migration():
     # Then re-append the updated data to the larger dataframe incorporating user input
     dta_appended = dta_dropped.append(dta_selected)
     dta_appended = dta_appended.drop(['sending'], axis = 1)
-
 
     # dta_appended = dta_appended.drop(['Unnamed: 0', 'sending'], axis = 1)
     dta_appended = dta_appended.fillna(0)
@@ -202,20 +206,15 @@ def predict_migration():
     print("NUMBER OF PERSONS TO US: ", merged['num_persons_to_us'].sum())
     total_migrants = merged['num_persons_to_us'].sum()
 
-
-
     merged['avg_age_weight'] = merged['avg_age'] * merged['num_persons_to_us']
     print("Average age: ", merged['avg_age'].mean())
     print("Average age: ", merged['avg_age_weight'].sum() / merged['num_persons_to_us'].sum())
     avg_age = merged['avg_age_weight'].sum() / merged['num_persons_to_us'].sum()
 
-
     total_migrants = {'total_migrants': total_migrants, 'avg_age': avg_age}
     
-
     with open('predicted_migrants.json', 'w') as outfile:
         json.dump(total_migrants, outfile)
-
 
     merged['num_persons_to_us'] = merged['num_persons_to_us'].fillna(0)
 
