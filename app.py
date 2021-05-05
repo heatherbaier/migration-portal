@@ -31,17 +31,17 @@ def index():
     df = pd.read_csv(DATA_PATH)
 
     # Get the number of migrants to send to HTML for stat box
-    total_migrants = df['num_persons_to_us'].sum()
+    total_migrants = df['sum_num_intmig'].sum()
 
     municipality_ids = df['sending'].unique()
     # df_var_cols = [i for i in df.columns if i not in ['sending','number_moved']]
 
-    df['avg_age_weight'] = df['avg_age'] * df['num_persons_to_us']
+    df['avg_age_weight'] = df['avg_age'] * df['sum_num_intmig']
     print("Average age: ", df['avg_age'].mean())
-    print("Average age: ", df['avg_age_weight'].sum() / df['num_persons_to_us'].sum())
-    avg_age = df['avg_age_weight'].sum() / df['num_persons_to_us'].sum()
+    print("Average age: ", df['avg_age_weight'].sum() / df['sum_num_intmig'].sum())
+    avg_age = df['avg_age_weight'].sum() / df['sum_num_intmig'].sum()
 
-    # Open the variables JSON and the JSON containing the pretty translation of the variables
+    # Open the variables JSON and the JSON containing the readable translation of the variables
     with open("./vars.json", "r") as f:
         grouped_vars = json.load(f)
 
@@ -75,18 +75,18 @@ def get_all_points():
 
     print(sum(feature_df['geometry.coordinates'].isna()))
     print(sum(feature_df['geometry.type'].isna()))
-    print(sum(feature_df['num_persons_to_us'].isna()))
+    print(sum(feature_df['sum_num_intmig'].isna()))
     print(sum(feature_df['properties.shapeID'].isna()))
     print(sum(feature_df['properties.shapeName'].isna()))
 
 
-    feature_df['num_persons_to_us'] = feature_df['num_persons_to_us'].fillna(0)
+    feature_df['sum_num_intmig'] = feature_df['sum_num_intmig'].fillna(0)
     
 
     # Make lists of all of the features we want available to the Leaflet map
     coords = feature_df['geometry.coordinates']
     types = feature_df['geometry.type']
-    num_migrants = feature_df['num_persons_to_us']
+    num_migrants = feature_df['sum_num_intmig']
     shapeIDs = feature_df['properties.shapeID']
     shapeNames = feature_df['properties.shapeName']
 
@@ -176,10 +176,13 @@ def predict_migration():
 
     with open("./us_vars.txt", "r") as f:
         vars = f.read().splitlines()
+    vars = [i for i in vars if i in dta_appended.columns]
     dta_appended = dta_appended[vars]
 
+    print("SHAPE HERE: ", dta_appended.shape)
+
     # Scale the data frame for the model
-    X = dta_appended.loc[:, dta_appended.columns != "num_persons_to_us"].values
+    X = dta_appended.loc[:, dta_appended.columns != "sum_num_intmig"].values
     mMScale = preprocessing.MinMaxScaler()
     X = mMScale.fit_transform(X)
 
@@ -190,7 +193,7 @@ def predict_migration():
     predictions = [predict_row(i, X) for i in muns_to_pred]
     
     # Update the migration numbers in the dataframe and re-append it tot the wider dataframe
-    dta_selected['num_persons_to_us'] = predictions
+    dta_selected['sum_num_intmig'] = predictions
     dta_final = dta_dropped.append(dta_selected)
 
     # Normalize the geoJSON as a pandas dataframe
@@ -203,20 +206,20 @@ def predict_migration():
     # Mix it all together
     merged = pd.merge(geoDF, dta_final, on = 'sending')
 
-    print("NUMBER OF PERSONS TO US: ", merged['num_persons_to_us'].sum())
-    total_migrants = merged['num_persons_to_us'].sum()
+    print("NUMBER OF PERSONS TO US: ", merged['sum_num_intmig'].sum())
+    total_migrants = merged['sum_num_intmig'].sum()
 
-    merged['avg_age_weight'] = merged['avg_age'] * merged['num_persons_to_us']
+    merged['avg_age_weight'] = merged['avg_age'] * merged['sum_num_intmig']
     print("Average age: ", merged['avg_age'].mean())
-    print("Average age: ", merged['avg_age_weight'].sum() / merged['num_persons_to_us'].sum())
-    avg_age = merged['avg_age_weight'].sum() / merged['num_persons_to_us'].sum()
+    print("Average age: ", merged['avg_age_weight'].sum() / merged['sum_num_intmig'].sum())
+    avg_age = merged['avg_age_weight'].sum() / merged['sum_num_intmig'].sum()
 
     total_migrants = {'total_migrants': total_migrants, 'avg_age': avg_age}
     
     with open('predicted_migrants.json', 'w') as outfile:
         json.dump(total_migrants, outfile)
 
-    merged['num_persons_to_us'] = merged['num_persons_to_us'].fillna(0)
+    merged['sum_num_intmig'] = merged['sum_num_intmig'].fillna(0)
 
     features = convert_features_to_geojson(merged)
 
@@ -233,7 +236,7 @@ def update_stats():
     df = pd.read_csv(DATA_PATH)
 
     # Get the number of migrants to send to HTML for stat box
-    total_migrants = df['num_persons_to_us'].sum()
+    total_migrants = df['sum_num_intmig'].sum()
     og_avg_age = df['avg_age'].mean()
 
 

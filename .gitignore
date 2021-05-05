@@ -6,6 +6,8 @@ figs2
 
 socialSig_MEX_12epochs_real.torch
 transfer_25epoch_weightedloss_us.torch
+notransfer_50epoch_weightedloss_us.torch
+
 
 templates/index_old.html
 templates/index_more_old.html

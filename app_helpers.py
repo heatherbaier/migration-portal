@@ -20,9 +20,9 @@ importlib.reload(socialSigNoDrop)
 
 GEOJSON_PATH = "./geoBoundariesSimplified-3_0_0-MEX-ADM2.geojson"
 # DATA_PATH = "./mex_migration_allvars_subset.csv"
-DATA_PATH = "./us_migration_allvars.csv"
+DATA_PATH = "./portal_data.csv"
 MATCH_PATH = "./gB_IPUMS_match.csv"
-MODEL_PATH = "./transfer_25epoch_weightedloss_us.torch"
+MODEL_PATH = "./notransfer_50epoch_weightedloss_us.torch"
 
 
 
@@ -40,31 +40,38 @@ def map_column_names(var_names, df):
 
 
 def get_column_lists(df, var_names, grouped_vars):
-    econ = df[grouped_vars['Economic']]
+    e_vars = [i for i in grouped_vars['Economic'] if i in df.columns]
+    econ = df[e_vars]
     econ = map_column_names(var_names, econ)
     econ = econ.columns
     
-    demog = df[grouped_vars['Deomographic']]
+    d_vars = [i for i in grouped_vars['Deomographic'] if i in df.columns]
+    demog = df[d_vars]
     demog = map_column_names(var_names, demog)
     demog = demog.columns
 
-    family = df[grouped_vars['Family']]
+    f_vars = [i for i in grouped_vars['Family'] if i in df.columns]
+    family = df[f_vars]
     family = map_column_names(var_names, family)
     family = family.columns
 
-    employ = df[grouped_vars['Employment']]
+    em_vars = [i for i in grouped_vars['Employment'] if i in df.columns]
+    employ = df[em_vars]
     employ = map_column_names(var_names, employ)
     employ = employ.columns
 
-    health = df[grouped_vars['Health']]
+    h_vars = [i for i in grouped_vars['Health'] if i in df.columns]
+    health = df[h_vars]
     health = map_column_names(var_names, health)
     health = health.columns
 
-    edu = df[grouped_vars['Education']]
+    edu_vars = [i for i in grouped_vars['Education'] if i in df.columns]
+    edu = df[edu_vars]
     edu = map_column_names(var_names, edu)
     edu = edu.columns
 
-    hhold = df[grouped_vars['Household']]
+    hh_vars = [i for i in grouped_vars['Household'] if i in df.columns]
+    hhold = df[hh_vars]
     hhold = map_column_names(var_names, hhold)
     hhold = hhold.columns
     
@@ -118,6 +125,8 @@ def switch_column_names(MATCH_PATH, DATA_PATH):
 
 
 def predict_row(values_ar, X):
+
+    print("SHAPE IN FUNC HERE: ", values_ar.shape)
     
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     resnet50 = models.resnet50(pretrained=True)
@@ -125,7 +134,7 @@ def predict_row(values_ar, X):
     checkpoint = torch.load(MODEL_PATH)
     model.load_state_dict(checkpoint['model_state_dict'])
 
-    input = torch.reshape(torch.tensor(values_ar, dtype = torch.float32), (1, 219)).to(device)
+    input = torch.reshape(torch.tensor(values_ar, dtype = torch.float32), (1, 202)).to(device)
     model.eval()
     pred = model(input, 1).detach().cpu().numpy()[0][0]
 
@@ -137,7 +146,7 @@ def convert_features_to_geojson(merged):
     # # Make lists of all of the features we want available to the Leaflet map
     coords = merged['geometry.coordinates']
     types = merged['geometry.type']
-    num_migrants = merged['num_persons_to_us']
+    num_migrants = merged['sum_num_intmig']
     shapeIDs = merged['sending']
     shapeNames = merged['properties.shapeName']
 
