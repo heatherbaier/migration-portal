@@ -1,6 +1,9 @@
 <!DOCTYPE html>
+
 <html>
+
 <head>
+
     <title>Migration Data Portal</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
@@ -14,7 +17,10 @@
     <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/0.4.2/leaflet.draw.css"/>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/0.4.2/leaflet.draw.js"></script>
+
     <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <script src="{{url_for('static', filename='js/predict-migration.js')}}"></script>
+
 </head>
 
 
@@ -130,7 +136,6 @@
             </div>
         </div>
 
-
         <div id="mapid"></div>
 
     </div>
@@ -138,337 +143,11 @@
 </section>
 
 
-
-
-<script>
-
-
-/* Loop through all dropdown buttons to toggle between hiding and showing its dropdown content - This allows the user to have multiple dropdowns without any conflict */
-var i;
-var dropdown = document.getElementsByClassName("dropdown-btn");
-
-for (i = 0; i < dropdown.length; i++) {
-    dropdown[i].addEventListener("click", function() {
-        this.classList.toggle("active");
-        var dropdownContent = this.nextElementSibling;
-        if (dropdownContent.style.display === "block") {
-            dropdownContent.style.display = "none";
-        } else {
-            dropdownContent.style.display = "block";
-        }
-    });
-}
-
-
-
-
-// MIGRATION MAP
-// Create the map and add the basemap tiles
-var mymap = L.map('mapid').setView([23.6345, -102.5528], zoom_start = 7);
-L.tileLayer('https://tiles.stadiamaps.com/tiles/alidade_smooth_dark/{z}/{x}/{y}{r}.png', {
-	maxZoom: 20,
-	attribution: '&copy; <a href="https://stadiamaps.com/">Stadia Maps</a>, &copy; <a href="https://openmaptiles.org/">OpenMapTiles</a> &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors'
-}).addTo(mymap);
-
-
-// Create the drawnPolys group
-var drawnPolys = new L.featureGroup().addTo(mymap);
-
-// Add the draw control to the map
-var drawControl = new L.Control.Draw({ 
-
-    draw: {
-            circle: false, 
-            circlemarker: false, 
-            polyline : false,
-            marker   : false,
-            polygon  : true,
-            rectangle: true
-        },
-    edit: {
-           featureGroup: drawnPolys, 
-           remove: true}
-        });
-
-mymap.addControl(drawControl);
-
-
-// Make an empty global variable to store the shapeID's of the polygons that overlap COMPLETLEY with any of the polgyons a user draws
-window.selected_polys = [];
-
-
-// What happens when a shape is drawn/created
-mymap.on(L.Draw.Event.CREATED, e => {
-
-    // Save the layer as an object
-    var layer = e.layer;
-
-    // Add the drawn layer to the map
-    mymap.addLayer(layer);
-    
-    // Add the layer to the drawnPolys LayerGroup
-    drawnPolys.addLayer(layer);
-
-    console.log(drawnPolys);
-    
-    // Zoom in to the drawn poly
-    mymap.fitBounds(layer.getBounds());
-   
-   // Get the layers in the geoJSON layer (no need rn but leaving in for reference)
-    var polygons = window.poly.getLayers();
-
-    for (i = 0; i < polygons.length; i++) {
-        if (layer.getBounds().contains(polygons[i].getBounds())) {
-            // console.log(polygons[i].feature.properties.shapeID)
-            window.selected_polys.push(polygons[i].feature.properties.shapeID)
-        }
-    }
-
-    console.log("Municipalities within selected area: ");
-    console.log(window.selected_polys);
-
-});
-
-
-// Function to remove a given shapeID from a list
-function arrayRemove(arr, value) { 
-    return arr.filter(function(ele){  return ele != value; });
-}
-
-
-// What happens when a shape is deleted
-mymap.on(L.Draw.Event.DELETED, e => {
-
-    // Get a list of the layers that are being deleted
-    var poly_being_removed = e.layers;
-
-    // Get a list of the polygons on the map
-    var polygons = window.poly.getLayers();
-
-    // For each of the polygons being removed...
-    poly_being_removed.eachLayer(function(layer) {
-
-        // Make an empty list to store the polgyon ID's that are no longer overlapping with a drawn polgyon
-        ids_to_be_removed = [];
-
-        // For every polygon currently on the map...
-        for (i = 0; i < polygons.length; i++) {
-
-            // If it intersects with any of the polgyons being removed then add that shapeID to the ids_to_be_removed list
-            if (layer.getBounds().contains(polygons[i].getBounds())) {
-                ids_to_be_removed.push(polygons[i].feature.properties.shapeID)
-            }
-        }
-
-    });
-
-
-    // Remove all of the ID's in ids_to_be_removed from the list of selected polygons
-    for (i = 0; i < ids_to_be_removed.length; i++) {
-        window.selected_polys = arrayRemove(window.selected_polys, ids_to_be_removed[i])
-    }
-
-    // CELEBRATE GOOD TIMES
-    console.log("NOW SELECTED POLYS: ");
-    console.log(window.selected_polys);
-
-});
-
-
-
-
-// Function to color the polygons by number of migrants
-function getColor(d) {
-    return d > 1000 ? '#800026' :
-           d > 500  ? '#BD0026' :
-           d > 200  ? '#E31A1C' :
-           d > 100  ? '#FC4E2A' :
-           d > 50   ? '#FD8D3C' :
-           d > 20   ? '#FEB24C' :
-           d > 10   ? '#FED976' :
-                      '#FFEDA0';
-}
-
-
-// Function to style the polygons
-function polygon_style(feature) {
-  return {
-    fillColor: getColor(feature.properties.num_migrants),
-    weight: .2,
-    opacity: 1,
-    color: 'white',
-    fillOpacity: 0.5
-  };
-}
-
-
-// Removes highlight from polygons when cursor is not over them
-function resetHighlight(e) {
-    window.poly.resetStyle(e.target);
-}
-
-
-// Zooms to a clicked on polygon
-function zoomToFeature(e) {
-    mymap.fitBounds(e.target.getBounds());
-}
-
-
-// Highlights a polygon when hovered over
-function highlightFeature(e) {
-
-    var layer = e.target;
-
-    layer.setStyle({
-        weight: 5,
-        color: '#666',
-        dashArray: '',
-        fillOpacity: 0.7
-    });
-
-    if (!L.Browser.ie && !L.Browser.opera && !L.Browser.edge) {
-        layer.bringToFront();
-    }
-
-}
-
-
-// On each feature, highlight/remove highlight when hovered over, zoom when clicked and add popup
-function onEachFeature(feature, layer) {
-
-    layer.bindPopup('<h2>Municipality: ' + feature.properties.shapeName + '</h2>' + 
-                    '<h2>Number of migrants: ' + feature.properties.num_migrants + '</h2>');
-
-    layer.on({
-        mouseover: highlightFeature,
-        mouseout: resetHighlight,
-        click: zoomToFeature
-    });
-
-}
-
-
-// Create the window.poly global variable
-window.poly;
-
-// Function to get the data from the Flask function/URL (TO-DO: REMOVE ALL OF THE FUNCTIONS FROM HERE AND USE WINDOW.POLY TO EDIT THEM)
-axios.get('http://127.0.0.1:5000/geojson-features')
-
-    .then(response => {
-
-        var polys = L.geoJSON(response.data, {style: polygon_style, onEachFeature: onEachFeature})//.addTo(mymap);
-        window.poly = polys;
-        window.poly.addTo(mymap);
-
-    })
-
-
-
-
-function predict_migration() {
-
-    // Make two new variables to store column name sand their associated percentage change values
-    var column_names = [],
-        percent_changes = [];
-
-    // Grab all of the percent change inputs
-    var inputs = document.getElementsByTagName('input');
-
-    // For all of the inputs, append the ID and value to their respective lists
-    for (i = 0; i < inputs.length; ++i) {
-        column_names.push(inputs[i].id);
-        percent_changes.push(inputs[i].value);
-    }
-
-    // If there are no municipalities slected, provide the user with the option to either go back and pick some or add the inputted increases to all of them
-    if (window.selected_polys.length == 0) {
-        if (confirm("\nYou haven't selected any municipalities on the map.\n\nPress OK to apply your variable changes to all of the municipalities in Mexico or Cancel to go back and choose a subset of municipalities.") != true) {
-            return 
-        }
-    }
-
-    // Post all of the variable ID's and their percent changes back to Flaks
-    fetch('/predict_migration', {
-
-        // When the data gets POSTed back to Flask, it'll be in JSON format
-        headers: {
-            'Content-Type': 'application/json'
-        },
-
-        // Send the data back as a POST request
-        method: 'POST',
-
-        // Here's where you construct the JSON
-        body: JSON.stringify({
-
-            "selected_municipalities": window.selected_polys,
-            "column_names": column_names,
-            "percent_changes": percent_changes
-
-        })
-
-        // ...and then send it off
-        }).then(function (response) {
-            return response.text();
-        }).then(function (text) {
-
-            // Remove the current migration data layer from the map
-            mymap.removeLayer(window.poly);
-
-            // Convert the new migration data into a leaflet geoJSON
-            var polys = L.geoJSON(JSON.parse(text), {style: polygon_style, onEachFeature: onEachFeature})//.addTo(mymap);
-
-            // Update the global window.poly variable & add it to the map
-            window.poly = polys;
-            window.poly.addTo(mymap);
-
-            // Zoom the map back out to all of Mexico                
-            mymap.fitBounds(window.poly.getBounds());
-
-        });
-
-
-        // Function to get the data from the Flask function/URL (TO-DO: REMOVE ALL OF THE FUNCTIONS FROM HERE AND USE WINDOW.POLY TO EDIT THEM)
-        axios.get('http://127.0.0.1:5000/update_stats')
-
-            .then(response => {
-
-                // Update all of the HTML text that doesn't involve the trending icon
-                document.getElementById("total_migrants").innerHTML = response.data['predicted_migrants'];
-                document.getElementById("change_migrants").innerHTML = response.data['change'];
-                document.getElementById("avg_age").innerHTML = response.data['avg_age'];
-                document.getElementById("avg_age_change").innerHTML = response.data['avg_age_change'];
-                document.getElementById("pchange_migrants").innerHTML = response.data['p_change'].toString().concat("%");
-                document.getElementById("pavg_age_change").innerHTML = response.data['pavg_age_change'].toString().concat("%");
-
-                // if p_change is greater than 1, make icon green & trending_up and vice versa
-                if (response.data['p_change'] > 0) {
-                    document.getElementById("pchange_icon").innerHTML = 'trending_up'
-                    document.getElementById("pchange_icon").style.color = 'green'
-                } else {
-                    // document.getElementById("pchange_migrants").innerHTML = response.data['p_change'].toString().concat("%");
-                    document.getElementById("pchange_icon").innerHTML = 'trending_down'
-                    document.getElementById("pchange_icon").style.color = 'red'
-                }
-
-                // if pavg_age_change is greater than 1, make icon green & trending_up and vice versa
-                if (response.data['pavg_age_change'] > 0) {
-                    document.getElementById("page_change_icon").innerHTML = 'trending_up'
-                    document.getElementById("page_change_icon").style.color = 'green'
-                } else {
-                    // document.getElementById("pavg_age_change").innerHTML = response.data['pavg_age_change'].toString().concat("%");
-                    document.getElementById("page_change_icon").innerHTML = 'trending_down'
-                    document.getElementById("page_change_icon").style.color = 'red'
-                }
-
-            });
-
-    }
-
-
-</script>
+<script src="{{url_for('static', filename='js/migration-map.js')}}"></script>
+<script src="{{url_for('static', filename='js/dropdown.js')}}"></script>
 
 </body>
+
 </html> 
 
 
