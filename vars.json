@@ -22,21 +22,14 @@
     "perc_primary_edu", "perc_secondary_edu", "perc_university_edu", "avg_yrschool"],
 
 
- "Household": ["avg_npersons", "avg_room_num", "avg_bedroom_num", "perc_rural", "unrel_ppl", "perc_owned", "perc_not_owned", "perc_yes_electricity", "perc_no_electricity", "perc_piped_inside_dwelling",
-    "perc_piped_within_building", "perc_no_piped_water", "perc_unknown_water_supply", "perc_sewage_system", "perc_septic_tank", "perc_no_sewage_system", 
-    "perc_unknown_sewage", "perc_no_fuelcook", "perc_electricity_fuelcook", "perc_petroleum_gas_fuelcook", "perc_wood_charcoal_fuelcook", 
-    "perc_other_fuelcook", "perc_no_phone", "perc_yes_phone", "perc_yes_cell", "perc_no_cell", "perc_no_internet", "perc_yes_internet",
-    "perc_trash_directly_collected_from_household", "perc_trash_indirectly_collected_garbage_deposit", "perc_trash_burned", "perc_trash_buried", 
-    "perc_trash_communal_refuse_dump", "perc_trash_other_dumping", "perc_no_autos", "perc_yes_autos", "perc_no_hotwater", "perc_yes_hotwater", 
-    "perc_no_aircon", "perc_yes_aircon", "perc_no_computer", "perc_yes_computer", "perc_no_washer", "perc_yes_washer", "perc_no_refrig", 
-    "perc_yes_refrig", "perc_no_tv", "perc_yes_tv", "perc_yes_atleastone_tv", "perc_no_radio", "perc_yes_radio", "perc_no_kitchen", 
-    "perc_yes_kitchen", "perc_no_toilet", "perc_flush_toilet", "perc_non_flush_latrine", "perc_non_flush_other_toilet", "perc_no_bath", 
-    "perc_yes_bath", "perc_no_unfinished_floor", "perc_cement_floor", "perc_other_finished_floor", "perc_scrap_wall", "perc_cardboard_wall", 
-    "perc_wood_wall", "perc_reed_bamboo_palm_wall", "perc_brick_stone_wall", "perc_adobe_wall", "perc_mud_wall", 
-    "perc_metal_asbestos_sheet_wall", "perc_masonry_roof", "perc_plastic_roof", "perc_slate_roof", "perc_asbestos_roof", 
-    "perc_sheet_metal_roof", "perc_plant_materials_roof", "perc_wood_roof", "perc_thatch_roof", "perc_scrap_material_roof", 
-    "perc_cardboard_roof", "perc_one_person_hhtype", "perc_married_no_children_hhtype", "perc_married_with_children_hhtype", 
-    "perc_single_parent_hhtype", "perc_extended_family_hhtype", "perc_composite_hhytpe", "perc_non_family_hhtype", 
-    "perc_unclassifiable_hhtype"]
+ "Household": ["avg_npersons", "avg_room_num", "perc_rural", "unrel_ppl", "perc_owned", "perc_yes_electricity", "perc_piped_inside_dwelling", 
+   "perc_piped_within_building", "perc_no_piped_water", "perc_sewage_system", "perc_septic_tank", "perc_no_sewage_system", "perc_no_fuelcook", 
+   "perc_electricity_fuelcook", "perc_petroleum_gas_fuelcook", "perc_wood_charcoal_fuelcook", "perc_yes_phone", "perc_yes_cell", "perc_yes_internet", 
+   "perc_trash_directly_collected_from_household", "perc_trash_communal_refuse_dump", "perc_yes_autos", "perc_yes_hotwater", "perc_yes_aircon", "perc_yes_computer", 
+   "perc_yes_washer", "perc_yes_refrig", "perc_yes_atleastone_tv", "perc_yes_radio", "perc_yes_kitchen", "perc_flush_toilet", "perc_non_flush_latrine", "perc_yes_bath", 
+   "perc_no_unfinished_floor", "perc_cement_floor", "perc_scrap_wall", "perc_cardboard_wall", "perc_wood_wall", "perc_reed_bamboo_palm_wall", "perc_brick_stone_wall", 
+   "perc_adobe_wall", "perc_mud_wall", "perc_metal_asbestos_sheet_wall", "perc_masonry_roof", "perc_plastic_roof", "perc_slate_roof", "perc_asbestos_roof", "perc_sheet_metal_roof",
+    "perc_plant_materials_roof", "perc_wood_roof", "perc_thatch_roof", "perc_scrap_material_roof", "perc_cardboard_roof", "perc_one_person_hhtype", "perc_married_with_children_hhtype", 
+    "perc_single_parent_hhtype", "perc_extended_family_hhtype", "perc_composite_hhytpe", "perc_non_family_hhtype"]
 
 }
