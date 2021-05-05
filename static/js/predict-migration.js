@@ -56,7 +56,8 @@ function predict_migration() {
             window.poly.addTo(mymap);
 
             // Zoom the map back out to all of Mexico                
-            mymap.fitBounds(window.poly.getBounds());
+            // mymap.fitBounds(window.poly.getBounds());
+            mymap.setView(new L.LatLng(23.6345, -102.5528), 7);
 
         });
 
