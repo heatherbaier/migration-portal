@@ -22,8 +22,6 @@ from app_helpers import *
 APP = flask.Flask(__name__)
 
 
-
-
 @APP.route('/', methods=['GET','POST'])
 def index():
 
@@ -122,7 +120,8 @@ def predict_migration():
 
     # Parse the selected municipalities and get their unique B ID's
     selected_municipalities = request.json['selected_municipalities']
-    selected_municipalities = [i.split("-")[3] for i in selected_municipalities]
+    # if (len(selected_municipalities) != 0) & (selected_municipalities[0].startswith("MEX")):
+    selected_municipalities = [i.split("-")[3] if i.startswith("MEX") else i for i in selected_municipalities]
     print("Selected municipalities: ", selected_municipalities)
 
     # Read in the migration data and subset it to the selected municipalities

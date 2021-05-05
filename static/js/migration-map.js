@@ -8,7 +8,7 @@ L.tileLayer('https://tiles.stadiamaps.com/tiles/alidade_smooth_dark/{z}/{x}/{y}{
 
 
 // Create the drawnPolys group
-var drawnPolys = new L.featureGroup().addTo(mymap);
+window.drawnPolys = new L.featureGroup().addTo(mymap);
 
 // Add the draw control to the map
 var drawControl = new L.Control.Draw({ 
@@ -43,9 +43,9 @@ mymap.on(L.Draw.Event.CREATED, e => {
     mymap.addLayer(layer);
     
     // Add the layer to the drawnPolys LayerGroup
-    drawnPolys.addLayer(layer);
+    window.drawnPolys.addLayer(layer);
 
-    console.log(drawnPolys);
+    console.log(window.drawnPolys);
     
     // Zoom in to the drawn poly
     mymap.fitBounds(layer.getBounds());

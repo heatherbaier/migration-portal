@@ -48,12 +48,19 @@ function predict_migration() {
             // Remove the current migration data layer from the map
             mymap.removeLayer(window.poly);
 
+            // Remove the drawn polygons from the map and re-initalize the drawnPolys group as empty
+            mymap.removeLayer(window.drawnPolys);
+            window.drawnPolys = new L.featureGroup().addTo(mymap);
+
             // Convert the new migration data into a leaflet geoJSON
             var polys = L.geoJSON(JSON.parse(text), {style: polygon_style, onEachFeature: onEachFeature})//.addTo(mymap);
 
             // Update the global window.poly variable & add it to the map
             window.poly = polys;
             window.poly.addTo(mymap);
+
+            // if button for keeping previous polygons is
+            window.selected_polys = [];
 
             // Zoom the map back out to all of Mexico                
             // mymap.fitBounds(window.poly.getBounds());
