@@ -116,7 +116,9 @@ def get_all_points():
 
 @APP.route('/predict_migration', methods=['GET', 'POST'])
 def predict_migration():
-    print("we made it!")
+
+    with open('status.json', 'w') as outfile:
+        json.dump({'status': "Starting predictions."}, outfile)
 
     # Parse the selected municipalities and get their unique B ID's
     selected_municipalities = request.json['selected_municipalities']
@@ -188,8 +190,10 @@ def predict_migration():
     # Grab just the municaplities that we edited
     muns_to_pred = X[-len(selected_municipalities):]
 
+    muni_names = get_muni_names(selected_municipalities)
+
     # Predict each of them
-    predictions = [predict_row(i, X) for i in muns_to_pred]
+    predictions = [predict_row(muns_to_pred[i], X, muni_names[i]) for i in range(0, len(muns_to_pred))]
     
     # Update the migration numbers in the dataframe and re-append it tot the wider dataframe
     dta_selected['sum_num_intmig'] = predictions
@@ -221,6 +225,9 @@ def predict_migration():
     merged['sum_num_intmig'] = merged['sum_num_intmig'].fillna(0)
 
     features = convert_features_to_geojson(merged)
+
+    with open('status.json', 'w') as outfile:
+        json.dump({'status': "Rendering new migration map..."}, outfile)
 
     return jsonify(features)
         
@@ -256,6 +263,16 @@ def update_stats():
             'avg_age': round(avg_age, 2),
             'avg_age_change': round(avg_age_change, 2),
             'pavg_age_change': round(p_avg_age_change, 2)}
+
+
+
+@APP.route('/status_update', methods=['GET'])
+def status_update():
+    with open("./status.json", "r") as f:
+        status = json.load(f)
+    return {"status": status['status']}
+
+
 
 
 if __name__ == '__main__':

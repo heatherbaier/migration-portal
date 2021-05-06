@@ -123,7 +123,27 @@ def switch_column_names(MATCH_PATH, DATA_PATH):
 
 
 
-def predict_row(values_ar, X):
+def get_muni_names(selected_municipalities):
+    # Read in the dataframe for matching and get the B unique ID column
+    match_df = pd.read_csv(MATCH_PATH)[['shapeID', 'shapeName', 'MUNI2015']]
+    match_df["B"] = match_df['shapeID'].str.split("-").str[3]
+
+    match_df = match_df[match_df["B"].isin(selected_municipalities)]
+    return match_df['shapeName'].to_list()
+
+    # # Read in the migration data
+    # dta = pd.read_csv(DATA_PATH)
+
+    # # Match the IPUMS ID's to the gB ID's
+    # ref_dict = dict(zip(match_df['MUNI2015'], match_df['B']))
+    # dta['sending'] = dta['sending'].map(ref_dict)
+
+
+
+def predict_row(values_ar, X, muni):
+
+    with open('status.json', 'w') as outfile:
+        json.dump({'status': "Predicting " + str(muni)}, outfile)
 
     print("SHAPE IN FUNC HERE: ", values_ar.shape)
     
