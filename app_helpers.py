@@ -18,11 +18,10 @@ importlib.reload(socialSigNoDrop)
 
 
 
-GEOJSON_PATH = "./geoBoundariesSimplified-3_0_0-MEX-ADM2.geojson"
-# DATA_PATH = "./mex_migration_allvars_subset.csv"
-DATA_PATH = "./portal_data.csv"
-MATCH_PATH = "./gB_IPUMS_match.csv"
-MODEL_PATH = "./notransfer_50epoch_weightedloss_us.torch"
+GEOJSON_PATH = "./data/geoBoundariesSimplified-3_0_0-MEX-ADM2.geojson"
+DATA_PATH = "./data/portal_data.csv"
+MATCH_PATH = "./data/gB_IPUMS_match.csv"
+MODEL_PATH = "./trained_model/notransfer_50epoch_weightedloss_us.torch"
 
 
 
