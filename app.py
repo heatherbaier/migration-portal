@@ -1,4 +1,4 @@
-from flask import request, jsonify, Response
+from flask import request, jsonify, Response, send_from_directory
 import torchvision.models as models
 from sklearn import preprocessing
 from pandas import json_normalize
@@ -267,6 +267,14 @@ def status_update():
     with open("./status.json", "r") as f:
         status = json.load(f)
     return {"status": status['status']}
+
+
+
+
+@APP.route('/download_data', methods=['GET'])
+def download_data():
+    return send_from_directory("./data/",
+                               "portal_data.csv", as_attachment = True)
 
 
 

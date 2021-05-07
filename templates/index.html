@@ -115,6 +115,9 @@
                 <li>Click on any of the variable drop downs above to view associated variables that are available to manipulate. Then, type in a percentage increase or decrease to change the value of the variable for the municiaplities you choose on the map. For example, if you'd like to increase the Total Income of selected municipalities by 10%, click on 'Economic Variables and type '10' into the input box next to income.</li>
                 <li>Once you are happy with your selections, click 'Predict new migration pattern' and wait for the update migration predictions.</li>
             </ol>
+
+            <div><a href="http://127.0.0.1:5000/download_data"><button class="predict-button" id='download'>Download data</button></a></div>
+
         </div>
 
     </div>
@@ -151,6 +154,7 @@
 <script src="{{url_for('static', filename='js/migration-map.js')}}"></script>
 <script src="{{url_for('static', filename='js/dropdown.js')}}"></script>
 <script src="{{url_for('static', filename='js/update-status.js')}}"></script>
+
 
 </body>
 
