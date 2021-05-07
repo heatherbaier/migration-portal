@@ -21,6 +21,9 @@ from app_helpers import *
 # Create the application.
 APP = flask.Flask(__name__)
 
+with open('status.json', 'w') as outfile:
+    json.dump({'status': "Startup"}, outfile)
+
 
 @APP.route('/', methods=['GET','POST'])
 def index():
@@ -104,13 +107,6 @@ def get_all_points():
         })
 
     return jsonify(features)
-
-
-
-
-
-
-
 
 
 
@@ -234,7 +230,6 @@ def predict_migration():
 
 
 
-
 @APP.route('/update_stats', methods=['GET'])
 def update_stats():
 
@@ -263,6 +258,7 @@ def update_stats():
             'avg_age': round(avg_age, 2),
             'avg_age_change': round(avg_age_change, 2),
             'pavg_age_change': round(p_avg_age_change, 2)}
+
 
 
 
