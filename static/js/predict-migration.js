@@ -99,29 +99,11 @@ function predict_migration() {
                     document.getElementById("page_change_icon").style.color = 'red'
                 }
 
+                // Update the status so the user knows everything is done
+                document.getElementById("status").innerHTML = "Done."
+
             });
 
-            // document.getElementById("status").innerHTML = "Done."
-
         });
-
-        // window.status = ''
-
-
-        // while (window.status != 'Done.') {
-
-        //     axios.get('http://127.0.0.1:5000/status_update')
-
-        //     .then(response => {
-
-        //         console.log('here!')
-
-        //         document.getElementById("status").innerHTML = response.data['status'];
-        //         window.status = response.data['status']
-            
-        //     });
-
-        // }   
-
 
 }

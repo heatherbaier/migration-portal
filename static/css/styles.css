@@ -196,6 +196,19 @@ h2 {
     color: #0E0C28;
 }
 
+
+#status {
+    color: #0E0C28;
+    height: 70px;
+    font-size: 24px;
+    font-family: Roboto; 
+    margin-left: 110px;
+    width: 575px;
+    font-weight: bolder;
+    /* padding-top: 20px; */
+}
+
+
 .stat-box {
     background-color: white; 
     width: 400px;

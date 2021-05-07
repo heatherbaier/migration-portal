@@ -118,7 +118,7 @@ def get_all_points():
 def predict_migration():
 
     with open('status.json', 'w') as outfile:
-        json.dump({'status': "Starting predictions."}, outfile)
+        json.dump({'status': "Status - Starting predictions."}, outfile)
 
     # Parse the selected municipalities and get their unique B ID's
     selected_municipalities = request.json['selected_municipalities']
@@ -227,7 +227,7 @@ def predict_migration():
     features = convert_features_to_geojson(merged)
 
     with open('status.json', 'w') as outfile:
-        json.dump({'status': "Rendering new migration map..."}, outfile)
+        json.dump({'status': "Status - Rendering new migration map..."}, outfile)
 
     return jsonify(features)
         

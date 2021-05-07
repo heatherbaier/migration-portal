@@ -143,7 +143,7 @@ def get_muni_names(selected_municipalities):
 def predict_row(values_ar, X, muni):
 
     with open('status.json', 'w') as outfile:
-        json.dump({'status': "Predicting " + str(muni)}, outfile)
+        json.dump({'status': "Status - Predicting " + str(muni)}, outfile)
 
     print("SHAPE IN FUNC HERE: ", values_ar.shape)
     

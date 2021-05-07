@@ -36,6 +36,7 @@
         <h1>Migration Data Portal</h1>
         <h4>Adjustable sociodemographic variables:</h4>
 
+        <!-- Variable groups and inputs -->
         <button class="dropdown-btn"><i class="material-icons">paid</i><span style="padding-left: 20px;">Economic Variables</span> <i class="fa fa-caret-down"></i></button>
         <div class="dropdown-container">
             {% for econ_var in econ_data %}
@@ -99,19 +100,14 @@
         </div>
 
         <br><br>
+
+        <!-- Predict migration button and status update line -->
         <div><button class="predict-button" id='submit' onclick="predict_migration()">Predict new migration pattern</button></div>
-        
-        <h2 id="status">test</h2>
+        <h2 id="status"></h2>
 
+        <br><br><hr><br>
 
-        <!-- <input type="checkbox" id="keep-prev-polygons"> -->
-        <!-- <label for="vehicle1">Keep municiaplity selections from previous </label><br> -->
-
-
-        <br><br>
-        <hr>
-        <br>
-
+        <!-- Directions to user -->
         <div>
             <h2 style="margin-left: 40px; font-size: 28px;">Directions to user:</h2>
             <ol style="margin-left: 40px; font-size: 24px; font-family: Roboto; line-height: 1.6;">
@@ -123,6 +119,7 @@
 
     </div>
 
+    <!-- Status boxes -->
     <div class="main">
 
         <div class="grid-container">
@@ -153,7 +150,7 @@
 
 <script src="{{url_for('static', filename='js/migration-map.js')}}"></script>
 <script src="{{url_for('static', filename='js/dropdown.js')}}"></script>
-<script src="{{url_for('static', filename='js/submit-search.js')}}"></script>
+<script src="{{url_for('static', filename='js/update-status.js')}}"></script>
 
 </body>
 
