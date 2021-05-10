@@ -31,138 +31,136 @@
 
     <section id="dashboard">
 
-    <div class="sidenav">
+        <div class="sidenav">
 
-        <h1>Migration Data Portal</h1>
-        <h4>Adjustable sociodemographic variables:</h4>
+            <h1>Migration Data Portal</h1>
+            <h4>Adjustable sociodemographic variables:</h4>
 
-        <!-- Variable groups and inputs -->
-        <button class="dropdown-btn"><i class="material-icons">paid</i><span style="padding-left: 20px;">Economic Variables</span> <i class="fa fa-caret-down"></i></button>
-        <div class="dropdown-container">
-            {% for econ_var in econ_data %}
-                <input type="number" id="{{ econ_var }}" value="100">
-                <label id="label_{{ econ_var }}" style="font-weight: normal;">{{ econ_var }}</label><br><br>                
-            {% endfor %}
-        </div>
-
-
-        <button class="dropdown-btn"><i class="material-icons">people</i><span style="padding-left: 20px;">Demographic Variables</span><i class="fa fa-caret-down"></i></button>
-        <div class="dropdown-container">
-            {% for demog_var in demog_data %}
-                <input type="number" id="{{ demog_var }}" value="100">
-                <label id="label_{{ demog_var }}" style="font-weight: normal;">{{ demog_var }}</label><br><br>   
-            {% endfor %}
-        </div>
-
-
-        <button class="dropdown-btn"><i class="material-icons">pregnant_woman</i><span style="padding-left: 20px;">Marriage & Fertility Variables</span><i class="fa fa-caret-down"></i></button>
-        <div class="dropdown-container">
-            {% for family_var in family_data %}
-                <input type="number" id="{{ family_var }}" value="100">
-                <label id="label_{{ family_var }}" style="font-weight: normal;">{{ family_var }}</label><br><br>   
-            {% endfor %}
-        </div>
-
-
-        <button class="dropdown-btn"><i class="material-icons">health_and_safety</i><span style="padding-left: 20px;">Health Variables</span><i class="fa fa-caret-down"></i></button>
-        <div class="dropdown-container">
-            {% for health_var in health_data %}
-                <input type="number" id="{{ health_var }}" value="100">
-                <label id="label_{{ health_var }}" style="font-weight: normal;">{{ health_var }}</label><br><br>   
-            {% endfor %}
-        </div>
-
-
-        <button class="dropdown-btn"><i class="material-icons">meeting_room</i><span style="padding-left: 20px;">Occupational Variables</span><i class="fa fa-caret-down"></i></button>
-        <div class="dropdown-container">
-            {% for employ_var in employ_data %}
-                <input type="number" id="{{ employ_var }}" value="100">
-                <label id="label_{{ employ_var }}" style="font-weight: normal;">{{ employ_var }}</label><br><br>   
-            {% endfor %}
-        </div>
-
-
-        <button class="dropdown-btn"><i class="material-icons">local_library</i><span style="padding-left: 20px;">Education Variables</span><i class="fa fa-caret-down"></i></button>
-        <div class="dropdown-container">
-            {% for edu_var in edu_data %}
-                <input type="number" id="{{ edu_var }}" value="100">
-                <label id="label_{{ edu_var }}" style="font-weight: normal;">{{ edu_var }}</label><br><br>   
-            {% endfor %}
-        </div>
-
-
-        <button class="dropdown-btn"><i class="material-icons">home</i><span style="padding-left: 20px;">Household Variables</span><i class="fa fa-caret-down"></i></button>
-        <div class="dropdown-container">
-            {% for hhold_var in hhold_data %}
-                <input type="number" id="{{ hhold_var }}" value="100">
-                <label id="label_{{ hhold_var }}" style="font-weight: normal;">{{ hhold_var }}</label><br><br>   
-            {% endfor %}
-        </div>
-
-        <br><br>
-
-        <!-- Predict migration button and status update line -->
-        <div><button class="predict-button" id='submit' onclick="predict_migration()">Predict new migration pattern</button></div>
-        <h2 id="status"></h2>
-
-        <br><br><hr><br>
-
-        <!-- Directions to user -->
-        <div>
-            <h2 style="margin-left: 40px; font-size: 28px;">Directions to user:</h2>
-            <ol style="margin-left: 40px; font-size: 24px; font-family: Roboto; line-height: 1.6;">
-                <li>Click on either the polygon or rectangle icons on the map to draw an area of interest (AOI) over municipalities you wish to manipualte data for. You can draw as many AOI's as you wish. To delete an AOI, click on the trash can icon on the map, then click on the AOI you wish to delte and hit 'save' next to the trash can icon.</li>
-                <li>Click on any of the variable drop downs above to view associated variables that are available to manipulate. Then, type in a percentage increase or decrease to change the value of the variable for the municiaplities you choose on the map. For example, if you'd like to increase the Total Income of selected municipalities by 10%, click on 'Economic Variables and type '10' into the input box next to income.</li>
-                <li>Once you are happy with your selections, click 'Predict new migration pattern' and wait for the update migration predictions.</li>
-            </ol>
-
-            <div><a href="http://127.0.0.1:5000/download_data"><button class="predict-button" id='download'>Download data</button></a></div>
-
-        </div>
-
-    </div>
-
-    <!-- Status boxes -->
-    <div class="main">
-
-        <div class="grid-container">
-            <div class="item-s1">
-                <h5 style="font-weight: bolder; font-size: 28px;">Total number of migrants</h4> 
-                <h5 id='total_migrants' style="font-size: 28px;">{{ total_migrants }}</h4> 
+            <!-- Variable groups and inputs -->
+            <button class="dropdown-btn"><i class="material-icons">paid</i><span style="padding-left: 20px;">Economic Variables</span> <i class="fa fa-caret-down"></i></button>
+            <div class="dropdown-container">
+                {% for econ_var in econ_data %}
+                    <input type="number" id="{{ econ_var }}" value="100">
+                    <label id="label_{{ econ_var }}" style="font-weight: normal;">{{ econ_var }}</label><br><br>                
+                {% endfor %}
             </div>
-            <div class="item-s2">
-                <h5 style="font-weight: bolder; font-size: 28px;">Change in number of migrants</h4> 
-                <div>
-                    <h5 style="float:left; margin-left: 80px; margin-bottom:0px; margin-top:0px; font-size: 28px;" id='change_migrants'>0</h5>
-                    <i id='pchange_icon' class="material-icons"></i>
-                    <h5 style="float:right; margin-right: 80px; margin-bottom:0px; margin-top:0px; font-size: 28px;" id='pchange_migrants'>0%</h5>
+
+
+            <button class="dropdown-btn"><i class="material-icons">people</i><span style="padding-left: 20px;">Demographic Variables</span><i class="fa fa-caret-down"></i></button>
+            <div class="dropdown-container">
+                {% for demog_var in demog_data %}
+                    <input type="number" id="{{ demog_var }}" value="100">
+                    <label id="label_{{ demog_var }}" style="font-weight: normal;">{{ demog_var }}</label><br><br>   
+                {% endfor %}
+            </div>
+
+
+            <button class="dropdown-btn"><i class="material-icons">pregnant_woman</i><span style="padding-left: 20px;">Marriage & Fertility Variables</span><i class="fa fa-caret-down"></i></button>
+            <div class="dropdown-container">
+                {% for family_var in family_data %}
+                    <input type="number" id="{{ family_var }}" value="100">
+                    <label id="label_{{ family_var }}" style="font-weight: normal;">{{ family_var }}</label><br><br>   
+                {% endfor %}
+            </div>
+
+
+            <button class="dropdown-btn"><i class="material-icons">health_and_safety</i><span style="padding-left: 20px;">Health Variables</span><i class="fa fa-caret-down"></i></button>
+            <div class="dropdown-container">
+                {% for health_var in health_data %}
+                    <input type="number" id="{{ health_var }}" value="100">
+                    <label id="label_{{ health_var }}" style="font-weight: normal;">{{ health_var }}</label><br><br>   
+                {% endfor %}
+            </div>
+
+
+            <button class="dropdown-btn"><i class="material-icons">meeting_room</i><span style="padding-left: 20px;">Occupational Variables</span><i class="fa fa-caret-down"></i></button>
+            <div class="dropdown-container">
+                {% for employ_var in employ_data %}
+                    <input type="number" id="{{ employ_var }}" value="100">
+                    <label id="label_{{ employ_var }}" style="font-weight: normal;">{{ employ_var }}</label><br><br>   
+                {% endfor %}
+            </div>
+
+
+            <button class="dropdown-btn"><i class="material-icons">local_library</i><span style="padding-left: 20px;">Education Variables</span><i class="fa fa-caret-down"></i></button>
+            <div class="dropdown-container">
+                {% for edu_var in edu_data %}
+                    <input type="number" id="{{ edu_var }}" value="100">
+                    <label id="label_{{ edu_var }}" style="font-weight: normal;">{{ edu_var }}</label><br><br>   
+                {% endfor %}
+            </div>
+
+
+            <button class="dropdown-btn"><i class="material-icons">home</i><span style="padding-left: 20px;">Household Variables</span><i class="fa fa-caret-down"></i></button>
+            <div class="dropdown-container">
+                {% for hhold_var in hhold_data %}
+                    <input type="number" id="{{ hhold_var }}" value="100">
+                    <label id="label_{{ hhold_var }}" style="font-weight: normal;">{{ hhold_var }}</label><br><br>   
+                {% endfor %}
+            </div>
+
+            <br><br>
+
+            <!-- Predict migration button and status update line -->
+            <div><button class="predict-button" id='submit' onclick="predict_migration()">Predict new migration pattern</button></div>
+            <h2 id="status"></h2>
+
+            <br><br><hr><br>
+
+            <!-- Directions to user -->
+            <div>
+                <h2 style="margin-left: 40px; font-size: 28px;">Directions to user:</h2>
+                <ol style="margin-left: 40px; font-size: 24px; font-family: Roboto; line-height: 1.6;">
+                    <li>Click on either the polygon or rectangle icons on the map to draw an area of interest (AOI) over municipalities you wish to manipualte data for. You can draw as many AOI's as you wish. To delete an AOI, click on the trash can icon on the map, then click on the AOI you wish to delte and hit 'save' next to the trash can icon.</li>
+                    <li>Click on any of the variable drop downs above to view associated variables that are available to manipulate. Then, type in a percentage increase or decrease to change the value of the variable for the municiaplities you choose on the map. For example, if you'd like to increase the Total Income of selected municipalities by 10%, click on 'Economic Variables and type '10' into the input box next to income.</li>
+                    <li>Once you are happy with your selections, click 'Predict new migration pattern' and wait for the update migration predictions.</li>
+                </ol>
+
+                <div><a href="http://127.0.0.1:5000/download_data"><button class="predict-button" id='download'>Download data</button></a></div>
+
+            </div>
+
+        </div>
+
+        <!-- Status boxes -->
+        <div class="main">
+
+            <div class="grid-container">
+                <div class="item-s1">
+                    <h5 style="font-weight: bolder; font-size: 28px;">Total number of migrants</h4> 
+                    <h5 id='total_migrants' style="font-size: 28px;">{{ total_migrants }}</h4> 
+                </div>
+                <div class="item-s2">
+                    <h5 style="font-weight: bolder; font-size: 28px;">Change in number of migrants</h4> 
+                    <div>
+                        <h5 style="float:left; margin-left: 80px; margin-bottom:0px; margin-top:0px; font-size: 28px;" id='change_migrants'>0</h5>
+                        <i id='pchange_icon' class="material-icons"></i>
+                        <h5 style="float:right; margin-right: 80px; margin-bottom:0px; margin-top:0px; font-size: 28px;" id='pchange_migrants'>0%</h5>
+                    </div>
+                </div>
+                <div class="item-s3">
+                    <h5 style="font-weight: bolder; font-size: 28px;">Average age of migrants</h4> 
+                        <h5 id='avg_age' style="font-size: 28px;">{{ avg_age }}</h4> 
+                </div>
+                <div class="item-s4">
+                    <h5 style="font-weight: bolder; font-size: 28px;">Change in average age of migrants</h4> 
+                    <div>
+                        <h5 style="float:left; margin-left: 80px; margin-bottom:0px; margin-top:0px; font-size: 28px;" id='avg_age_change'>0</h5>
+                        <i id='page_change_icon' class="material-icons"></i>
+                        <h5 style="float: right; margin-right: 80px; margin-bottom:0px; margin-top: 0px; font-size: 28px;" id='pavg_age_change'>0%</h5>
+                    </div>
                 </div>
             </div>
-            <div class="item-s3">
-                <h5 style="font-weight: bolder; font-size: 28px;">Average age of migrants</h4> 
-                    <h5 id='avg_age' style="font-size: 28px;">{{ avg_age }}</h4> 
-            </div>
-            <div class="item-s4">
-                <h5 style="font-weight: bolder; font-size: 28px;">Change in average age of migrants</h4> 
-                <div>
-                    <h5 style="float:left; margin-left: 80px; margin-bottom:0px; margin-top:0px; font-size: 28px;" id='avg_age_change'>0</h5>
-                    <i id='page_change_icon' class="material-icons"></i>
-                    <h5 style="float: right; margin-right: 80px; margin-bottom:0px; margin-top: 0px; font-size: 28px;" id='pavg_age_change'>0%</h5>
-                </div>
-            </div>
+
+            <div id="mapid"></div>
+
         </div>
 
-        <div id="mapid"></div>
-
-    </div>
-
-</section>
-
+    </section>
 
 <script src="{{url_for('static', filename='js/migration-map.js')}}"></script>
 <script src="{{url_for('static', filename='js/dropdown.js')}}"></script>
 <script src="{{url_for('static', filename='js/update-status.js')}}"></script>
-
 
 </body>
 
