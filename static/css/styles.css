@@ -225,10 +225,12 @@ hr {
 
 #pchange_icon {
     box-shadow: 0px 0px 0px white;
+    font-size: 50px;
 }
 
 #page_change_icon {
     box-shadow: 0px 0px 0px white;
+    font-size: 50px;
 }
 
 .item-s1 { grid-area: s1; }

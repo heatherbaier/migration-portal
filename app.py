@@ -129,9 +129,14 @@ def predict_migration():
         selected_municipalities = dta['sending'].to_list()
         print("Selected municipalities since none were selected: ", selected_municipalities)
 
+    
+
     dta_selected = dta[dta['sending'].isin(selected_municipalities)]
     dta_selected = dta_selected.dropna(subset = ['sending'])
     print(dta_selected.shape)
+
+    print("NUM MIGRANTS HERE: ", dta_selected['sum_num_intmig'].sum())
+    num_og_migrants = dta_selected['sum_num_intmig'].sum()
 
     # Parse the edited input variables and switch all of the 0's in percent_changes to 1 (neccessary for multiplying later on)
     column_names = request.json['column_names']
@@ -193,6 +198,10 @@ def predict_migration():
     
     # Update the migration numbers in the dataframe and re-append it tot the wider dataframe
     dta_selected['sum_num_intmig'] = predictions
+
+    print("NUM MIGRANTS AFTER PRED: ", dta_selected['sum_num_intmig'].sum())
+    num_pred_migrants = dta_selected['sum_num_intmig'].sum()
+
     dta_final = dta_dropped.append(dta_selected)
 
     # Normalize the geoJSON as a pandas dataframe
@@ -211,9 +220,9 @@ def predict_migration():
     merged['avg_age_weight'] = merged['avg_age'] * merged['sum_num_intmig']
     print("Average age: ", merged['avg_age'].mean())
     print("Average age: ", merged['avg_age_weight'].sum() / merged['sum_num_intmig'].sum())
-    avg_age = merged['avg_age_weight'].sum() / merged['sum_num_intmig'].sum()
+    avg_age = merged['avg_age_weight'].sum()# / merged['sum_num_intmig'].sum()
 
-    total_migrants = {'total_migrants': total_migrants, 'avg_age': avg_age}
+    total_migrants = {'avg_age': avg_age, "num_og_migrants": num_og_migrants, "num_pred_migrants": num_pred_migrants}
     
     with open('predicted_migrants.json', 'w') as outfile:
         json.dump(total_migrants, outfile)
@@ -243,8 +252,14 @@ def update_stats():
 
     with open("./predicted_migrants.json") as json_file:
         predictions = json.load(json_file)
-    predicted_migrants = predictions['total_migrants']
+
+    num_pred_migrants = predictions['num_pred_migrants']
+    num_og_migrants = predictions['num_og_migrants']
+
+    # predicted_migrants = predictions['total_migrants']
+    predicted_migrants = (total_migrants - num_og_migrants) + num_pred_migrants
     avg_age = predictions['avg_age']
+    avg_age = avg_age / ((total_migrants - num_og_migrants) + num_pred_migrants)
 
     p_change = ((round(predicted_migrants, 0) - total_migrants) / total_migrants) * 100
     change = round(predicted_migrants, 0) - total_migrants
@@ -255,9 +270,9 @@ def update_stats():
     return {'change': change,
             'p_change': round(p_change, 2),
             'predicted_migrants': round(predicted_migrants, 0),
-            'avg_age': round(avg_age, 2),
-            'avg_age_change': round(avg_age_change, 2),
-            'pavg_age_change': round(p_avg_age_change, 2)}
+            'avg_age': round(avg_age, 0),
+            'avg_age_change': round(avg_age_change, 0),
+            'pavg_age_change': round(p_avg_age_change, 0)}
 
 
 

@@ -73,9 +73,9 @@ function predict_migration() {
 
                 // Update all of the HTML text that doesn't involve the trending icon
                 document.getElementById("total_migrants").innerHTML = response.data['predicted_migrants'];
-                document.getElementById("change_migrants").innerHTML = response.data['change'];
+                document.getElementById("change_migrants").innerHTML = response.data['change'].toString().concat(" migrants");
                 document.getElementById("avg_age").innerHTML = response.data['avg_age'];
-                document.getElementById("avg_age_change").innerHTML = response.data['avg_age_change'];
+                document.getElementById("avg_age_change").innerHTML = response.data['avg_age_change'].toString().concat(" years");
                 document.getElementById("pchange_migrants").innerHTML = response.data['p_change'].toString().concat("%");
                 document.getElementById("pavg_age_change").innerHTML = response.data['pavg_age_change'].toString().concat("%");
 

@@ -1,4 +1,4 @@
-{"Economic": ["sum_income", "perc_yes_remitt"],
+{"Economic": ["sum_income", "weighted_avg_income", "perc_yes_remitt"],
 
 
  "Deomographic": ["avg_nfams", "avg_ncouples", "perc_yes_citizen", "perc_yes_indig",  "perc_yes_speakind", 

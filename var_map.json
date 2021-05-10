@@ -1,5 +1,6 @@
 {
     "sum_income": "Total income",
+    "weighted_avg_income": "Weighted Income",
     "perc_yes_remitt": "Percentage of households recieving remitances",
     "avg_nfams": "Average number of families",
     "avg_ncouples": "Average number of couples",
