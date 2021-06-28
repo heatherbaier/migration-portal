@@ -139,6 +139,18 @@ function polygon_style(feature) {
   };
 }
 
+
+// Function to style the polygons
+function border_station_style(feature) {
+    return {
+      fillColor: "E11584",
+      radius: 8,
+      color: 'white',
+      weight: 1,
+      opacity: 1
+    };
+}
+
 var legend = L.control({position: 'bottomleft'});
 legend.onAdd = function (map) {
 
@@ -204,8 +216,23 @@ function onEachFeature(feature, layer) {
 }
 
 
+// On each feature, highlight/remove highlight when hovered over, zoom when clicked and add popup
+function onEachBorderStation(feature, layer) {
+
+    layer.bindPopup('<h2>Station: ' + feature.properties.shapeID);
+
+    layer.on({
+        mouseover: highlightFeature,
+        mouseout: resetHighlight,
+        click: zoomToFeature
+    });
+
+}
+
+
 // Create the window.poly global variable
 window.poly;
+window.stations;
 
 // Function to get the data from the Flask function/URL (TO-DO: REMOVE ALL OF THE FUNCTIONS FROM HERE AND USE WINDOW.POLY TO EDIT THEM)
 axios.get('http://127.0.0.1:5000/geojson-features')
@@ -217,3 +244,16 @@ axios.get('http://127.0.0.1:5000/geojson-features')
         window.poly.addTo(mymap);
 
     })
+
+
+
+// Function to get the data from the Flask function/URL (TO-DO: REMOVE ALL OF THE FUNCTIONS FROM HERE AND USE WINDOW.POLY TO EDIT THEM)
+axios.get('http://127.0.0.1:5000/border-features')
+
+    .then(response => {
+
+        var stations = L.geoJSON(response.data, {style: border_station_style, onEachFeature: onEachBorderStation})//.addTo(mymap);
+        window.stations = stations;
+        window.stations.addTo(mymap);
+
+    }) 

@@ -28,14 +28,15 @@ with open('status.json', 'w') as outfile:
 @APP.route('/', methods=['GET','POST'])
 def index():
 
-    # Read in migration data
+    # Read in census data
     df = pd.read_csv(DATA_PATH)
 
-    # Get the number of migrants to send to HTML for stat box
-    total_migrants = df['sum_num_intmig'].sum()
+    # Read in migration data
+    with open(MIGRATION_PATH) as m:
+        mig_data = json.load(m)
 
-    municipality_ids = df['sending'].unique()
-    # df_var_cols = [i for i in df.columns if i not in ['sending','number_moved']]
+    total_migrants = sum(list(mig_data.values()))
+    municipality_ids = list(mig_data.keys())
 
     df['avg_age_weight'] = df['avg_age'] * df['sum_num_intmig']
     print("Average age: ", df['avg_age'].mean())
@@ -73,23 +74,14 @@ def get_all_points():
 
     # Convert the geoJSON to a dataframe and merge it to the migration data
     feature_df = convert_to_pandas(geodata_collection, MATCH_PATH, DATA_PATH)
-
-    print(sum(feature_df['geometry.coordinates'].isna()))
-    print(sum(feature_df['geometry.type'].isna()))
-    print(sum(feature_df['sum_num_intmig'].isna()))
-    print(sum(feature_df['properties.shapeID'].isna()))
-    print(sum(feature_df['properties.shapeName'].isna()))
-
-
     feature_df['sum_num_intmig'] = feature_df['sum_num_intmig'].fillna(0)
     
-
     # Make lists of all of the features we want available to the Leaflet map
     coords = feature_df['geometry.coordinates']
     types = feature_df['geometry.type']
     num_migrants = feature_df['sum_num_intmig']
-    shapeIDs = feature_df['properties.shapeID']
-    shapeNames = feature_df['properties.shapeName']
+    shapeIDs = feature_df['shapeID']
+    # shapeNames = feature_df['properties.shapeName']
 
     # For each of the polygons in the data frame, append it and it's data to a list of dicts to be sent as a JSON back to the Leaflet map
     features = []
@@ -101,8 +93,40 @@ def get_all_points():
                 "coordinates": coords[i]
             },
             "properties": {'num_migrants': num_migrants[i],
-                           'shapeID': shapeIDs[i],
-                           'shapeName': shapeNames[i]
+                           'shapeID': str(shapeIDs[i]),
+                           'shapeName': ''
+                          }
+        })
+
+    return jsonify(features)
+
+
+
+@APP.route('/border-features', methods=['GET'])
+def get_border_features():
+
+    feature_df = json_normalize(border_stations["features"])
+
+    print(feature_df)
+    
+    # Make lists of all of the features we want available to the Leaflet map
+    coords = feature_df['geometry.coordinates']
+    types = feature_df['geometry.type']
+    # num_migrants = feature_df['sum_num_intmig']
+    shapeIDs = feature_df['properties.portname']
+    # shapeNames = feature_df['properties.shapeName']
+
+    # For each of the polygons in the data frame, append it and it's data to a list of dicts to be sent as a JSON back to the Leaflet map
+    features = []
+    for i in range(0, len(feature_df)):
+        features.append({
+            "type": "Feature",
+            "geometry": {
+                "type": types[i],
+                "coordinates": coords[i]
+            },
+            "properties": {
+                           'shapeID': str(shapeIDs[i]),
                           }
         })
 
