@@ -19,11 +19,16 @@ importlib.reload(socialSigNoDrop)
 
 
 GEOJSON_PATH = "./data/ipumns_simple_wgs.geojson"
+SHP_PATH = "./data/ipumns_shp.shp"
 DATA_PATH = "./data/mexico2010.csv"
 MIGRATION_PATH = "./data/migration_data.json"
 MATCH_PATH = "./data/gB_IPUMS_match.csv"
 MODEL_PATH = "./trained_model/notransfer_50epoch_weightedloss_us.torch"
 BORDER_STATIONS_PATH = "./data/border_stations5.geojson"
+IMAGERY_DIR = "./imagery/"
+ISO = "MEX"
+IC = "LANDSAT/LT05/C01/T1"
+
 
 
 with open(GEOJSON_PATH) as f:
