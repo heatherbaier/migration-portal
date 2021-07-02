@@ -1,41 +1,85 @@
-import os
-import json
-import numpy as np
-import matplotlib.pyplot as plt
 import matplotlib.patches as patches
-
-from PIL import Image
-
-
 from torchvision import transforms
+import matplotlib.pyplot as plt
+from PIL import Image
+import numpy as np
+import torch
+import json
+import os
 
 
 
+def exceeds(from_x, to_x, from_y, to_y, H, W):
+    """Check whether the extracted patch will exceed
+    the boundaries of the image of size `T`.
+    """
+    if (from_x < 0) or (from_y < 0) or (to_x > H) or (to_y > W):
+        return True
+    return False
 
-def denormalize(T, coords):
-    return 0.5 * ((coords + 1.0) * T)
+
+def fix(from_x, to_x, from_y, to_y, H, W, size):
+
+    """
+    Check whether the extracted patch will exceed
+    the boundaries of the image of size `T`.
+    If it will exceed, make a list of the offending reasons and fix them
+    """
+
+    offenders = []
+
+    if (from_x < 0):
+        offenders.append("negative x")
+    if from_y < 0:
+        offenders.append("negative y")
+    if from_x > H:
+        offenders.append("from_x exceeds h")            
+    if to_x > H:
+        offenders.append("to_x exceeds h")
+    if from_y > W:
+        offenders.append("from_y exceeds w")
+    if to_y > W:
+        offenders.append("to_y exceeds w")            
 
 
-# def bounding_box(x, y, size, color="w"):
-#     x = int(x - (size / 2))
-#     y = int(y - (size / 2))
-#     rect = patches.Rectangle(
-#         (x, y), size, size, linewidth=1, edgecolor=color, fill=False
-#     )
-#     return rect
+    if ("from_y exceeds w" in offenders) or ("to_y exceeds w" in offenders):
+        from_y, to_y = W - size, W
 
+    if ("from_x exceeds h" in offenders) or ("to_x exceeds h" in offenders):
+        from_x, to_x = H - size, H     
+
+    elif ("negative x" in offenders):
+        from_x, to_x = 0, 0 + size
+
+    elif ("negative y" in offenders):
+        from_y, to_y = 0, 0 + size            
+
+    return from_x, to_x, from_y, to_y
+
+
+def denormalize(dims, coords):
+    
+    W, H = dims
+    x, y = coords[0]
+
+    W = int(0.5 * (x + 1) * W)
+    H = int(0.5 * (y + 1) * H)
+
+    return torch.tensor([[W, H]], dtype = torch.long)
 
 
 def bounding_box(x, y, size, color="w"):
-#     x = int(x - (size / 2))
-#     print(x)
-#     y = int(y - (size / 2))
-#     print(y)
     rect = patches.Rectangle(
         (x, y), size, size, linewidth=1, edgecolor=color, fill=False
     )
     return rect
 
+
+def reset(hidden_size, batch_size, device):
+    h_t = torch.zeros(batch_size, hidden_size, dtype = torch.float, device = device, requires_grad = True)
+    l_t = torch.FloatTensor(batch_size, 2).uniform_(-1, 1).to(device)
+    l_t.requires_grad = True
+    return h_t, l_t
 
 
 # https://github.com/pytorch/examples/blob/master/imagenet/main.py

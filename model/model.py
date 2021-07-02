@@ -1,6 +1,6 @@
 import torch.nn as nn
 
-import modules
+import model.modules as modules
 
 
 class RecurrentAttention(nn.Module):
@@ -18,7 +18,9 @@ class RecurrentAttention(nn.Module):
 
     def __init__(self, g, k, s, c, h_g, h_l, std, hidden_size, num_classes):
         
-        """Constructor.
+        """
+
+        Constructor.
 
         Args:
           g: size of the square patches in the glimpses extracted by the retina.
@@ -39,14 +41,18 @@ class RecurrentAttention(nn.Module):
 
         self.std = std
 
-        self.sensor = modules.GlimpseNetwork(h_g, h_l, g, k, s, c)
-        self.rnn = modules.CoreNetwork(h_l + h_g, hidden_size)
-        self.locator = modules.LocationNetwork(hidden_size, 2, std)
-        self.classifier = modules.ActionNetwork(hidden_size, num_classes)
+        self.glimpse = modules.GlimpseNetwork(h_g, h_l, g, k, s, c)
+        self.location_net = modules.LocationNetwork(h_l + h_g, hidden_size)
+        self.emission_net = modules.EmissionNetwork(hidden_size, 2, std)
         self.baseliner = modules.BaselineNetwork(hidden_size, 1)
+        self.classifier = modules.ClassifierNetwork(hidden_size, num_classes)
 
-    def forward(self, x, l_t_prev, h_t_prev, last=False):
-        """Run RAM for one timestep on a minibatch of images.
+        
+    def forward(self, x, l_t_prev, rln_hs_prev = None, rln_cs_prev = None, gn_prev = None, last = False):
+        
+        """
+        
+        Run RAM for one timestep on a minibatch of images.
 
         Args:
             x: a 4D Tensor of shape (B, H, W, C). The minibatch
@@ -76,15 +82,16 @@ class RecurrentAttention(nn.Module):
             log_probas: a 2D tensor of shape (B, num_classes). The
                 output log probability vector over the classes.
             log_pi: a vector of length (B,).
+        
         """
-        g_t = self.sensor(x, l_t_prev)
-        h_t = self.rnn(g_t, h_t_prev)
-
-        log_pi, l_t = self.locator(h_t)
-        b_t = self.baseliner(h_t).squeeze()
-
+        
+        gn = self.glimpse(x, l_t_prev)
+        rln, rln_hs_cur, rln_hc_cur = self.location_net(gn, rln_hs_prev, rln_cs_prev, gn_prev = gn_prev)
+        log_pi, new_loc = self.emission_net(rln_hs_cur)
+        b_t = self.baseliner(rln_hs_cur).squeeze()
+                
         if last:
-            log_probas, cont_pred = self.classifier(h_t)
-            return h_t, l_t, b_t, log_probas, log_pi, cont_pred
+            log_probas, cont_pred = self.classifier(rln_hs_cur)
+            return rln_hs_cur, new_loc, b_t, log_probas, log_pi, cont_pred
 
-        return h_t, l_t, b_t, log_pi
+        return rln, new_loc, b_t, log_pi, gn, rln_hs_cur, rln_hc_cur

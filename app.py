@@ -19,7 +19,9 @@ import landsat_prep as lp
 import socialSigNoDrop
 importlib.reload(socialSigNoDrop)
 from app_helpers import *
-
+from model.utils import *
+from model.model import *
+from model.modules import *
 
 # Create the application.
 APP = flask.Flask(__name__)
@@ -146,29 +148,130 @@ def predict_migration():
     # Parse the selected municipalities and get their unique B ID's
     selected_municipalities = request.json['selected_municipalities']
     # if (len(selected_municipalities) != 0) & (selected_municipalities[0].startswith("MEX")):
-    selected_municipalities = [i.split("-")[3] if i.startswith("MEX") else i for i in selected_municipalities]
+    # selected_municipalities = [i.split("-")[3] if i.startswith("MEX") else i for i in selected_municipalities]
     print("Selected municipalities: ", selected_municipalities)
 
-    munis_already_dl = [i for i in os.listdir(os.path.join(IMAGERY_DIR, ISO)) if os.path.isdir(i)]
+    munis_already_dl = [i for i in os.listdir(os.path.join(IMAGERY_DIR, ISO))]
+    print("MUNIS ALREADY DL: ", munis_already_dl)
     munis_to_dl = [i for i in selected_municipalities if i not in munis_already_dl]
     print("Muni's needing download: ", munis_to_dl)
 
-    for muni_id in munis_to_dl:
+    im_paths = []
 
-        lp.download_boundary_imagery(gb_path = SHP_PATH, 
-                                     shapeID = muni_id, 
-                                     year = '2010', 
-                                     ic = IC, 
-                                     month = '1', 
-                                     iso = ISO, 
-                                     base_dir = IMAGERY_DIR,
-                                     v = True, 
-                                     cloud_free = True)
+    for muni_id in selected_municipalities:
 
-        lp.save_boundary_pngs(shapeID = muni_id, 
-                              iso = "MEX", 
-                              base_dir = IMAGERY_DIR,
-                              v = True)
+        if muni_id in munis_to_dl:
+
+            print("Downloading imagery.")
+
+            lp.download_boundary_imagery(gb_path = SHP_PATH, shapeID = muni_id, year = '2010', ic = IC, month = '1', iso = ISO, base_dir = IMAGERY_DIR,v = True, cloud_free = True)
+            lp.save_boundary_pngs(shapeID = muni_id, iso = "MEX", base_dir = IMAGERY_DIR, v = True)
+
+    png_path = os.listdir(os.path.join(IMAGERY_DIR, ISO, muni_id, "pngs"))[0]
+    im_paths.append(os.path.join(IMAGERY_DIR, ISO, muni_id, "pngs", png_path))
+
+    print("IMAGERY PATHS: ", im_paths)
+
+    for im in im_paths:
+
+        # Load the input image ans set up all of the variables
+        x = load_inputs(im).to(DEVICE)
+        h_t, l_t = reset(HIDDEN_SIZE, BATCH_SIZE, DEVICE)
+        locations = []
+
+        # Iterate over all of the predicted glimpses
+        for t in range(NUM_GLIMPSES - 1):
+            if t == 0:  
+                rln, new_loc, b_t, p, gn_prev, rln_hs_prev, rln_hc_prev = model(x, l_t, rln_hs_prev = None, rln_cs_prev = None, gn_prev = None)
+            else:
+                rln, new_loc, b_t, p, gn_prev, rln_hs_prev, rln_hc_prev = model(x, new_loc, rln_hs_prev, rln_hc_prev, gn_prev)
+            locations.append(new_loc)
+        h_t, l_t, b_t, log_probas, p, cont_pred = model(x, new_loc, rln_hs_prev, rln_hc_prev, gn_prev, last = True)
+                
+        # Denormalize the image coordinates and shape them into a single tensor
+        locations.append(l_t)
+        denormed_locs = [denormalize((x.shape[2], x.shape[3]), i) for i in locations]
+        locations = torch.cat(denormed_locs)
+
+        print("PREDICTION: ", cont_pred)
+        print("LOCATIONS: ", locations)        
+
+        # Set up size variables
+        B, C, H, W = x.shape
+        og_size = int(min(H, W) / 5)
+        size = int(min(H, W) / 5)
+
+        # Set up start and end coordinates
+        start = locations
+        end = start + size
+        cur_features_dict = {}
+
+        df = pd.read_csv(DATA_PATH)
+        df = df.fillna(0)
+
+        # For each of the coordinate pairs...
+        for c in range(0, len(start)):
+
+            size = int(min(H, W) / 5)
+            patches = []
+
+            # For each of the pathces at that location
+            for p in range(NUM_PATCHES):
+
+                start = locations
+                end = start + size
+
+                from_coords = start[c]
+                to_coords = end[c]
+                
+                from_x = from_coords[0].item()
+                from_y = from_coords[1].item()
+                
+                to_x = to_coords[0].item()
+                to_y = to_coords[1] .item()   
+                
+                if exceeds(from_x = from_x, to_x = to_x, from_y = from_y, to_y = to_y, H = H, W = W):
+                
+                    from_x, to_x, from_y, to_y = fix(from_x = from_x, to_x = to_x, from_y = from_y, to_y = to_y, H = H, W = W, size = size)
+
+                print(from_x, to_x, from_y, to_y)
+
+                patch = x[:, :, from_x:to_x, from_y:to_y]
+                patch = torch.nn.functional.interpolate(patch, size = (og_size, og_size), mode = 'nearest')
+                patches.append(patch)
+
+                size = int(size * GLIMPSE_SCALE)
+
+            patches = torch.cat(patches)
+            features = miniConv_model(patches.to(device)).detach().cpu().numpy()
+            print(len(features))
+            cur_features_dict[c] = features                
+
+        print(cur_features_dict.keys())
+
+        feat_data = []
+        for k,v in cur_features_dict.items():
+
+            # THIS IS JUST TEMPORARY FOR NOW BECAUSE YOU DON'T HAVE A TRAINED GRAPH MODEL FOR 8 GLIMPSES
+            if k < 5:
+                [feat_data.append(float(i)) for i in v]
+
+        print("len(feat_data): ", len(feat_data))
+
+        cur_muni_id = im.split("/")[3]
+
+        cur_df = df[df["GEO2_MX"] == int(cur_muni_id)]
+        print("DF SHAPE: ", cur_df.shape)
+
+        with open("./us_vars.txt", "r") as f:
+            vars = f.read().splitlines()
+        vars = [i for i in vars if i in cur_df.columns]
+        cur_df = cur_df[vars[1:]] # GET RID OF THE [1:] ONCE YOU GET THE RIGHT COLUMNS
+        census_data = cur_df.values[0]
+
+        [feat_data.append(v) for v in census_data]
+
+        print(len(feat_data))
 
 # def ():
 

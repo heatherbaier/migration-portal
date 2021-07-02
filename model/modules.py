@@ -9,8 +9,9 @@ import matplotlib.pyplot as plt
 import torchvision
 
 import os
-os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID" 
-os.environ["CUDA_VISIBLE_DEVICES"] = "2"
+
+# os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID" 
+# os.environ["CUDA_VISIBLE_DEVICES"] = "2"
 
 
 resnet = torchvision.models.resnet18()
@@ -53,7 +54,9 @@ class Retina:
         self.s = s
 
     def foveate(self, x, l):
-        """Extract `k` square patches of size `g`, centered
+        
+        """
+        Extract `k` square patches of size `g`, centered
         at location `l`. The initial patch is a square of
         size `g`, and each subsequent patch is a square
         whose side is `s` times the size of the previous
@@ -62,6 +65,7 @@ class Retina:
         The `k` patches are finally resized to (g, g) and
         concatenated into a tensor of shape (B, k, g, g, C).
         """
+        
         phi = []
         size = self.g
         
@@ -100,7 +104,7 @@ class Retina:
         """
         B, C, H, W = x.shape
                 
-        start = self.denormalize(H, l)
+        start = self.denormalize((W,H), l)
                         
         end = start + size
 
@@ -122,12 +126,21 @@ class Retina:
         return torch.stack(patch)
 
     
-    def denormalize(self, T, coords):
-        """Convert coordinates in the range [-1, 1] to
+    def denormalize(self, dims, coords):
+        
+        """
+        Convert coordinates in the range [-1, 1] to
         coordinates in the range [0, T] where `T` is
         the size of the image.
         """
-        return (0.5 * ((coords + 1.0) * T)).long()
+    
+        W, H = dims
+        x, y = coords[0]
+
+        W = int(0.5 * (x + 1) * W)
+        H = int(0.5 * (y + 1) * H)
+                
+        return torch.tensor([[W, H]], dtype = torch.long)
 
     
     def exceeds(self, from_x, to_x, from_y, to_y, H, W):
@@ -221,17 +234,16 @@ class GlimpseNetwork(nn.Module):
 
         self.retina = Retina(g, k, s)
 
-        # Glimpse layer (dims are [1, final_layer_size, 1, 1])
-        D_in = 1 * 128 * 1 * 1
-        self.fc1 = nn.Linear(D_in, h_g)
+        # Glimpse layer (dims are [k, final_layer_size, 1, 1])
+        self.fc1 = nn.Linear(k * h_g, h_g)
 
         # location layer (D_in is the number of zoomed in glimpses)
-        D_in = 2
-        self.fc2 = nn.Linear(D_in, h_l)
-
-        # Final fully connected layers for wath & where
+        self.fc2 = nn.Linear(k, h_l)
+        
+        # Final fully connected layers for what & where
         self.fc3 = nn.Linear(h_g, h_g + h_l)
         self.fc4 = nn.Linear(h_l, h_g + h_l)
+        
                 
         # Resnet18 convolutional layers for the glimpse 
         self.conv1_miniConv = resnet.conv1.to(device)
@@ -240,8 +252,8 @@ class GlimpseNetwork(nn.Module):
         self.maxpool_miniConv = resnet.maxpool.to(device)
         self.layer1_miniConv = resnet.layer1.to(device)
         self.layer2_miniConv = resnet.layer2.to(device)
-        self.adp_pool_miniConv = torch.nn.AdaptiveAvgPool2d((1, 1)).to(device)
-        
+        self.adp_pool_miniConv = torch.nn.AdaptiveAvgPool2d((1, 1)).to(device)        
+                
         
     def forward(self, x, l_t_prev):
                 
@@ -256,7 +268,7 @@ class GlimpseNetwork(nn.Module):
         phi = self.layer1_miniConv(phi)
         phi = self.layer2_miniConv(phi)
         phi = self.adp_pool_miniConv(phi)
-        phi = phi.flatten(start_dim = 1)  # Keep a batch_size = num_glimpses for predictions at each scale
+        phi = phi.flatten(start_dim = 0)
         phi_out = F.relu(self.fc1(phi)) # feed phi to respective fc layer
 
         # flatten location vector & feed to respective fc layer
@@ -269,12 +281,14 @@ class GlimpseNetwork(nn.Module):
 
         # Add together what & where and activate
         g_t = F.relu(what + where)
-        
+
         return g_t
 
 
-class CoreNetwork(nn.Module):
-    """The core network.
+class LocationNetwork(nn.Module):
+    """
+    
+    The core network.
 
     An RNN that maintains an internal state by integrating
     information extracted from the history of past observations.
@@ -302,31 +316,39 @@ class CoreNetwork(nn.Module):
     Returns:
         h_t: a 2D tensor of shape (B, hidden_size). The hidden
             state vector for the current timestep `t`.
+            
     """
 
     def __init__(self, input_size, hidden_size):
         super().__init__()
+
+        self.lstm1 = torch.nn.LSTM(input_size = input_size,
+                                   hidden_size = hidden_size,
+                                   num_layers = 2,
+                                   bias = True,
+                                   batch_first = True)
         
-#         print("input: ", input_size, "hidden: ", hidden_size)
-        
-#         input_size = 644
+    def forward(self, gn, rln_hs_prev, rln_cs_prev, gn_prev): 
+                
+        # If it's the first timestep, no previous glimpse information to send to LSTM 
+        if gn_prev == None:
+            gn = gn.unsqueeze(0) # add a dimension for the glimpse timestep
+            rln, (rln_hs_cur, rln_cs_cur) = self.lstm1(gn)
+        else:
+            
+#             print("gn_prev input shape: ", gn_prev.shape)  
+            
+            gn = torch.cat((gn, gn_prev), dim = 0).unsqueeze(0)   
+#             print("gn.shape", gn.shape)
+            rln, (rln_hs_cur, rln_cs_cur) = self.lstm1(gn, (rln_hs_prev, rln_cs_prev))
+                
+        return rln, rln_hs_cur, rln_cs_cur
 
-        self.input_size = input_size
-        self.hidden_size = hidden_size
 
-        self.i2h = nn.Linear(input_size, hidden_size)
-        self.h2h = nn.Linear(hidden_size, hidden_size)
+class ClassifierNetwork(nn.Module):
+    """
 
-    def forward(self, g_t, h_t_prev):
-#         print("g_t.shape: ", g_t.shape)
-        h1 = self.i2h(g_t)
-        h2 = self.h2h(h_t_prev)
-        h_t = F.relu(h1 + h2)
-        return h_t
-
-
-class ActionNetwork(nn.Module):
-    """The action network.
+    The action network.
 
     Uses the internal state `h_t` of the core network to
     produce the final output classification.
@@ -348,27 +370,29 @@ class ActionNetwork(nn.Module):
 
     Returns:
         a_t: output probability vector over the classes.
+        
     """
 
     def __init__(self, input_size, output_size):
         super().__init__()
 
         self.fc_class1 = nn.Linear(input_size, output_size)
-        self.fc_class2 = nn.Linear(output_size * 2, output_size)
-        self.fc_cont = nn.Linear(output_size * 2, 1)
+        self.fc_cont = nn.Linear(output_size, 1)
         
         
-    def forward(self, h_t):
-                        
+    def forward(self, rln_hs):
+        
+        # Take the lower recurrent layer
+        rnn_layer0 = rln_hs[0, :, :]
+               
         # Input a_t into classifer for preds for each class for num_glimpses == 2, shape will be [2, 256]
-        a_t_class = F.log_softmax(self.fc_class1(h_t), dim = 1).flatten(start_dim = 0) # shape goes from [2,2] -> [1,4]
+        a_t_class = F.log_softmax(self.fc_class1(rnn_layer0), dim = 1)#.flatten(start_dim = 0) # shape goes from [2,2] -> [1,4]
         a_t_cont = self.fc_cont(a_t_class)
-        a_t_class = F.log_softmax(self.fc_class2(a_t_class), dim = 0).unsqueeze(0)
-        
+
         return a_t_class, a_t_cont
 
 
-class LocationNetwork(nn.Module):
+class EmissionNetwork(nn.Module):
     """The location network.
 
     Uses the internal state `h_t` of the core network to
@@ -402,31 +426,25 @@ class LocationNetwork(nn.Module):
         super().__init__()
 
         self.std = std
-        
-        input_size = input_size * 2
-        
-#         print("location input: ", input_size, "hidden: ", output_size)
-        
+                
         # Flattened specs for 2 glimpses
-#         input_size = 64
         hid_size = input_size // 2
         self.fc = nn.Linear(input_size, hid_size)
         self.fc_lt = nn.Linear(hid_size, output_size)        
 
-    def forward(self, h_t):
-                
-        h_t = h_t.flatten(start_dim = 0).unsqueeze(0)
+    def forward(self, rln_hs_cur):
         
-#         print("h_t.shape: ", h_t.shape)
-                
+        # Grab the hidden layer state from the second layer of the LSTM
+        last_hl = rln_hs_cur[1, :, :]
+                                                                
         # compute mean
-        feat = F.relu(self.fc(h_t.detach()))
+        feat = F.relu(self.fc(last_hl.detach()))
         mu = torch.tanh(self.fc_lt(feat))
 
         # reparametrization trick
-        l_t = torch.distributions.Normal(mu, self.std).rsample()
-        l_t = l_t.detach()
-        log_pi = Normal(mu, self.std).log_prob(l_t)
+        new_loc = torch.distributions.Normal(mu, self.std).rsample()
+        new_loc = new_loc.detach()
+        log_pi = Normal(mu, self.std).log_prob(new_loc)
 
         # we assume both dimensions are independent
         # 1. pdf of the joint is the product of the pdfs
@@ -434,9 +452,9 @@ class LocationNetwork(nn.Module):
         log_pi = torch.sum(log_pi, dim=1)
 
         # bound between [-1, 1]
-        l_t = torch.clamp(l_t, -1, 1)
-
-        return log_pi, l_t
+        new_loc = torch.clamp(new_loc, -1, 1)
+        
+        return log_pi, new_loc
 
 
 class BaselineNetwork(nn.Module):
@@ -459,11 +477,11 @@ class BaselineNetwork(nn.Module):
 
     def __init__(self, input_size, output_size):
         super().__init__()
-
-        input_size = 2 * 256
+        
+        input_size = 1 * 256
         self.fc = nn.Linear(input_size, output_size)
 
-    def forward(self, h_t):
-        h_t = h_t.flatten(start_dim = 0)
-        b_t = self.fc(h_t.detach()).unsqueeze(0)
+    def forward(self, rln_hs_cur):
+        rln_hs_cur = rln_hs_cur[1, :, :]
+        b_t = self.fc(rln_hs_cur.detach()).unsqueeze(0)
         return b_t

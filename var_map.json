@@ -46,7 +46,7 @@
     "perc_social_security_imss_hlthfac" : "Percentage of population with Social Security - IMSS", 
     "perc_permex_defense_navy_hlthfac" : "Percentage of population with Pemex, Defense, Navy",
     "perc_public_insurance_hlthcov" : "Percentage of population with public insurance (New Generation)",
-    "perc_public_workers_issste_hlthfac" : "Percentage of public workers iwth ISSSTE", 
+    "perc_public_workers_issste_hlthfac" : "Percentage of public workers with ISSSTE", 
     "perc_imss_only_hlthcov" : "Percentage of population with IMSS only",
     "perc_issste_only_hlthcov" : "Percentage of population with ISSSTE only",
     "perc_no_coverage_hlthcov" : "Percentage of population with no health coverage", 

@@ -5,6 +5,7 @@ from pandas import json_normalize
 import geopandas as gpd
 import pandas as pd
 import numpy as np
+import torchvision
 import importlib
 import geojson
 import folium
@@ -16,18 +17,100 @@ import io
 import socialSigNoDrop
 importlib.reload(socialSigNoDrop)
 
+from model.utils import *
+from model.model import *
+from model.modules import *
 
 
+# Path variables
 GEOJSON_PATH = "./data/ipumns_simple_wgs.geojson"
 SHP_PATH = "./data/ipumns_shp.shp"
 DATA_PATH = "./data/mexico2010.csv"
 MIGRATION_PATH = "./data/migration_data.json"
 MATCH_PATH = "./data/gB_IPUMS_match.csv"
-MODEL_PATH = "./trained_model/notransfer_50epoch_weightedloss_us.torch"
+MODEL_PATH = "./trained_model/ram_8_50x50_0.75_model_best.pth.tar"
 BORDER_STATIONS_PATH = "./data/border_stations5.geojson"
 IMAGERY_DIR = "./imagery/"
 ISO = "MEX"
 IC = "LANDSAT/LT05/C01/T1"
+GRAPH_MODEL = "./trained_model/trained_graph_model.torch"
+
+
+# Model Parameters
+BATCH_SIZE = 1
+DEVICE = "cuda"
+PATCH_SIZE = 50
+NUM_PATCHES = 2
+GLIMPSE_SCALE = .75
+NUM_CHANNELS = 3
+GLIMPSE_HIDDEN = 128
+LOC_HIDDEN = 128
+STD = 0.4
+HIDDEN_SIZE = 256
+NUM_CLASSES = 4
+NUM_GLIMPSES = 8
+
+
+model = RecurrentAttention(PATCH_SIZE,
+                           NUM_PATCHES,
+                           GLIMPSE_SCALE,
+                           NUM_CHANNELS,
+                           GLIMPSE_HIDDEN,
+                           LOC_HIDDEN,
+                           STD,
+                           HIDDEN_SIZE,
+                           NUM_CLASSES).to(DEVICE)
+
+checkpoint = torch.load(MODEL_PATH)
+checkpoint = checkpoint["model_state"]
+model.load_state_dict(checkpoint)
+
+
+
+class miniConv(torch.nn.Module):
+    
+    def __init__(self, resnet):
+        super().__init__()
+        
+        self.conv1_miniConv = resnet.conv1.to(device)
+        self.bn1_miniConv = resnet.bn1.to(device)
+        self.relu_miniConv = resnet.relu.to(device)
+        self.maxpool_miniConv = resnet.maxpool.to(device)
+        self.layer1_miniConv = resnet.layer1.to(device)
+        self.layer2_miniConv = resnet.layer2.to(device)
+        self.adp_pool_miniConv = torch.nn.AdaptiveAvgPool2d((1, 1)).to(device)  
+        self.fc1 = nn.Linear(NUM_PATCHES * GLIMPSE_HIDDEN, GLIMPSE_HIDDEN)
+        
+    def forward(self, phi):
+        phi = self.conv1_miniConv(phi)
+        phi = self.bn1_miniConv(phi)
+        phi = self.relu_miniConv(phi)
+        phi = self.maxpool_miniConv(phi)
+        phi = self.layer1_miniConv(phi)
+        phi = self.layer2_miniConv(phi)
+        phi = self.adp_pool_miniConv(phi)
+        phi = phi.flatten(start_dim = 0)
+        phi_out = F.relu(self.fc1(phi)) # feed phi to respective fc layer
+        return phi
+
+
+resnet = torchvision.models.resnet18()
+miniConv_model = miniConv(resnet = resnet).to(device)
+
+
+matching_keys = [p for p in list(checkpoint.keys()) if "_miniConv" in p]
+matching_keys2 = [p for p in list(checkpoint.keys()) if p == 'glimpse.fc1.weight' or p == 'glimpse.fc1.bias']
+[matching_keys2.append(k) for k in matching_keys]
+
+
+weights = {}
+for mk in matching_keys2:
+    miniConv_model_key = mk.replace("glimpse.", "")
+    weights[miniConv_model_key] = checkpoint[mk]
+    
+miniConv_model.load_state_dict(weights)
+
+
 
 
 
@@ -47,6 +130,7 @@ def map_column_names(var_names, df):
 
 
 def get_column_lists(df, var_names, grouped_vars):
+
     e_vars = [i for i in grouped_vars['Economic'] if i in df.columns]
     econ = df[e_vars]
     econ = map_column_names(var_names, econ)
