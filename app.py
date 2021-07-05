@@ -15,6 +15,7 @@ import io
 import os
 
 import landsat_prep as lp
+import geograph as gg
 
 import socialSigNoDrop
 importlib.reload(socialSigNoDrop)
@@ -22,6 +23,9 @@ from app_helpers import *
 from model.utils import *
 from model.model import *
 from model.modules import *
+from model.aggregator import *
+from model.encoder import *
+from model.graphsage import *
 
 # Create the application.
 APP = flask.Flask(__name__)
@@ -230,11 +234,9 @@ def predict_migration():
                 to_x = to_coords[0].item()
                 to_y = to_coords[1] .item()   
                 
+                # GO BACK AND CHANGE THIS TO THE NEW/CURRENT FIX METHOD
                 if exceeds(from_x = from_x, to_x = to_x, from_y = from_y, to_y = to_y, H = H, W = W):
-                
                     from_x, to_x, from_y, to_y = fix(from_x = from_x, to_x = to_x, from_y = from_y, to_y = to_y, H = H, W = W, size = size)
-
-                print(from_x, to_x, from_y, to_y)
 
                 patch = x[:, :, from_x:to_x, from_y:to_y]
                 patch = torch.nn.functional.interpolate(patch, size = (og_size, og_size), mode = 'nearest')
@@ -244,34 +246,71 @@ def predict_migration():
 
             patches = torch.cat(patches)
             features = miniConv_model(patches.to(device)).detach().cpu().numpy()
-            print(len(features))
             cur_features_dict[c] = features                
-
-        print(cur_features_dict.keys())
 
         feat_data = []
         for k,v in cur_features_dict.items():
-
-            # THIS IS JUST TEMPORARY FOR NOW BECAUSE YOU DON'T HAVE A TRAINED GRAPH MODEL FOR 8 GLIMPSES
-            if k < 5:
-                [feat_data.append(float(i)) for i in v]
-
-        print("len(feat_data): ", len(feat_data))
+            [feat_data.append(float(i)) for i in v]
 
         cur_muni_id = im.split("/")[3]
 
         cur_df = df[df["GEO2_MX"] == int(cur_muni_id)]
-        print("DF SHAPE: ", cur_df.shape)
 
         with open("./us_vars.txt", "r") as f:
             vars = f.read().splitlines()
         vars = [i for i in vars if i in cur_df.columns]
         cur_df = cur_df[vars[1:]] # GET RID OF THE [1:] ONCE YOU GET THE RIGHT COLUMNS
         census_data = cur_df.values[0]
-
         [feat_data.append(v) for v in census_data]
 
-        print(len(feat_data))
+        print("Number of features: ", len(feat_data))
+
+        print(cur_muni_id)
+        print(gdf.head())
+
+        print(gdf.dtypes)
+
+
+        muni_key = graph_id_dict['']
+
+
+
+        # g = gg.GeoGraph(str(cur_muni_id),
+        #                       gdf, 
+        #                       degrees = 1, 
+        #                       load_data = False, 
+        #                       boxes = False)   
+
+
+        # print(g.degree_dict)
+
+
+        # # x = feat_data
+        # adj_lists[str(cur_muni_id)] = g.degree_dict[1]
+
+        # node_attrs = {'x': feat_data,
+        #         'neighbors': g.degree_dict[1]
+        #        }
+
+
+
+        # agg = MeanAggregator(features = x,
+        #                     gcn = False)
+        # enc = Encoder(features = x, 
+        #             feature_dim = x.shape[1], 
+        #             embed_dim = 128, 
+        #             adj_lists = adj_lists,
+        #             aggregator = agg)
+
+        # graphModel = SupervisedGraphSage(num_classes = 1,
+        #                             enc = enc)
+
+        # graphModel.load_state_dict(graph_checkpoint)
+
+
+
+        # print(node_attrs)
+
 
 # def ():
 

@@ -20,11 +20,14 @@ importlib.reload(socialSigNoDrop)
 from model.utils import *
 from model.model import *
 from model.modules import *
+from model.aggregator import *
+from model.encoder import *
+from model.graphsage import *
 
 
 # Path variables
 GEOJSON_PATH = "./data/ipumns_simple_wgs.geojson"
-SHP_PATH = "./data/ipumns_shp.shp"
+SHP_PATH = "./data/ipumns_shp (1).shp"
 DATA_PATH = "./data/mexico2010.csv"
 MIGRATION_PATH = "./data/migration_data.json"
 MATCH_PATH = "./data/gB_IPUMS_match.csv"
@@ -34,6 +37,52 @@ IMAGERY_DIR = "./imagery/"
 ISO = "MEX"
 IC = "LANDSAT/LT05/C01/T1"
 GRAPH_MODEL = "./trained_model/trained_graph_model.torch"
+
+gdf = gpd.read_file(SHP_PATH)
+gdf = gdf.dropna(subset = ["geometry"])
+
+
+
+graph_checkpoint = torch.load(GRAPH_MODEL)
+graph_checkpoint = graph_checkpoint["model_state_dict"]
+
+
+with open("./data/graph.json") as g:
+    graph = json.load(g)
+
+x, adj_lists, y = [], {}, []
+
+a = 0
+for muni_id, dta in graph.items():
+    x.append(dta["x"])
+    y.append(dta["label"])
+    adj_lists[str(a)] = dta["neighbors"]
+    a += 1
+    
+x = np.array(x)
+y = np.expand_dims(np.array(y), 1)
+
+
+print(x.shape)
+
+
+agg = MeanAggregator(features = x,
+                    gcn = False)
+enc = Encoder(features = x, 
+              feature_dim = x.shape[1], 
+              embed_dim = 128, 
+              adj_lists = adj_lists,
+              aggregator = agg)
+
+graphModel = SupervisedGraphSage(num_classes = 1,
+                            enc = enc)
+
+graphModel.load_state_dict(graph_checkpoint)
+
+
+graph_id_dict = dict(zip(gdf["shapeID"].to_list(), [str(i) for i in len(gdf)]))
+
+
 
 
 # Model Parameters
@@ -91,7 +140,7 @@ class miniConv(torch.nn.Module):
         phi = self.adp_pool_miniConv(phi)
         phi = phi.flatten(start_dim = 0)
         phi_out = F.relu(self.fc1(phi)) # feed phi to respective fc layer
-        return phi
+        return phi_out
 
 
 resnet = torchvision.models.resnet18()
