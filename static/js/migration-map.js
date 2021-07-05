@@ -117,12 +117,12 @@ mymap.on(L.Draw.Event.DELETED, e => {
 
 // Function to color the polygons by number of migrants
 function getColor(d) {
-    return d > 1000 ? '#800026' :
-           d > 500  ? '#BD0026' :
-           d > 200  ? '#E31A1C' :
-           d > 100  ? '#FC4E2A' :
-           d > 50   ? '#FD8D3C' :
-           d > 20   ? '#FEB24C' :
+    return d > 5000 ? '#800026' :
+           d > 2500  ? '#BD0026' :
+           d > 500  ? '#E31A1C' :
+           d > 250  ? '#FC4E2A' :
+           d > 100   ? '#FD8D3C' :
+           d > 50   ? '#FEB24C' :
            d > 10   ? '#FED976' :
                       '#FFEDA0';
 }
@@ -155,7 +155,7 @@ var legend = L.control({position: 'bottomleft'});
 legend.onAdd = function (map) {
 
     var div = L.DomUtil.create('div', 'info legend'),
-        grades = [0, 10, 20, 50, 100, 200, 500, 1000],
+        grades = [0, 10, 50, 100, 250, 500, 2500, 5000],
         labels = [];
 
     // loop through our density intervals and generate a label with a colored square for each interval

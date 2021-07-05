@@ -49,8 +49,8 @@ def index():
 
     df['avg_age_weight'] = df['avg_age'] * df['sum_num_intmig']
     print("Average age: ", df['avg_age'].mean())
-    print("Average age: ", df['avg_age_weight'].sum() / df['sum_num_intmig'].sum())
-    avg_age = df['avg_age_weight'].sum() / df['sum_num_intmig'].sum()
+    # print("Average age: ", df['avg_age_weight'].sum() / df['sum_num_intmig'].sum())
+    avg_age = df['avg_age'].mean()
 
     # Open the variables JSON and the JSON containing the readable translation of the variables
     with open("./vars.json", "r") as f:
@@ -61,6 +61,8 @@ def index():
 
     # Get all of the variables to send to Flask
     econ, demog, family, health, edu, employ, hhold = get_column_lists(df, var_names, grouped_vars)
+
+    print("about to render homepage")
 
     # Merry Christmas HTML
     return flask.render_template('index.html', 
@@ -151,314 +153,196 @@ def predict_migration():
 
     # Parse the selected municipalities and get their unique B ID's
     selected_municipalities = request.json['selected_municipalities']
-    # if (len(selected_municipalities) != 0) & (selected_municipalities[0].startswith("MEX")):
-    # selected_municipalities = [i.split("-")[3] if i.startswith("MEX") else i for i in selected_municipalities]
+
+    # TEMPORARY UNTIL YOU GET THE BIG IMAGES DOWNLOADED
+    selected_municipalities = [sm for sm in selected_municipalities if sm in munis_available]
+    
     print("Selected municipalities: ", selected_municipalities)
 
-    munis_already_dl = [i for i in os.listdir(os.path.join(IMAGERY_DIR, ISO))]
-    print("MUNIS ALREADY DL: ", munis_already_dl)
-    munis_to_dl = [i for i in selected_municipalities if i not in munis_already_dl]
-    print("Muni's needing download: ", munis_to_dl)
-
-    im_paths = []
-
-    for muni_id in selected_municipalities:
-
-        if muni_id in munis_to_dl:
-
-            print("Downloading imagery.")
-
-            lp.download_boundary_imagery(gb_path = SHP_PATH, shapeID = muni_id, year = '2010', ic = IC, month = '1', iso = ISO, base_dir = IMAGERY_DIR,v = True, cloud_free = True)
-            lp.save_boundary_pngs(shapeID = muni_id, iso = "MEX", base_dir = IMAGERY_DIR, v = True)
-
-    png_path = os.listdir(os.path.join(IMAGERY_DIR, ISO, muni_id, "pngs"))[0]
-    im_paths.append(os.path.join(IMAGERY_DIR, ISO, muni_id, "pngs", png_path))
-
-    print("IMAGERY PATHS: ", im_paths)
-
-    for im in im_paths:
-
-        # Load the input image ans set up all of the variables
-        x = load_inputs(im).to(DEVICE)
-        h_t, l_t = reset(HIDDEN_SIZE, BATCH_SIZE, DEVICE)
-        locations = []
-
-        # Iterate over all of the predicted glimpses
-        for t in range(NUM_GLIMPSES - 1):
-            if t == 0:  
-                rln, new_loc, b_t, p, gn_prev, rln_hs_prev, rln_hc_prev = model(x, l_t, rln_hs_prev = None, rln_cs_prev = None, gn_prev = None)
-            else:
-                rln, new_loc, b_t, p, gn_prev, rln_hs_prev, rln_hc_prev = model(x, new_loc, rln_hs_prev, rln_hc_prev, gn_prev)
-            locations.append(new_loc)
-        h_t, l_t, b_t, log_probas, p, cont_pred = model(x, new_loc, rln_hs_prev, rln_hc_prev, gn_prev, last = True)
-                
-        # Denormalize the image coordinates and shape them into a single tensor
-        locations.append(l_t)
-        denormed_locs = [denormalize((x.shape[2], x.shape[3]), i) for i in locations]
-        locations = torch.cat(denormed_locs)
-
-        print("PREDICTION: ", cont_pred)
-        print("LOCATIONS: ", locations)        
-
-        # Set up size variables
-        B, C, H, W = x.shape
-        og_size = int(min(H, W) / 5)
-        size = int(min(H, W) / 5)
-
-        # Set up start and end coordinates
-        start = locations
-        end = start + size
-        cur_features_dict = {}
-
-        df = pd.read_csv(DATA_PATH)
-        df = df.fillna(0)
-
-        # For each of the coordinate pairs...
-        for c in range(0, len(start)):
-
-            size = int(min(H, W) / 5)
-            patches = []
-
-            # For each of the pathces at that location
-            for p in range(NUM_PATCHES):
-
-                start = locations
-                end = start + size
-
-                from_coords = start[c]
-                to_coords = end[c]
-                
-                from_x = from_coords[0].item()
-                from_y = from_coords[1].item()
-                
-                to_x = to_coords[0].item()
-                to_y = to_coords[1] .item()   
-                
-                # GO BACK AND CHANGE THIS TO THE NEW/CURRENT FIX METHOD
-                if exceeds(from_x = from_x, to_x = to_x, from_y = from_y, to_y = to_y, H = H, W = W):
-                    from_x, to_x, from_y, to_y = fix(from_x = from_x, to_x = to_x, from_y = from_y, to_y = to_y, H = H, W = W, size = size)
-
-                patch = x[:, :, from_x:to_x, from_y:to_y]
-                patch = torch.nn.functional.interpolate(patch, size = (og_size, og_size), mode = 'nearest')
-                patches.append(patch)
-
-                size = int(size * GLIMPSE_SCALE)
-
-            patches = torch.cat(patches)
-            features = miniConv_model(patches.to(device)).detach().cpu().numpy()
-            cur_features_dict[c] = features                
-
-        feat_data = []
-        for k,v in cur_features_dict.items():
-            [feat_data.append(float(i)) for i in v]
-
-        cur_muni_id = im.split("/")[3]
-
-        cur_df = df[df["GEO2_MX"] == int(cur_muni_id)]
-
-        with open("./us_vars.txt", "r") as f:
-            vars = f.read().splitlines()
-        vars = [i for i in vars if i in cur_df.columns]
-        cur_df = cur_df[vars[1:]] # GET RID OF THE [1:] ONCE YOU GET THE RIGHT COLUMNS
-        census_data = cur_df.values[0]
-        [feat_data.append(v) for v in census_data]
-
-        print("Number of features: ", len(feat_data))
-
-        print(cur_muni_id)
-        print(gdf.head())
-
-        print(gdf.dtypes)
-
-
-        muni_key = graph_id_dict['']
-
-
-
-        # g = gg.GeoGraph(str(cur_muni_id),
-        #                       gdf, 
-        #                       degrees = 1, 
-        #                       load_data = False, 
-        #                       boxes = False)   
-
-
-        # print(g.degree_dict)
-
-
-        # # x = feat_data
-        # adj_lists[str(cur_muni_id)] = g.degree_dict[1]
-
-        # node_attrs = {'x': feat_data,
-        #         'neighbors': g.degree_dict[1]
-        #        }
-
-
-
-        # agg = MeanAggregator(features = x,
-        #                     gcn = False)
-        # enc = Encoder(features = x, 
-        #             feature_dim = x.shape[1], 
-        #             embed_dim = 128, 
-        #             adj_lists = adj_lists,
-        #             aggregator = agg)
-
-        # graphModel = SupervisedGraphSage(num_classes = 1,
-        #                             enc = enc)
-
-        # graphModel.load_state_dict(graph_checkpoint)
-
-
-
-        # print(node_attrs)
-
-
-# def ():
-
-
-#     # Read in the migration data and subset it to the selected municipalities
-#     dta = switch_column_names(MATCH_PATH, DATA_PATH)
-
-#     if len(selected_municipalities) == 0:
-#         selected_municipalities = dta['sending'].to_list()
-#         print("Selected municipalities since none were selected: ", selected_municipalities)
-
-    
-
-#     dta_selected = dta[dta['sending'].isin(selected_municipalities)]
-#     dta_selected = dta_selected.dropna(subset = ['sending'])
-#     print(dta_selected.shape)
-
-#     print("NUM MIGRANTS HERE: ", dta_selected['sum_num_intmig'].sum())
-#     num_og_migrants = dta_selected['sum_num_intmig'].sum()
-
-#     # Parse the edited input variables and switch all of the 0's in percent_changes to 1 (neccessary for multiplying later on)
-#     column_names = request.json['column_names']
-#     percent_changes = request.json['percent_changes']
-#     # percent_changes = request.json['percent_changes']
-#     percent_changes = [float(i) - 100 if i != '100' else '1' for i in percent_changes]
-
-#     # Open the var_map JSON and reverse the dictionary
-#     with open("./var_map.json", "r") as f2:
-#         var_names = json.load(f2)
-#     reverse_var_names = dict([(value, key) for key, value in var_names.items()])
-
-#     # Change the 'pretty' variable names back to their originals so we can edit the dataframe
-#     column_names = [reverse_var_names[i] if i in reverse_var_names.keys() else i for i in column_names]
-
-#     # Multiply the columns by their respective percent changes
-#     for i in range(0, len(column_names)):
-
-#         if float(percent_changes[i]) < 0:
-#             percentage = abs(float(percent_changes[i])) * .01
-#             to_subtract = percentage * dta_selected[column_names[i]]
-#             dta_selected[column_names[i]] = dta_selected[column_names[i]] - to_subtract
-#         else:
-#             percentage = abs(float(percent_changes[i])) * .01
-#             to_add = percentage * dta_selected[column_names[i]]
-#             dta_selected[column_names[i]] = dta_selected[column_names[i]] + to_add
-
-
-#     # Get a data frame with all of the data that wasn't edited
-#     dta_dropped = dta[~dta['sending'].isin(selected_municipalities)]
-
-#     # Then re-append the updated data to the larger dataframe incorporating user input
-#     dta_appended = dta_dropped.append(dta_selected)
-#     dta_appended = dta_appended.drop(['sending'], axis = 1)
-
-#     # dta_appended = dta_appended.drop(['Unnamed: 0', 'sending'], axis = 1)
-#     dta_appended = dta_appended.fillna(0)
-#     dta_appended = dta_appended.apply(lambda x: pd.to_numeric(x, errors='coerce'))
-
-#     with open("./us_vars.txt", "r") as f:
-#         vars = f.read().splitlines()
-#     vars = [i for i in vars if i in dta_appended.columns]
-#     dta_appended = dta_appended[vars]
-
-#     print("SHAPE HERE: ", dta_appended.shape)
-
-#     # Scale the data frame for the model
-#     X = dta_appended.loc[:, dta_appended.columns != "sum_num_intmig"].values
-#     mMScale = preprocessing.MinMaxScaler()
-#     X = mMScale.fit_transform(X)
-
-#     # Grab just the municaplities that we edited
-#     muns_to_pred = X[-len(selected_municipalities):]
-
-#     muni_names = get_muni_names(selected_municipalities)
-
-#     # Predict each of them
-#     predictions = [predict_row(muns_to_pred[i], X, muni_names[i]) for i in range(0, len(muns_to_pred))]
-    
-#     # Update the migration numbers in the dataframe and re-append it tot the wider dataframe
-#     dta_selected['sum_num_intmig'] = predictions
-
-#     print("NUM MIGRANTS AFTER PRED: ", dta_selected['sum_num_intmig'].sum())
-#     num_pred_migrants = dta_selected['sum_num_intmig'].sum()
-
-#     dta_final = dta_dropped.append(dta_selected)
-
-#     # Normalize the geoJSON as a pandas dataframe
-#     geoDF = json_normalize(geodata_collection["features"])
-
-#     # Get the B unique ID column (akgkjklajkljlk)
-#     geoDF["B"] = geoDF['properties.shapeID'].str.split("-").str[3]
-#     geoDF = geoDF.rename(columns = {"B":"sending"})
-
-#     # Mix it all together
-#     merged = pd.merge(geoDF, dta_final, on = 'sending')
-
-#     print("NUMBER OF PERSONS TO US: ", merged['sum_num_intmig'].sum())
-#     total_migrants = merged['sum_num_intmig'].sum()
-
-#     merged['avg_age_weight'] = merged['avg_age'] * merged['sum_num_intmig']
-#     print("Average age: ", merged['avg_age'].mean())
-#     print("Average age: ", merged['avg_age_weight'].sum() / merged['sum_num_intmig'].sum())
-#     avg_age = merged['avg_age_weight'].sum()# / merged['sum_num_intmig'].sum()
-
-#     total_migrants = {'avg_age': avg_age, "num_og_migrants": num_og_migrants, "num_pred_migrants": num_pred_migrants}
-    
-#     with open('predicted_migrants.json', 'w') as outfile:
-#         json.dump(total_migrants, outfile)
-
-#     merged['sum_num_intmig'] = merged['sum_num_intmig'].fillna(0)
-
-#     features = convert_features_to_geojson(merged)
-
-#     with open('status.json', 'w') as outfile:
-#         json.dump({'status': "Status - Rendering new migration map..."}, outfile)
-
-#     return jsonify(features)
+    # Read in the migration data and subset it to the selected municipalities
+    dta = pd.read_csv(DATA_PATH)
+    dta = dta.dropna(subset = ['GEO2_MX'])
+
+    # If no muni's are selected, select them all
+    if len(selected_municipalities) == 0:
+        selected_municipalities = dta['sending'].to_list()
+        print("Selected municipalities since none were selected: ", selected_municipalities)
+
+
+    dta_selected = dta[dta['GEO2_MX'].isin([int(i) for i in selected_municipalities])]
+    print(dta_selected.shape)
+
+    print("NUM MIGRANTS HERE: ", dta_selected['sum_num_intmig'].sum())
+    num_og_migrants = dta_selected['sum_num_intmig'].sum()
+
+    # Parse the edited input variables and switch all of the 0's in percent_changes to 1 (neccessary for multiplying later on)
+    column_names = request.json['column_names']
+    percent_changes = request.json['percent_changes']
+    # percent_changes = request.json['percent_changes']
+    percent_changes = [float(i) - 100 if i != '100' else '1' for i in percent_changes]
+
+    # Open the var_map JSON and reverse the dictionary
+    with open("./var_map.json", "r") as f2:
+        var_names = json.load(f2)
+    reverse_var_names = dict([(value, key) for key, value in var_names.items()])
+
+    # Change the 'pretty' variable names back to their originals so we can edit the dataframe
+    column_names = [reverse_var_names[i] if i in reverse_var_names.keys() else i for i in column_names]
+
+    # Multiply the columns by their respective percent changes
+    for i in range(0, len(column_names)):
+
+        if float(percent_changes[i]) < 0:
+            percentage = abs(float(percent_changes[i])) * .01
+            to_subtract = percentage * dta_selected[column_names[i]]
+            dta_selected[column_names[i]] = dta_selected[column_names[i]] - to_subtract
+        else:
+            percentage = abs(float(percent_changes[i])) * .01
+            to_add = percentage * dta_selected[column_names[i]]
+            dta_selected[column_names[i]] = dta_selected[column_names[i]] + to_add
+
+    # Get a data frame with all of the data that wasn't edited
+    dta_dropped = dta[~dta['GEO2_MX'].isin(selected_municipalities)]
+
+    # Then re-append the updated data to the larger dataframe incorporating user input
+    dta_appended = dta_dropped.append(dta_selected)
+    dta_appended = dta_appended.drop(['GEO2_MX'], axis = 1)
+
+    # dta_appended = dta_appended.drop(['Unnamed: 0', 'sending'], axis = 1)
+    dta_appended = dta_appended.fillna(0)
+    dta_appended = dta_appended.apply(lambda x: pd.to_numeric(x, errors='coerce'))
+
+    with open("./us_vars.txt", "r") as f:
+        vars = f.read().splitlines()
+    vars = [i for i in vars if i in dta_appended.columns]
+    dta_appended = dta_appended[vars]
+    # dta_appended = dta_appended.drop(["sum_num_intmig"], axis = 1)
+
+    print("Final census data frame shape: ", dta_appended.shape)
+
+    # Scale the data frame for the model
+    X = dta_appended.loc[:, dta_appended.columns != "sum_num_intmig"].values
+    mMScale = preprocessing.MinMaxScaler()
+    X = mMScale.fit_transform(X)
+
+    # Grab just the municaplities that we edited
+    muns_to_pred = X[-len(selected_municipalities):]    
+
+    selected_muni_ref_dict = {}
+    for muni in selected_municipalities:
+        muni_ref = graph_id_dict[muni]
+        selected_muni_ref_dict[muni] = muni_ref
+
+
+    new_census_vals = {}
+
+    for sm in range(0, len(selected_municipalities)):
+        new_census_vals[selected_muni_ref_dict[selected_municipalities[sm]]] = muns_to_pred[sm]
+
+    print(new_census_vals)
+
+    x, adj_lists, y = [], {}, []
+
+    a = 0
+    for muni_id, dta in graph.items():
+        if muni_id in selected_muni_ref_dict.values():
+            cur_x = dta["x"]
+            cur_x = cur_x[0:len(cur_x) - 202]
+            [cur_x.append(v) for v in new_census_vals[muni_id]]
+            print("yes!", len(cur_x))
+            x.append(cur_x)
+        else:
+            x.append(dta["x"])
+        y.append(dta["label"])
+        adj_lists[str(a)] = dta["neighbors"]
+        a += 1
         
+    x = np.array(x)
+    y = np.expand_dims(np.array(y), 1)   
+
+    agg = MeanAggregator(features = x, gcn = False)
+    enc = Encoder(features = x, feature_dim = x.shape[1], embed_dim = 128, adj_lists = adj_lists, aggregator = agg)
+    model = SupervisedGraphSage(num_classes = 1, enc = enc)
+    model.load_state_dict(graph_checkpoint)
+    model.eval()
+
+
+    predictions = []
+    for muni in selected_municipalities:
+        print("Current municipality: ", muni)
+        muni_ref = graph_id_dict[muni]
+        print("Ref ID:  ", muni_ref)
+        input = [muni_ref]
+        prediction = model.forward(input).item()
+        predictions.append(prediction)
+        print("Prediction: ", prediction)
+
+
+    # Update the migration numbers in the dataframe and re-append it tot the wider dataframe
+    dta_selected['sum_num_intmig'] = predictions
+
+    print("NUM MIGRANTS AFTER PRED: ", dta_selected['sum_num_intmig'].sum())
+    num_pred_migrants = dta_selected['sum_num_intmig'].sum()
+
+    dta_final = dta_dropped.append(dta_selected)
+    dta_final['GEO2_MX'] = dta_final['GEO2_MX'].astype(str)
+
+    # Normalize the geoJSON as a pandas dataframe
+    geoDF = json_normalize(geodata_collection["features"])
+
+    merged = pd.merge(geoDF, dta_final, left_on = "properties.shapeID", right_on = "GEO2_MX")
+
+    print("NUMBER OF PERSONS TO US: ", merged['sum_num_intmig'].sum())
+    total_migrants = merged['sum_num_intmig'].sum()
+
+    merged['avg_age_weight'] = merged['avg_age'] * merged['sum_num_intmig']
+    print("Average age: ", merged['avg_age'].mean())
+    print("Average age: ", merged['avg_age_weight'].sum() / merged['sum_num_intmig'].sum())
+    avg_age = merged['avg_age_weight'].sum()# / merged['sum_num_intmig'].sum()
+
+    total_migrants = {'avg_age': avg_age, "num_og_migrants": num_og_migrants, "num_pred_migrants": num_pred_migrants}
+    
+    with open('predicted_migrants.json', 'w') as outfile:
+        json.dump(total_migrants, outfile)
+
+    merged['sum_num_intmig'] = merged['sum_num_intmig'].fillna(0)
+
+    features = convert_features_to_geojson(merged)
+
+    with open('status.json', 'w') as outfile:
+        json.dump({'status': "Status - Rendering new migration map..."}, outfile)
+
+    return jsonify(features)
 
 
 
-# @APP.route('/update_stats', methods=['GET'])
-# def update_stats():
-
-#     # Read in migration data
-#     df = pd.read_csv(DATA_PATH)
-
-#     # Get the number of migrants to send to HTML for stat box
-#     total_migrants = df['sum_num_intmig'].sum()
-#     og_avg_age = df['avg_age'].mean()
 
 
-#     with open("./predicted_migrants.json") as json_file:
-#         predictions = json.load(json_file)
+@APP.route('/update_stats', methods=['GET'])
+def update_stats():
 
-#     num_pred_migrants = predictions['num_pred_migrants']
-#     num_og_migrants = predictions['num_og_migrants']
+    # Read in migration data
+    df = pd.read_csv(DATA_PATH)
 
-#     # predicted_migrants = predictions['total_migrants']
-#     predicted_migrants = (total_migrants - num_og_migrants) + num_pred_migrants
-#     avg_age = predictions['avg_age']
-#     avg_age = avg_age / ((total_migrants - num_og_migrants) + num_pred_migrants)
+    # Get the number of migrants to send to HTML for stat box
+    total_migrants = df['sum_num_intmig'].sum()
+    og_avg_age = df['avg_age'].mean()
 
-#     p_change = ((round(predicted_migrants, 0) - total_migrants) / total_migrants) * 100
-#     change = round(predicted_migrants, 0) - total_migrants
-#     avg_age_change = avg_age - og_avg_age
-#     p_avg_age_change = ((round(avg_age, 0) - og_avg_age) / og_avg_age) * 100
+    with open("./predicted_migrants.json") as json_file:
+        predictions = json.load(json_file)
 
+    num_pred_migrants = predictions['num_pred_migrants']
+    num_og_migrants = predictions['num_og_migrants']
+
+    # predicted_migrants = predictions['total_migrants']
+    predicted_migrants = (total_migrants - num_og_migrants) + num_pred_migrants
+    avg_age = predictions['avg_age']
+    avg_age = avg_age / ((total_migrants - num_og_migrants) + num_pred_migrants)
+
+    p_change = ((round(predicted_migrants, 0) - total_migrants) / total_migrants) * 100
+    change = round(predicted_migrants, 0) - total_migrants
+    avg_age_change = avg_age - og_avg_age
+    p_avg_age_change = ((round(avg_age, 0) - og_avg_age) / og_avg_age) * 100
 
     return {'change': change,
             'p_change': round(p_change, 2),
