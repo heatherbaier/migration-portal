@@ -5,6 +5,7 @@ from pandas import json_normalize
 import geopandas as gpd
 import pandas as pd
 import numpy as np
+import torchvision
 import importlib
 import geojson
 import folium
@@ -16,18 +17,67 @@ import io
 import socialSigNoDrop
 importlib.reload(socialSigNoDrop)
 
+from model.utils import *
+from model.model import *
+from model.modules import *
+from model.aggregator import *
+from model.encoder import *
+from model.graphsage import *
 
 
-GEOJSON_PATH = "./data/geoBoundariesSimplified-3_0_0-MEX-ADM2.geojson"
-DATA_PATH = "./data/portal_data.csv"
+# Path variables
+GEOJSON_PATH = "./data/ipumns_simple_wgs.geojson"
+SHP_PATH = "./data/useforportal.shp"
+DATA_PATH = "./data/mexico2010.csv"
+MIGRATION_PATH = "./data/migration_data.json"
 MATCH_PATH = "./data/gB_IPUMS_match.csv"
-MODEL_PATH = "./trained_model/notransfer_50epoch_weightedloss_us.torch"
+MODEL_PATH = "./trained_model/ram_8_50x50_0.75_model_best.pth.tar"
+BORDER_STATIONS_PATH = "./data/border_stations5.geojson"
+IMAGERY_DIR = "./imagery/"
+ISO = "MEX"
+IC = "LANDSAT/LT05/C01/T1"
+GRAPH_MODEL = "./trained_model/trained_graph_model.torch"
+
+
+gdf = gpd.read_file(SHP_PATH)
+gdf = gdf.dropna(subset = ["geometry"])
+graph_id_dict = dict(zip(gdf["shapeID"].to_list(), [str(i) for i in range(0, len(gdf))]))
+munis_available = gdf["shapeID"].to_list()
+
+# Set up graph model
+graph_checkpoint = torch.load(GRAPH_MODEL)
+graph_checkpoint = graph_checkpoint["model_state_dict"]
+
+with open("./data/graph.json") as g:
+    graph = json.load(g)
+
+x, adj_lists, y = [], {}, []
+
+a = 0
+for muni_id, dta in graph.items():
+    x.append(dta["x"])
+    y.append(dta["label"])
+    adj_lists[str(a)] = dta["neighbors"]
+    a += 1
+    
+x = np.array(x)
+y = np.expand_dims(np.array(y), 1)
+
+agg = MeanAggregator(features = x, gcn = False)
+enc = Encoder(features = x, feature_dim = x.shape[1], embed_dim = 128, adj_lists = adj_lists, aggregator = agg)
+model = SupervisedGraphSage(num_classes = 1, enc = enc)
+model.load_state_dict(graph_checkpoint)
+model.eval()
 
 
 
+# Read in spatial data
 with open(GEOJSON_PATH) as f:
     geodata_collection = geojson.load(f)
 
+
+with open(BORDER_STATIONS_PATH) as bs:
+    border_stations = geojson.load(bs)
 
 
 def map_column_names(var_names, df):
@@ -37,8 +87,8 @@ def map_column_names(var_names, df):
     return df
 
 
-
 def get_column_lists(df, var_names, grouped_vars):
+
     e_vars = [i for i in grouped_vars['Economic'] if i in df.columns]
     econ = df[e_vars]
     econ = map_column_names(var_names, econ)
@@ -81,23 +131,15 @@ def convert_to_pandas(geodata_collection, MATCH_PATH, DATA_PATH):
 
     # Normalize the geoJSON as a pandas dataframe
     df = json_normalize(geodata_collection["features"])
-
-    # Get the B unique ID column (akgkjklajkljlk)
-    df["B"] = df['properties.shapeID'].str.split("-").str[3]
-
-    # Read in the dataframe for matching and get the B unique ID column
-    match_df = pd.read_csv(MATCH_PATH)[['shapeID', 'MUNI2015']]
-    match_df["B"] = match_df['shapeID'].str.split("-").str[3]
+    df = df.rename(columns = {"properties.shapeID": "shapeID"})
+    df["shapeID"] = df["shapeID"].astype(int)
 
     # Read in the migration data
     dta = pd.read_csv(DATA_PATH)
-
-    # Match the IPUMS ID's to the gB ID's
-    ref_dict = dict(zip(match_df['B'], match_df['MUNI2015']))
-    df['sending'] = df['B'].map(ref_dict)
+    dta = dta.rename(columns = {"GEO2_MX": "shapeID"})
 
     # Mix it all together
-    merged = pd.merge(df, dta, on = 'sending')
+    merged = pd.merge(df, dta, on = 'shapeID')
 
     return merged
 
@@ -116,8 +158,7 @@ def switch_column_names(MATCH_PATH, DATA_PATH):
     ref_dict = dict(zip(match_df['MUNI2015'], match_df['B']))
     dta['sending'] = dta['sending'].map(ref_dict)
 
-    # # Mix it all together
-    # merged = pd.merge(df, dta, on = 'sending')
+    print(dta.head())
 
     return dta
 
@@ -130,14 +171,6 @@ def get_muni_names(selected_municipalities):
 
     match_df = match_df[match_df["B"].isin(selected_municipalities)]
     return match_df['shapeName'].to_list()
-
-    # # Read in the migration data
-    # dta = pd.read_csv(DATA_PATH)
-
-    # # Match the IPUMS ID's to the gB ID's
-    # ref_dict = dict(zip(match_df['MUNI2015'], match_df['B']))
-    # dta['sending'] = dta['sending'].map(ref_dict)
-
 
 
 def predict_row(values_ar, X, muni):
@@ -166,8 +199,8 @@ def convert_features_to_geojson(merged):
     coords = merged['geometry.coordinates']
     types = merged['geometry.type']
     num_migrants = merged['sum_num_intmig']
-    shapeIDs = merged['sending']
-    shapeNames = merged['properties.shapeName']
+    shapeIDs = merged['properties.shapeID']
+    # shapeNames = merged['properties.shapeName']
 
     # For each of the polygons in the data frame, append it and it's data to a list of dicts to be sent as a JSON back to the Leaflet map
     features = []
@@ -180,7 +213,7 @@ def convert_features_to_geojson(merged):
             },
             "properties": {'num_migrants': num_migrants[i],
                            'shapeID': shapeIDs[i],
-                           'shapeName': shapeNames[i]
+                           'shapeName': ''
                           }
         })
 
