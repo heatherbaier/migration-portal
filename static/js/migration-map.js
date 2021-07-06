@@ -219,7 +219,8 @@ function onEachFeature(feature, layer) {
 // On each feature, highlight/remove highlight when hovered over, zoom when clicked and add popup
 function onEachBorderStation(feature, layer) {
 
-    layer.bindPopup('<h2>Station: ' + feature.properties.shapeID);
+    layer.bindPopup('<h2>Station: ' + feature.properties.shapeID + '<br>' +
+                    '<h2>Number of migrants: ' + feature.properties.num_migrants);
 
     layer.on({
         mouseover: highlightFeature,

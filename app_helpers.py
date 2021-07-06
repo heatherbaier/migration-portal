@@ -26,18 +26,15 @@ from model.graphsage import *
 
 
 # Path variables
-GEOJSON_PATH = "./data/ipumns_simple_wgs.geojson"
+GEOJSON_PATH = "./data/ipumns_simple_wgs_wdata.geojson"
 SHP_PATH = "./data/useforportal.shp"
 DATA_PATH = "./data/mexico2010.csv"
 MIGRATION_PATH = "./data/migration_data.json"
 MATCH_PATH = "./data/gB_IPUMS_match.csv"
 MODEL_PATH = "./trained_model/ram_8_50x50_0.75_model_best.pth.tar"
-BORDER_STATIONS_PATH = "./data/border_stations5.geojson"
-IMAGERY_DIR = "./imagery/"
-ISO = "MEX"
-IC = "LANDSAT/LT05/C01/T1"
+BORDER_STATIONS_PATH = "./data/border_stations7.geojson"
 GRAPH_MODEL = "./trained_model/trained_graph_model.torch"
-
+BAD_IDS = ["105", "115", "122", "126", "147", "153", "1622", "1684", "2027", "2043", "104", "1630", "113", "640", "400", "1631", "2054", "1693", "152", "1608"]
 
 gdf = gpd.read_file(SHP_PATH)
 gdf = gdf.dropna(subset = ["geometry"])
@@ -69,6 +66,97 @@ model = SupervisedGraphSage(num_classes = 1, enc = enc)
 model.load_state_dict(graph_checkpoint)
 model.eval()
 
+
+def predict(graph, selected_muni_ref_dict, new_census_vals, selected_municipalities):
+
+    x, adj_lists, y = [], {}, []
+
+    a = 0
+    for muni_id, dta in graph.items():
+        if muni_id in selected_muni_ref_dict.values():
+            cur_x = dta["x"]
+            cur_x = cur_x[0:len(cur_x) - 202]
+            [cur_x.append(v) for v in new_census_vals[muni_id]]
+            x.append(cur_x)
+        else:
+            x.append(dta["x"])
+        y.append(dta["label"])
+        adj_lists[str(a)] = dta["neighbors"]
+        a += 1
+        
+    x = np.array(x)
+    y = np.expand_dims(np.array(y), 1)   
+
+    agg = MeanAggregator(features = x, gcn = False)
+    enc = Encoder(features = x, feature_dim = x.shape[1], embed_dim = 128, adj_lists = adj_lists, aggregator = agg)
+    model = SupervisedGraphSage(num_classes = 1, enc = enc)
+    model.load_state_dict(graph_checkpoint)
+
+    predictions = []
+    for muni in selected_municipalities:
+        muni_ref = graph_id_dict[muni]            
+        print("cur muni, muni_ref: ", muni, muni_ref)
+        input = [muni_ref]
+        prediction = int(model.forward(input).item())
+        predictions.append(prediction)
+
+    
+    return predictions
+
+
+
+def prep_dataframes(dta, request, selected_municipalities):
+
+    dta_selected = dta[dta['GEO2_MX'].isin([int(i) for i in selected_municipalities])]
+    num_og_migrants = dta_selected['sum_num_intmig'].sum()
+
+    # Parse the edited input variables and switch all of the 0's in percent_changes to 1 (neccessary for multiplying later on)
+    column_names = request.json['column_names']
+    percent_changes = request.json['percent_changes']
+    percent_changes = [float(i) - 100 if i != '100' else '1' for i in percent_changes]
+
+    # Open the var_map JSON and reverse the dictionary
+    with open("./var_map.json", "r") as f2:
+        var_names = json.load(f2)
+    reverse_var_names = dict([(value, key) for key, value in var_names.items()])
+
+    # Change the 'pretty' variable names back to their originals so we can edit the dataframe
+    column_names = [reverse_var_names[i] if i in reverse_var_names.keys() else i for i in column_names]
+
+    # Multiply the columns by their respective percent changes
+    for i in range(0, len(column_names)):
+
+        if float(percent_changes[i]) < 0:
+            percentage = abs(float(percent_changes[i])) * .01
+            to_subtract = percentage * dta_selected[column_names[i]]
+            dta_selected[column_names[i]] = dta_selected[column_names[i]] - to_subtract
+        else:
+            percentage = abs(float(percent_changes[i])) * .01
+            to_add = percentage * dta_selected[column_names[i]]
+            dta_selected[column_names[i]] = dta_selected[column_names[i]] + to_add
+
+    # Get a data frame with all of the data that wasn't edited
+    dta_dropped = dta[~dta['GEO2_MX'].isin(selected_municipalities)]
+
+    # Then re-append the updated data to the larger dataframe incorporating user input
+    dta_appended = dta_dropped.append(dta_selected)
+    dta_appended = dta_appended.drop(['GEO2_MX'], axis = 1)
+
+    # dta_appended = dta_appended.drop(['Unnamed: 0', 'sending'], axis = 1)
+    dta_appended = dta_appended.fillna(0)
+    dta_appended = dta_appended.apply(lambda x: pd.to_numeric(x, errors='coerce'))
+
+    with open("./us_vars.txt", "r") as f:
+        vars = f.read().splitlines()
+    vars = [i for i in vars if i in dta_appended.columns]
+    dta_appended = dta_appended[vars]
+
+    # Scale the data frame for the model
+    X = dta_appended.loc[:, dta_appended.columns != "sum_num_intmig"].values
+    mMScale = preprocessing.MinMaxScaler()
+    X = mMScale.fit_transform(X)
+
+    return dta_appended, dta_selected, dta_dropped, num_og_migrants, X
 
 
 # Read in spatial data
@@ -144,63 +232,13 @@ def convert_to_pandas(geodata_collection, MATCH_PATH, DATA_PATH):
     return merged
 
 
-
-def switch_column_names(MATCH_PATH, DATA_PATH):
-
-    # Read in the dataframe for matching and get the B unique ID column
-    match_df = pd.read_csv(MATCH_PATH)[['shapeID', 'MUNI2015']]
-    match_df["B"] = match_df['shapeID'].str.split("-").str[3]
-
-    # Read in the migration data
-    dta = pd.read_csv(DATA_PATH)
-
-    # Match the IPUMS ID's to the gB ID's
-    ref_dict = dict(zip(match_df['MUNI2015'], match_df['B']))
-    dta['sending'] = dta['sending'].map(ref_dict)
-
-    print(dta.head())
-
-    return dta
-
-
-
-def get_muni_names(selected_municipalities):
-    # Read in the dataframe for matching and get the B unique ID column
-    match_df = pd.read_csv(MATCH_PATH)[['shapeID', 'shapeName', 'MUNI2015']]
-    match_df["B"] = match_df['shapeID'].str.split("-").str[3]
-
-    match_df = match_df[match_df["B"].isin(selected_municipalities)]
-    return match_df['shapeName'].to_list()
-
-
-def predict_row(values_ar, X, muni):
-
-    with open('status.json', 'w') as outfile:
-        json.dump({'status': "Status - Predicting " + str(muni)}, outfile)
-
-    print("SHAPE IN FUNC HERE: ", values_ar.shape)
-    
-    device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-    resnet50 = models.resnet50(pretrained=True)
-    model = socialSigNoDrop.scoialSigNet_NoDrop(X=X, outDim = 1, resnet = resnet50).to(device)
-    checkpoint = torch.load(MODEL_PATH)
-    model.load_state_dict(checkpoint['model_state_dict'])
-
-    input = torch.reshape(torch.tensor(values_ar, dtype = torch.float32), (1, 202)).to(device)
-    model.eval()
-    pred = model(input, 1).detach().cpu().numpy()[0][0]
-
-    return pred
-
-
-
 def convert_features_to_geojson(merged):
     # # Make lists of all of the features we want available to the Leaflet map
     coords = merged['geometry.coordinates']
     types = merged['geometry.type']
     num_migrants = merged['sum_num_intmig']
     shapeIDs = merged['properties.shapeID']
-    # shapeNames = merged['properties.shapeName']
+    shapeNames = merged['properties.geo2_mx1960_2015_ADMIN_NAME']
 
     # For each of the polygons in the data frame, append it and it's data to a list of dicts to be sent as a JSON back to the Leaflet map
     features = []
@@ -213,7 +251,7 @@ def convert_features_to_geojson(merged):
             },
             "properties": {'num_migrants': num_migrants[i],
                            'shapeID': shapeIDs[i],
-                           'shapeName': ''
+                           'shapeName': shapeNames[i]
                           }
         })
 
