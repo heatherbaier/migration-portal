@@ -26,7 +26,7 @@ from model.graphsage import *
 
 
 # Path variables
-GEOJSON_PATH = "./data/ipumns_simple_wgs_wdata.geojson"
+GEOJSON_PATH = "./data/ipumns_simple_wgs_wdata8.geojson"
 SHP_PATH = "./data/useforportal.shp"
 DATA_PATH = "./data/mexico2010.csv"
 MIGRATION_PATH = "./data/migration_data.json"
@@ -238,7 +238,7 @@ def convert_features_to_geojson(merged):
     types = merged['geometry.type']
     num_migrants = merged['sum_num_intmig']
     shapeIDs = merged['properties.shapeID']
-    shapeNames = merged['properties.geo2_mx1960_2015_ADMIN_NAME']
+    shapeNames = merged['properties.ipumns_simple_wgs_wdata_geo2_mx1960_2015_ADMIN_NAME']
 
     # For each of the polygons in the data frame, append it and it's data to a list of dicts to be sent as a JSON back to the Leaflet map
     features = []

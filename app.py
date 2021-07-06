@@ -81,6 +81,7 @@ def get_all_points():
 
     # Convert the geoJSON to a dataframe and merge it to the migration data
     feature_df = convert_to_pandas(geodata_collection, MATCH_PATH, DATA_PATH)
+    print(feature_df.columns)
     feature_df['sum_num_intmig'] = feature_df['sum_num_intmig'].fillna(0)
     
     # Make lists of all of the features we want available to the Leaflet map
@@ -88,7 +89,8 @@ def get_all_points():
     types = feature_df['geometry.type']
     num_migrants = feature_df['sum_num_intmig']
     shapeIDs = feature_df['shapeID']
-    shapeNames = feature_df['properties.geo2_mx1960_2015_ADMIN_NAME']
+    # shapeNames = feature_df["properties.geo2_mx1960_2015_ADMIN_NAME"]
+    shapeNames = feature_df["properties.ipumns_simple_wgs_wdata_geo2_mx1960_2015_ADMIN_NAME"]
 
     # For each of the polygons in the data frame, append it and it's data to a list of dicts to be sent as a JSON back to the Leaflet map
     features = []
@@ -104,6 +106,8 @@ def get_all_points():
                            'shapeName': shapeNames[i]
                           }
         })
+
+    print('done jsonifying')
 
     return jsonify(features)
 
@@ -155,11 +159,14 @@ def predict_migration():
     selected_municipalities = [sm for sm in selected_municipalities if sm in munis_available]
     selected_municipalities = [sm for sm in selected_municipalities if graph_id_dict[sm] not in BAD_IDS]
 
-    print("Selected municipalities: ", selected_municipalities)
-
     # Read in the migration data and subset it to the selected municipalities
     dta = pd.read_csv(DATA_PATH)
     dta = dta.dropna(subset = ['GEO2_MX'])
+
+    dta_ids = dta["GEO2_MX"].to_list()
+    selected_municipalities = [sm for sm in selected_municipalities if int(sm) in dta_ids]
+
+    print("Selected municipalities: ", selected_municipalities)
 
     # If no muni's are selected, select them all
     if len(selected_municipalities) == 0:
@@ -184,9 +191,9 @@ def predict_migration():
 
     # Update the migration numbers in the dataframe and re-append it tot the wider dataframe
     dta_selected['sum_num_intmig'] = predictions
-    num_pred_migrants = dta_selected['sum_num_intmig'].sum()
-
     dta_final = dta_dropped.append(dta_selected)
+    total_pred_migrants = dta_final['sum_num_intmig'].sum()
+    
     dta_final['GEO2_MX'] = dta_final['GEO2_MX'].astype(str)
 
     # Normalize the geoJSON as a pandas dataframe
@@ -197,7 +204,8 @@ def predict_migration():
     total_migrants = merged['sum_num_intmig'].sum()
     merged['avg_age_weight'] = merged['avg_age'] * merged['sum_num_intmig']
     avg_age = merged['avg_age_weight'].sum() / merged['sum_num_intmig'].sum()
-    total_migrants = {'avg_age': avg_age, "num_og_migrants": num_og_migrants, "num_pred_migrants": float(num_pred_migrants)}
+    print("AVERAGE AGE NEW : ", avg_age)
+    total_migrants = {'avg_age': avg_age, "total_pred_migrants": float(total_pred_migrants)}
     with open('predicted_migrants.json', 'w') as outfile:
         json.dump(total_migrants, outfile)
 
@@ -219,28 +227,32 @@ def update_stats():
     df = pd.read_csv(DATA_PATH)
 
     # Get the number of migrants to send to HTML for stat box
-    total_migrants = df['sum_num_intmig'].sum()
-    og_avg_age = df['avg_age'].mean()
+    total_og_migrants = df['sum_num_intmig'].sum()
+
+    df['avg_age_weight'] = df['avg_age'] * df['sum_num_intmig']
+    og_avg_age = df['avg_age_weight'].sum() / df['sum_num_intmig'].sum()
+
+    print("AVERAGE AGE OG: ", og_avg_age)
 
     with open("./predicted_migrants.json") as json_file:
         predictions = json.load(json_file)
 
-    num_pred_migrants = int(predictions['num_pred_migrants'])
-    num_og_migrants = int(predictions['num_og_migrants'])
+    # num_pred_migrants = int(predictions['num_pred_migrants'])
+    total_pred_migrants = int(predictions['total_pred_migrants'])
 
-    # predicted_migrants = predictions['total_migrants']
-    predicted_migrants = (total_migrants - num_og_migrants) + num_pred_migrants
+
     avg_age = predictions['avg_age']
-    avg_age = avg_age / ((total_migrants - num_og_migrants) + num_pred_migrants)
+    # avg_age = avg_age / ((total_migrants - num_og_migrants) + num_pred_migrants)
 
-    p_change = ((round(predicted_migrants, 0) - total_migrants) / total_migrants) * 100
-    change = round(predicted_migrants, 0) - total_migrants
+    change = total_pred_migrants - total_og_migrants
+    p_change = ((total_pred_migrants - total_og_migrants) / total_og_migrants) * 100
+    
     avg_age_change = avg_age - og_avg_age
-    p_avg_age_change = ((round(avg_age, 0) - og_avg_age) / og_avg_age) * 100
+    p_avg_age_change = ((round(avg_age, 2) - og_avg_age) / og_avg_age) * 100
 
     return {'change': change,
             'p_change': round(p_change, 2),
-            'predicted_migrants': round(predicted_migrants, 0),
+            'predicted_migrants': round(total_pred_migrants, 0),
             'avg_age': round(avg_age, 0),
             'avg_age_change': round(avg_age_change, 0),
             'pavg_age_change': round(p_avg_age_change, 0)}
