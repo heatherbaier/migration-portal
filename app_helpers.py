@@ -30,6 +30,7 @@ GEOJSON_PATH = "./data/ipumns_simple_wgs_wdata8.geojson"
 SHP_PATH = "./data/useforportal.shp"
 DATA_PATH = "./data/mexico2010.csv"
 MIGRATION_PATH = "./data/migration_data.json"
+CORR_TABLE_PATH = "./data/corr_table.csv"
 MATCH_PATH = "./data/gB_IPUMS_match.csv"
 MODEL_PATH = "./trained_model/ram_8_50x50_0.75_model_best.pth.tar"
 BORDER_STATIONS_PATH = "./data/border_stations7.geojson"
@@ -112,8 +113,14 @@ def prep_dataframes(dta, request, selected_municipalities):
 
     # Parse the edited input variables and switch all of the 0's in percent_changes to 1 (neccessary for multiplying later on)
     column_names = request.json['column_names']
+    # print("COLUMN NAMES: ", column_names)
     percent_changes = request.json['percent_changes']
+    # print("P", column_names)
     percent_changes = [float(i) - 100 if i != '100' else '1' for i in percent_changes]
+    print("PERCENT CHANGES: ", percent_changes)
+
+
+
 
     # Open the var_map JSON and reverse the dictionary
     with open("./var_map.json", "r") as f2:
@@ -122,18 +129,37 @@ def prep_dataframes(dta, request, selected_municipalities):
 
     # Change the 'pretty' variable names back to their originals so we can edit the dataframe
     column_names = [reverse_var_names[i] if i in reverse_var_names.keys() else i for i in column_names]
+    
+    edited_variables = [column_names[i] for i in range(0, len(column_names)) if percent_changes[i] != '1']
+    edited_p_changes = [percent_changes[i] / 2 for i in range(0, len(column_names)) if percent_changes[i] != '1']
+    edited_p_changes = [i * .01 for i in edited_p_changes]
+
+    print("EDITED VARIABLES: ", edited_variables)
+    print("EDITED P CHANGES: ", edited_p_changes)
+
+    corr_table = pd.read_csv(CORR_TABLE_PATH)
+
+    corr_table = corr_table[corr_table['index'].isin(edited_variables)]
+    corr_table = corr_table.set_index(['index']).reindex(edited_variables)#.reset_index()
+    corr_dict = dict(corr_table.multiply(edited_p_changes, axis='rows').mean())
+
+    print(corr_dict)  
 
     # Multiply the columns by their respective percent changes
     for i in range(0, len(column_names)):
 
+        # Multiply the percetnage change by .01 (to get it in percent format), then 
+        # multiply it by the original variable value to get the amount we need to change it by
+        percentage = abs(float(percent_changes[i])) * .01
+        change = percentage * dta_selected[column_names[i]]
+
+        # ...then add or subtract as needed
         if float(percent_changes[i]) < 0:
-            percentage = abs(float(percent_changes[i])) * .01
-            to_subtract = percentage * dta_selected[column_names[i]]
-            dta_selected[column_names[i]] = dta_selected[column_names[i]] - to_subtract
+            dta_selected[column_names[i]] = dta_selected[column_names[i]] - change
+        elif float(percent_changes[i]) > 0:
+            dta_selected[column_names[i]] = dta_selected[column_names[i]] + change
         else:
-            percentage = abs(float(percent_changes[i])) * .01
-            to_add = percentage * dta_selected[column_names[i]]
-            dta_selected[column_names[i]] = dta_selected[column_names[i]] + to_add
+            dta_selected[column_names[i]] = dta_selected[column_names[i]] + corr_dict[column_names[i]]
 
     # Get a data frame with all of the data that wasn't edited
     dta_dropped = dta[~dta['GEO2_MX'].isin(selected_municipalities)]
@@ -155,6 +181,7 @@ def prep_dataframes(dta, request, selected_municipalities):
     X = dta_appended.loc[:, dta_appended.columns != "sum_num_intmig"].values
     mMScale = preprocessing.MinMaxScaler()
     X = mMScale.fit_transform(X)
+
 
     return dta_appended, dta_selected, dta_dropped, num_og_migrants, X
 
