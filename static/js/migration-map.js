@@ -225,8 +225,7 @@ function onEachFeature(feature, layer) {
 // On each feature, highlight/remove highlight when hovered over, zoom when clicked and add popup
 function onEachBorderStation(feature, layer) {
 
-    layer.bindPopup('<h2>Station: ' + feature.properties.shapeID + '<br>' +
-                    '<h2>Number of migrants: ' + feature.properties.num_migrants);
+    layer.bindPopup('<h2>Sector: ' + feature.properties.shapeID + '<br>');
 
     layer.on({
         mouseover: highlightFeature,
@@ -254,13 +253,29 @@ axios.get('http://127.0.0.1:5000/geojson-features')
 
 
 
+// // Function to get the data from the Flask function/URL (TO-DO: REMOVE ALL OF THE FUNCTIONS FROM HERE AND USE WINDOW.POLY TO EDIT THEM)
+// axios.get('http://127.0.0.1:5000/border-features')
+
+//     .then(response => {
+
+//         var stations = L.geoJSON(response.data, {style: border_station_style, onEachFeature: onEachBorderStation})//.addTo(mymap);
+//         window.stations = stations;
+//         window.stations.addTo(mymap);
+
+//     }) 
+
+
 // Function to get the data from the Flask function/URL (TO-DO: REMOVE ALL OF THE FUNCTIONS FROM HERE AND USE WINDOW.POLY TO EDIT THEM)
-axios.get('http://127.0.0.1:5000/border-features')
+axios.get('http://127.0.0.1:5000/border-sectors')
 
-    .then(response => {
+.then(response => {
 
-        var stations = L.geoJSON(response.data, {style: border_station_style, onEachFeature: onEachBorderStation})//.addTo(mymap);
-        window.stations = stations;
-        window.stations.addTo(mymap);
+    var sectors = L.geoJSON(response.data, {style: border_station_style, onEachFeature: onEachBorderStation})//.addTo(mymap);
+    window.sectors = sectors;
+    window.sectors.addTo(mymap);
 
-    }) 
+}) 
+
+
+
+// 

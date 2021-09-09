@@ -146,6 +146,37 @@ def get_border_features():
 
 
 
+@APP.route('/border-sectors', methods=['GET'])
+def get_border_sectors():
+
+    coords_df = pd.read_csv("./data/sector_centroids.csv")
+
+    x = coords_df['xcoord']
+    y = coords_df['ycoord']
+
+    coords = [(x[i], y[i]) for i in range(len(x))]
+    names = coords_df['sector'].to_list()
+
+    # For each of the polygons in the data frame, append it and it's data to a list of dicts to be sent as a JSON back to the Leaflet map
+    features = []
+    for i in range(0, len(coords_df)):
+        features.append({
+            "type": "Feature",
+            "geometry": {
+                "type": "Point",
+                "coordinates": coords[i]
+            },
+            "properties": {
+                           'shapeID': str(names[i])
+                          }
+        })
+
+    print(features)
+
+    return jsonify(features)
+
+
+
 @APP.route('/predict_migration', methods=['GET', 'POST'])
 def predict_migration():
 
