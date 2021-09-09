@@ -70,7 +70,7 @@ def index():
                                   edu_data = edu,
                                   employ_data = employ,
                                   hhold_data = hhold,
-                                  total_migrants = int(total_migrants),
+                                  total_migrants = f'{int(total_migrants / 5):,}',
                                   avg_age = round(avg_age, 2))
 
 
@@ -155,6 +155,8 @@ def predict_migration():
     # Parse the selected municipalities and get their unique B ID's
     selected_municipalities = request.json['selected_municipalities']
 
+    print("LEN SELECTED MUNIS: ", len(selected_municipalities))
+
     # TEMPORARY UNTIL YOU GET THE BIG IMAGES DOWNLOADED
     selected_municipalities = [sm for sm in selected_municipalities if sm in munis_available]
     selected_municipalities = [sm for sm in selected_municipalities if graph_id_dict[sm] not in BAD_IDS]
@@ -166,50 +168,67 @@ def predict_migration():
     dta_ids = dta["GEO2_MX"].to_list()
     selected_municipalities = [sm for sm in selected_municipalities if int(sm) in dta_ids]
 
-    print("Selected municipalities: ", selected_municipalities)
-
     # If no muni's are selected, select them all
     if len(selected_municipalities) == 0:
         selected_municipalities = dta['sending'].to_list()
         print("Selected municipalities since none were selected: ", selected_municipalities)
 
-    dta_appended, dta_selected, dta_dropped, num_og_migrants, X = prep_dataframes(dta, request, selected_municipalities)
+    dta_selected, dta_dropped, muns_to_pred = prep_dataframes(dta, request, selected_municipalities)
 
-    # Grab just the municaplities that we edited
-    muns_to_pred = X[-len(selected_municipalities):]    
-
+    #######################################################################
+    # Create some sort of dictionary with references to the graph_id_dict # 
+    #######################################################################
     selected_muni_ref_dict = {}
     for muni in selected_municipalities:
         muni_ref = graph_id_dict[muni]
         selected_muni_ref_dict[muni] = muni_ref
 
+    #######################################################################
+    # Create a dictionary with graph_id_dict                              #
+    # references mapped to the new census data                            #
+    #######################################################################
     new_census_vals = {}
     for sm in range(0, len(selected_municipalities)):
         new_census_vals[selected_muni_ref_dict[selected_municipalities[sm]]] = muns_to_pred[sm]
 
+    #######################################################################
+    # Predict the new data                                                # 
+    #######################################################################
     predictions = predict(graph, selected_muni_ref_dict, new_census_vals, selected_municipalities)
 
-    # Update the migration numbers in the dataframe and re-append it tot the wider dataframe
+    #######################################################################
+    # Update the new predictions in the dta_selected dataframe and append #
+    # that to all of the data in dta_dropped that wan't selected to       #
+    # create a full dataframe with everything                             #
+    #######################################################################
     dta_selected['sum_num_intmig'] = predictions
-    dta_final = dta_dropped.append(dta_selected)
-    total_pred_migrants = dta_final['sum_num_intmig'].sum()
-    
-    dta_final['GEO2_MX'] = dta_final['GEO2_MX'].astype(str)
+    dta_final = dta_selected.append(dta_dropped)
+    print("ALL DATA SHAPE: ", dta_final.shape)
+    print("DTA FINAL HEAD: ", dta_final.head())
 
-    # Normalize the geoJSON as a pandas dataframe
+    #######################################################################
+    # Normalize the geoJSON as a pandas dataframe and merge in the new    #
+    # census & migration data                                             #
+    #######################################################################
+    dta_final['GEO2_MX'] = dta_final['GEO2_MX'].astype(str)
     geoDF = json_normalize(geodata_collection["features"])
     merged = pd.merge(geoDF, dta_final, left_on = "properties.shapeID", right_on = "GEO2_MX")
+    merged['sum_num_intmig'] = merged['sum_num_intmig'].fillna(0)
 
-    # Aggregate stats and send to a JSON
-    total_migrants = merged['sum_num_intmig'].sum()
+    #######################################################################
+    # Aggregate statistics and send to a JSON                             #
+    #######################################################################
+
+    total_pred_migrants = merged['sum_num_intmig'].sum()
     merged['avg_age_weight'] = merged['avg_age'] * merged['sum_num_intmig']
     avg_age = merged['avg_age_weight'].sum() / merged['sum_num_intmig'].sum()
-    print("AVERAGE AGE NEW : ", avg_age)
-    total_migrants = {'avg_age': avg_age, "total_pred_migrants": float(total_pred_migrants)}
+    migration_statistics = {'avg_age': avg_age, "total_pred_migrants": float(total_pred_migrants)}
     with open('predicted_migrants.json', 'w') as outfile:
-        json.dump(total_migrants, outfile)
+        json.dump(migration_statistics, outfile)
 
-    merged['sum_num_intmig'] = merged['sum_num_intmig'].fillna(0)
+    #######################################################################
+    # Convert features to a gejson for rendering in Leaflet               #
+    #######################################################################
     features = convert_features_to_geojson(merged)
 
     with open('status.json', 'w') as outfile:
@@ -226,33 +245,29 @@ def update_stats():
     # Read in migration data
     df = pd.read_csv(DATA_PATH)
 
-    # Get the number of migrants to send to HTML for stat box
+    # Get the number of migrants (over a 5 year period) to send to HTML for stat box
     total_og_migrants = df['sum_num_intmig'].sum()
 
+    # Calculate average age stuff
     df['avg_age_weight'] = df['avg_age'] * df['sum_num_intmig']
     og_avg_age = df['avg_age_weight'].sum() / df['sum_num_intmig'].sum()
-
-    print("AVERAGE AGE OG: ", og_avg_age)
 
     with open("./predicted_migrants.json") as json_file:
         predictions = json.load(json_file)
 
-    # num_pred_migrants = int(predictions['num_pred_migrants'])
     total_pred_migrants = int(predictions['total_pred_migrants'])
 
-
     avg_age = predictions['avg_age']
-    # avg_age = avg_age / ((total_migrants - num_og_migrants) + num_pred_migrants)
 
-    change = total_pred_migrants - total_og_migrants
-    p_change = ((total_pred_migrants - total_og_migrants) / total_og_migrants) * 100
+    change = (total_pred_migrants - total_og_migrants) / 5
+    p_change = ( change / (total_og_migrants / 5) ) * 100
     
     avg_age_change = avg_age - og_avg_age
     p_avg_age_change = ((round(avg_age, 2) - og_avg_age) / og_avg_age) * 100
 
-    return {'change': change,
+    return {'change': int(change),
             'p_change': round(p_change, 2),
-            'predicted_migrants': round(total_pred_migrants, 0),
+            'predicted_migrants': round(total_pred_migrants / 5, 0),
             'avg_age': round(avg_age, 0),
             'avg_age_change': round(avg_age_change, 0),
             'pavg_age_change': round(p_avg_age_change, 0)}
@@ -280,3 +295,5 @@ def download_data():
 if __name__ == '__main__':
     APP.debug=True
     APP.run()
+
+

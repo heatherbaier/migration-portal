@@ -75,8 +75,12 @@ def predict(graph, selected_muni_ref_dict, new_census_vals, selected_municipalit
     a = 0
     for muni_id, dta in graph.items():
         if muni_id in selected_muni_ref_dict.values():
+            # Grab the current x with both census & geographic features
             cur_x = dta["x"]
+            # The first indcies of the current x are the goepgraphic features 
+            # that we want to preserve, so subset those out from the old cnesus data
             cur_x = cur_x[0:len(cur_x) - 202]
+            # Now append the new census data to the geographic x features
             [cur_x.append(v) for v in new_census_vals[muni_id]]
             x.append(cur_x)
         else:
@@ -95,12 +99,12 @@ def predict(graph, selected_muni_ref_dict, new_census_vals, selected_municipalit
 
     predictions = []
     for muni in selected_municipalities:
-        muni_ref = graph_id_dict[muni]            
-        print("cur muni, muni_ref: ", muni, muni_ref)
+        muni_ref = graph_id_dict[muni]        
         input = [muni_ref]
         prediction = int(model.forward(input).item())
         predictions.append(prediction)
 
+    print("PREDICTIONS: ", predictions)
     
     return predictions
 
@@ -108,82 +112,122 @@ def predict(graph, selected_muni_ref_dict, new_census_vals, selected_municipalit
 
 def prep_dataframes(dta, request, selected_municipalities):
 
-    dta_selected = dta[dta['GEO2_MX'].isin([int(i) for i in selected_municipalities])]
-    num_og_migrants = dta_selected['sum_num_intmig'].sum()
+    """
+    Function to edit the baseline census data with the 
+    user-edited changes and the interconnectedness changes
+    """
 
-    # Parse the edited input variables and switch all of the 0's in percent_changes to 1 (neccessary for multiplying later on)
-    column_names = request.json['column_names']
-    # print("COLUMN NAMES: ", column_names)
-    percent_changes = request.json['percent_changes']
-    # print("P", column_names)
-    percent_changes = [float(i) - 100 if i != '100' else '1' for i in percent_changes]
+    #######################################################################
+    # Subset the data of the selected munis from the data frame &         #
+    # grab the variables used in the census model                         #
+    #######################################################################
+    with open("./us_vars.txt", "r") as f:
+        vars = f.read().splitlines()
+    vars = [i for i in vars if i in dta.columns] + ['GEO2_MX']
+    dta_selected = dta[dta['GEO2_MX'].isin([int(i) for i in selected_municipalities])]
+    dta_dropped = dta[~dta['GEO2_MX'].isin([int(i) for i in selected_municipalities])]
+
+
+    dta_selected, dta_dropped = dta_selected[vars], dta_dropped[vars]
+    dta_selected, dta_dropped = dta_selected.fillna(0), dta_dropped.fillna(0)
+
+    # num_og_migrants = dta_selected['sum_num_intmig'].sum()
+
+    #######################################################################
+    # Create the scaler to prep the data later for input into the model   #
+    #######################################################################
+    print("DTA HEAD", dta_selected.head())
+    print("DTA HEAD", dta_selected.shape)
+    X = dta[vars].drop(["sum_num_intmig", "GEO2_MX"], axis = 1).values
+    mMScale = preprocessing.MinMaxScaler()
+    scaler = mMScale.fit(X)
+
+    #######################################################################
+    # Parse the edited input variables and conver them to percent format  #
+    #######################################################################
+    column_names, percent_changes = request.json['column_names'], request.json['percent_changes']
+    percent_changes = [(float(i) - 100) * .01 if i != '100' else 100 * .01 for i in percent_changes]
     print("PERCENT CHANGES: ", percent_changes)
 
-
-
-
-    # Open the var_map JSON and reverse the dictionary
+    #######################################################################
+    # Open the var_map JSON, reverse the dictionary, then map each of     # 
+    # the column names back to their original names                       #
+    #######################################################################
     with open("./var_map.json", "r") as f2:
         var_names = json.load(f2)
     reverse_var_names = dict([(value, key) for key, value in var_names.items()])
-
-    # Change the 'pretty' variable names back to their originals so we can edit the dataframe
     column_names = [reverse_var_names[i] if i in reverse_var_names.keys() else i for i in column_names]
     
-    edited_variables = [column_names[i] for i in range(0, len(column_names)) if percent_changes[i] != '1']
-    edited_p_changes = [percent_changes[i] / 2 for i in range(0, len(column_names)) if percent_changes[i] != '1']
-    edited_p_changes = [i * .01 for i in edited_p_changes]
-
-    print("EDITED VARIABLES: ", edited_variables)
-    print("EDITED P CHANGES: ", edited_p_changes)
-
+    #######################################################################
+    #                          INTERCONNECTEDNESS                         #
+    # 1) Identify the variables that have been edited by the user         #
+    # 2) Identify the chagnes made by the user                            #
+    # 3) Read in the correlation table                                    #
+    # 4) Subset the correlation table to the edited variables             #
+    # 5) Sort the table in the order of the edited variables list         #
+    # 6) Multiply each ro (aka each variable's) correlation with other    #
+    #    variables by the user-made change to that variable, calculate    #
+    #    the mean overall change to each variable and convert to          #
+    #    dictionary format                                                #
+    #######################################################################
+    edited_variables = [column_names[i] for i in range(0, len(column_names)) if percent_changes[i] != 1.0]
+    edited_p_changes = [percent_changes[i] for i in range(0, len(column_names)) if percent_changes[i] != 1.0]
     corr_table = pd.read_csv(CORR_TABLE_PATH)
-
     corr_table = corr_table[corr_table['index'].isin(edited_variables)]
     corr_table = corr_table.set_index(['index']).reindex(edited_variables)#.reset_index()
     corr_dict = dict(corr_table.multiply(edited_p_changes, axis='rows').mean())
-
+    print("EDITED VARIABLES & CHANGES: ", edited_variables, edited_p_changes)
     print(corr_dict)  
 
-    # Multiply the columns by their respective percent changes
+    #######################################################################
+    # For each of the columns, If it's in the list of edited variables,   #
+    # multiply it by the user-defined changed. If it's not in the list    #
+    # that means  we're editing it by the correlated change, so grab that #
+    # from the corr dict we created above.                                #
+    #######################################################################
     for i in range(0, len(column_names)):
-
-        # Multiply the percetnage change by .01 (to get it in percent format), then 
-        # multiply it by the original variable value to get the amount we need to change it by
-        percentage = abs(float(percent_changes[i])) * .01
-        change = percentage * dta_selected[column_names[i]]
-
-        # ...then add or subtract as needed
-        if float(percent_changes[i]) < 0:
-            dta_selected[column_names[i]] = dta_selected[column_names[i]] - change
-        elif float(percent_changes[i]) > 0:
+        if column_names[i] in edited_variables:
+            change_index = edited_variables.index(column_names[i])
+            change = dta_selected[column_names[i]] * edited_p_changes[change_index]
+            # print("CHANGING USER EDITED COLUMN NAME: ", column_names[i], " by ", np.mean(change))
             dta_selected[column_names[i]] = dta_selected[column_names[i]] + change
-        else:
-            dta_selected[column_names[i]] = dta_selected[column_names[i]] + corr_dict[column_names[i]]
+        elif column_names[i] != "GEO2_MX":
+            change = dta_selected[column_names[i]] * corr_dict[column_names[i]]
+            # print("CHANGING CORRELATED COLUMN NAME: ", column_names[i], " by ", np.mean(change))
+            dta_selected[column_names[i]] = dta_selected[column_names[i]] + change
 
-    # Get a data frame with all of the data that wasn't edited
-    dta_dropped = dta[~dta['GEO2_MX'].isin(selected_municipalities)]
+    dta_selected = dta_selected.fillna(0)
 
-    # Then re-append the updated data to the larger dataframe incorporating user input
-    dta_appended = dta_dropped.append(dta_selected)
-    dta_appended = dta_appended.drop(['GEO2_MX'], axis = 1)
-
-    # dta_appended = dta_appended.drop(['Unnamed: 0', 'sending'], axis = 1)
-    dta_appended = dta_appended.fillna(0)
-    dta_appended = dta_appended.apply(lambda x: pd.to_numeric(x, errors='coerce'))
-
-    with open("./us_vars.txt", "r") as f:
-        vars = f.read().splitlines()
-    vars = [i for i in vars if i in dta_appended.columns]
-    dta_appended = dta_appended[vars]
-
-    # Scale the data frame for the model
-    X = dta_appended.loc[:, dta_appended.columns != "sum_num_intmig"].values
-    mMScale = preprocessing.MinMaxScaler()
-    X = mMScale.fit_transform(X)
+    #######################################################################
+    # Scale the selected data to the origianl scale from above            # 
+    #######################################################################
+    X = dta_selected.drop(["sum_num_intmig", "GEO2_MX"], axis = 1).values
+    X = scaler.transform(X)
+    print("X SHAPE: ", X.shape)
 
 
-    return dta_appended, dta_selected, dta_dropped, num_og_migrants, X
+
+    # # Get a data frame with all of the data that wasn't edited
+
+    # # Then re-append the updated data to the larger dataframe incorporating user input
+    # dta_appended = dta_dropped.append(dta_selected)
+    # dta_appended = dta_appended.drop(['GEO2_MX'], axis = 1)
+
+    # # dta_appended = dta_appended.drop(['Unnamed: 0', 'sending'], axis = 1)
+    # dta_appended = dta_appended.fillna(0)
+    # dta_appended = dta_appended.apply(lambda x: pd.to_numeric(x, errors='coerce'))
+
+    # with open("./us_vars.txt", "r") as f:
+    #     vars = f.read().splitlines()
+    # vars = [i for i in vars if i in dta_appended.columns]
+    # dta_appended = dta_appended[vars]
+
+    # # Scale the data frame for the model
+    # X = dta_appended.loc[:, dta_appended.columns != "sum_num_intmig"].values
+    # mMScale = preprocessing.MinMaxScaler()
+    # X = mMScale.fit_transform(X)
+
+    return dta_selected, dta_dropped, X
 
 
 # Read in spatial data

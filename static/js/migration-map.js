@@ -55,6 +55,12 @@ mymap.on(L.Draw.Event.CREATED, e => {
    // Get the layers in the geoJSON layer (no need rn but leaving in for reference)
     var polygons = window.poly.getLayers();
 
+    console.log("Municipalities within selected area before pushing: ");
+    console.log(window.selected_polys.length);
+
+    console.log("POLYGONS LENGTH:")
+    console.log(polygons.length);
+
     for (i = 0; i < polygons.length; i++) {
         if (layer.getBounds().contains(polygons[i].getBounds())) {
             // console.log(polygons[i].feature.properties.shapeID)
@@ -63,7 +69,7 @@ mymap.on(L.Draw.Event.CREATED, e => {
     }
 
     console.log("Municipalities within selected area: ");
-    console.log(window.selected_polys);
+    console.log(window.selected_polys.length);
 
 });
 
@@ -232,7 +238,7 @@ function onEachBorderStation(feature, layer) {
 
 
 // Create the window.poly global variable
-window.poly;
+window.poly; // polygons that are on the map
 window.stations;
 
 // Function to get the data from the Flask function/URL (TO-DO: REMOVE ALL OF THE FUNCTIONS FROM HERE AND USE WINDOW.POLY TO EDIT THEM)

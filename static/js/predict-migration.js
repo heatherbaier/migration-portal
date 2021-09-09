@@ -56,6 +56,8 @@ function predict_migration() {
             // Remove the current migration data layer from the map
             mymap.removeLayer(window.poly);
 
+            window.poly = [];
+
             // Remove the drawn polygons from the map and re-initalize the drawnPolys group as empty
             mymap.removeLayer(window.drawnPolys);
             window.drawnPolys = new L.featureGroup().addTo(mymap);
@@ -63,11 +65,12 @@ function predict_migration() {
             // Convert the new migration data into a leaflet geoJSON
             var polys = L.geoJSON(JSON.parse(text), {style: polygon_style, onEachFeature: onEachFeature})//.addTo(mymap);
 
+            console.log("POLYS: ", polys.getLayers().length)
+
             // Update the global window.poly variable & add it to the map
             window.poly = polys;
             window.poly.addTo(mymap);
 
-            // if button for keeping previous polygons is
             window.selected_polys = [];
 
             // Zoom the map back out to all of Mexico                
@@ -80,8 +83,8 @@ function predict_migration() {
             .then(response => {
 
                 // Update all of the HTML text that doesn't involve the trending icon
-                document.getElementById("total_migrants").innerHTML = response.data['predicted_migrants'];
-                document.getElementById("change_migrants").innerHTML = response.data['change'].toString().concat(" migrants");
+                document.getElementById("total_migrants").innerHTML = response.data['predicted_migrants'].toLocaleString();
+                document.getElementById("change_migrants").innerHTML = response.data['change'].toLocaleString().concat(" migrants");
                 document.getElementById("avg_age").innerHTML = response.data['avg_age'];
                 document.getElementById("avg_age_change").innerHTML = response.data['avg_age_change'].toString().concat(" years");
                 document.getElementById("pchange_migrants").innerHTML = response.data['p_change'].toString().concat("%");
@@ -109,6 +112,75 @@ function predict_migration() {
 
                 // Update the status so the user knows everything is done
                 document.getElementById("status").innerHTML = "Done."
+
+                // window.selected_polys = [];
+
+                console.log("Municipalities within selected area post update: ");
+                console.log(window.selected_polys.length);
+
+
+                var analytics_div = document.getElementById("analytics")
+
+                var bs_analytics = document.createElement('canvas');
+                bs_analytics.id = 'border-sector-analytics';
+                // bs_analytics.style.color = "black";
+                // bs_analytics.width = "50%";
+                // bs_analytics.style.width = "1000px";
+
+                // bs_analytics.style.height = "1000px";
+
+                bs_analytics.style.fontSize = "50px";
+                // div.className = 'border pad';
+
+                analytics_div.appendChild(bs_analytics);
+
+                var ctx = document.getElementById('border-sector-analytics').getContext('2d');
+
+
+                var myChart = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: ['Economic', 'Demographic', 'Family Unit', 'Health', 'Occupational', 'Education', 'Household'],
+                        datasets: [{
+                            label: '% change',
+                            data: [12, -10, 3, -4, 2, 3, -14],
+                            backgroundColor: [
+                                'rgba(70, 109, 29, 0.5)',
+                                'rgba(54, 162, 235, 0.5)',
+                                'rgba(255, 206, 86, 0.5)',
+                                'rgba(208, 49, 45, 0.5)',
+                                'rgba(153, 102, 255, 0.5)',
+                                'rgba(255, 159, 64, 0.5)',
+                                'rgba(40, 30, 93, 0.5)'
+                            ],
+                            borderColor: [
+                                'rgba(70, 109, 29, 1)',
+                                'rgba(54, 162, 235, 1)',
+                                'rgba(255, 206, 86, 1)',
+                                'rgba(208, 49, 45, 1)',
+                                'rgba(153, 102, 255, 1)',
+                                'rgba(255, 159, 64, 1)',
+                                'rgba(40, 30, 93, 1)'
+                            ],
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        legend: { display: false },
+                        title: {
+                            display: true,
+                            text: "Relative changes in sociodemographic variables"
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true
+                            }
+                        }
+                    }
+                });
+                
+
+
 
             });
 

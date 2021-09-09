@@ -282,6 +282,14 @@ hr {
     text-align: center;
  }
 
+
+canvas{
+
+    width: 1000px !important;
+    height: 700px !important;
+
+}
+
 /* Some media queries for responsiveness */
 @media screen and (max-height: 450px) {
     .sidenav {padding-top: 15px;}

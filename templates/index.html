@@ -21,6 +21,10 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
     <script src="{{url_for('static', filename='js/predict-migration.js')}}"></script>
 
+    <script src="https://d3js.org/d3.v4.js"></script>
+    <script src="https://canvasjs.com/assets/script/canvasjs.min.js"></script>
+
+
 </head>
 
 
@@ -154,9 +158,30 @@
 
             <div id="mapid"></div>
 
+            <hr>
+
+
+
+            </script>            
+
+
+            <div id="analytics" style='margin:10px;'></div>
+
         </div>
 
+
     </section>
+
+
+
+    <!-- <section id = "yoooo">
+        <div id="wtf" style="background-color: white; color: black; font-size: 50px;">
+            <h1>Hi there!</h1>
+        </div>
+    </section> -->
+
+
+    
 
 <script src="{{url_for('static', filename='js/migration-map.js')}}"></script>
 <script src="{{url_for('static', filename='js/dropdown.js')}}"></script>
