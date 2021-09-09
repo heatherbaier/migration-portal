@@ -283,12 +283,32 @@ hr {
  }
 
 
-canvas{
+/* #canvas-divL {
+    width: 45% !important;
+    height: 700px !important; 
+    float: 'left'
+}
+
+#canvas-divR {
+    width: 45% !important;
+    /* height: 700px !important;
+    float: 'right'
+}
+
+#canvas-div {
+    width: 100% !important;
+    /* height: 700px !important;
+    float: 'right'
+} */
+
+
+
+/* canvas{
 
     width: 1000px !important;
     height: 700px !important;
 
-}
+} */
 
 /* Some media queries for responsiveness */
 @media screen and (max-height: 450px) {

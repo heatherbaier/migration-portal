@@ -127,11 +127,8 @@ def prep_dataframes(dta, request, selected_municipalities):
     dta_selected = dta[dta['GEO2_MX'].isin([int(i) for i in selected_municipalities])]
     dta_dropped = dta[~dta['GEO2_MX'].isin([int(i) for i in selected_municipalities])]
 
-
     dta_selected, dta_dropped = dta_selected[vars], dta_dropped[vars]
     dta_selected, dta_dropped = dta_selected.fillna(0), dta_dropped.fillna(0)
-
-    # num_og_migrants = dta_selected['sum_num_intmig'].sum()
 
     #######################################################################
     # Create the scaler to prep the data later for input into the model   #
@@ -177,7 +174,13 @@ def prep_dataframes(dta, request, selected_municipalities):
     corr_table = corr_table.set_index(['index']).reindex(edited_variables)#.reset_index()
     corr_dict = dict(corr_table.multiply(edited_p_changes, axis='rows').mean())
     print("EDITED VARIABLES & CHANGES: ", edited_variables, edited_p_changes)
-    print(corr_dict)  
+    print(corr_dict)
+
+    for var in range(0, len(edited_variables)):
+        del corr_dict[edited_variables[var]]# = edited_p_changes[var]
+
+    with open("./correlations.json", "w") as f:
+        json.dump(corr_dict, f)
 
     #######################################################################
     # For each of the columns, If it's in the list of edited variables,   #
@@ -204,28 +207,6 @@ def prep_dataframes(dta, request, selected_municipalities):
     X = dta_selected.drop(["sum_num_intmig", "GEO2_MX"], axis = 1).values
     X = scaler.transform(X)
     print("X SHAPE: ", X.shape)
-
-
-
-    # # Get a data frame with all of the data that wasn't edited
-
-    # # Then re-append the updated data to the larger dataframe incorporating user input
-    # dta_appended = dta_dropped.append(dta_selected)
-    # dta_appended = dta_appended.drop(['GEO2_MX'], axis = 1)
-
-    # # dta_appended = dta_appended.drop(['Unnamed: 0', 'sending'], axis = 1)
-    # dta_appended = dta_appended.fillna(0)
-    # dta_appended = dta_appended.apply(lambda x: pd.to_numeric(x, errors='coerce'))
-
-    # with open("./us_vars.txt", "r") as f:
-    #     vars = f.read().splitlines()
-    # vars = [i for i in vars if i in dta_appended.columns]
-    # dta_appended = dta_appended[vars]
-
-    # # Scale the data frame for the model
-    # X = dta_appended.loc[:, dta_appended.columns != "sum_num_intmig"].values
-    # mMScale = preprocessing.MinMaxScaler()
-    # X = mMScale.fit_transform(X)
 
     return dta_selected, dta_dropped, X
 

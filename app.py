@@ -245,32 +245,51 @@ def update_stats():
     # Read in migration data
     df = pd.read_csv(DATA_PATH)
 
+    with open("./predicted_migrants.json") as json_file:
+        predictions = json.load(json_file)
+
     # Get the number of migrants (over a 5 year period) to send to HTML for stat box
     total_og_migrants = df['sum_num_intmig'].sum()
-
+    total_pred_migrants = int(predictions['total_pred_migrants'])
+    change = (total_pred_migrants - total_og_migrants) / 5
+    p_change = ( change / (total_og_migrants / 5) ) * 100
+    
     # Calculate average age stuff
     df['avg_age_weight'] = df['avg_age'] * df['sum_num_intmig']
     og_avg_age = df['avg_age_weight'].sum() / df['sum_num_intmig'].sum()
 
-    with open("./predicted_migrants.json") as json_file:
-        predictions = json.load(json_file)
-
-    total_pred_migrants = int(predictions['total_pred_migrants'])
-
     avg_age = predictions['avg_age']
-
-    change = (total_pred_migrants - total_og_migrants) / 5
-    p_change = ( change / (total_og_migrants / 5) ) * 100
-    
     avg_age_change = avg_age - og_avg_age
     p_avg_age_change = ((round(avg_age, 2) - og_avg_age) / og_avg_age) * 100
+
+
+    with open("./correlations.json", "r") as f:
+        corrs = json.load(f)
+
+    with open("./vars.json", "r") as f:
+        var_cats = json.load(f)    
+
+    corr_means = []
+    corr_category_dict = {}
+    for category in var_cats.keys():
+        cat_columns = var_cats[category]
+        cat_vals = [v for k,v in corrs.items() if k in cat_columns]
+        if len(cat_vals) == 0:
+            cat_mean_corr = 0
+        else:
+            cat_mean_corr = np.mean(cat_vals)
+            corr_category_dict[category] = [cat_columns, cat_vals]
+        corr_means.append(cat_mean_corr)
+        print(category, cat_columns, cat_mean_corr)
 
     return {'change': int(change),
             'p_change': round(p_change, 2),
             'predicted_migrants': round(total_pred_migrants / 5, 0),
             'avg_age': round(avg_age, 0),
             'avg_age_change': round(avg_age_change, 0),
-            'pavg_age_change': round(p_avg_age_change, 0)}
+            'pavg_age_change': round(p_avg_age_change, 0),
+            'corr_means': corr_means,
+            'corr_category_dict': corr_category_dict}
 
 
 
