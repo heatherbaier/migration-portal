@@ -21,6 +21,7 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
     <script src="{{url_for('static', filename='js/predict-migration.js')}}"></script>
     <script src="{{url_for('static', filename='js/corr-table.js')}}"></script>
+    <script src="{{url_for('static', filename='js/change-map-var.js')}}"></script>
     
     <script src="https://d3js.org/d3.v4.js"></script>
     <script src="https://canvasjs.com/assets/script/canvasjs.min.js"></script>
@@ -156,6 +157,34 @@
                     </div>
                 </div>
             </div>
+
+
+
+
+
+
+            <div class="button-container">
+                <div class="item-s1">
+                    <button id="map-options-label">Choose variable to display on the map: </button>
+                </div>
+                <div class="item-s2">
+                    <button onclick="change_map_var('absolute_change')">Absolute change in migrants</button>
+                </div>
+                <div class="item-s3">
+                    <button onclick="change_map_var('perc_change')">Percentage change in migrants</button>
+                </div>
+                <div class="item-s4">
+                    <button onclick="change_map_var('sum_num_intmig')">Absolute number of migrants</button>
+                </div>
+                <div class="item-s5">
+                    <button onclick="change_map_var('perc_migrants')">Migrants as percentage of population</button>
+                </div>
+            </div>
+
+
+
+
+
 
             <div id="mapid"></div>
 

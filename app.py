@@ -83,11 +83,13 @@ def get_all_points():
     feature_df = convert_to_pandas(geodata_collection, MATCH_PATH, DATA_PATH)
     print(feature_df.columns)
     feature_df['sum_num_intmig'] = feature_df['sum_num_intmig'].fillna(0)
+    feature_df['perc_migrants'] = feature_df['sum_num_intmig'] / feature_df['total_pop']
+
     
     # Make lists of all of the features we want available to the Leaflet map
     coords = feature_df['geometry.coordinates']
     types = feature_df['geometry.type']
-    num_migrants = feature_df['sum_num_intmig']
+    num_migrants = feature_df['perc_migrants']
     shapeIDs = feature_df['shapeID']
     # shapeNames = feature_df["properties.geo2_mx1960_2015_ADMIN_NAME"]
     shapeNames = feature_df["properties.ipumns_simple_wgs_wdata_geo2_mx1960_2015_ADMIN_NAME"]
@@ -242,9 +244,29 @@ def predict_migration():
     # census & migration data                                             #
     #######################################################################
     dta_final['GEO2_MX'] = dta_final['GEO2_MX'].astype(str)
+    dta_final[['GEO2_MX', 'sum_num_intmig']].to_csv("./map_layers/sum_num_intmig.csv", index = False)
     geoDF = json_normalize(geodata_collection["features"])
     merged = pd.merge(geoDF, dta_final, left_on = "properties.shapeID", right_on = "GEO2_MX")
     merged['sum_num_intmig'] = merged['sum_num_intmig'].fillna(0)
+    merged['perc_migrants'] = merged['sum_num_intmig'] / merged['total_pop']
+
+    dta_final['perc_migrants'] = dta_final['sum_num_intmig'] / dta_final['total_pop']
+    dta_final[['GEO2_MX', 'perc_migrants']].to_csv("./map_layers/perc_migrants.csv", index = False)
+
+    og_df = pd.read_csv(DATA_PATH)
+    og_df = og_df[['GEO2_MX', 'sum_num_intmig', 'total_pop']].rename(columns = {'sum_num_intmig': 'sum_num_intmig_og'})
+    og_df['GEO2_MX'] = og_df['GEO2_MX'].astype(str)
+    change_df = pd.merge(og_df, dta_final[['GEO2_MX', 'sum_num_intmig']])
+    change_df['absolute_change'] = change_df['sum_num_intmig_og'] - change_df['sum_num_intmig']
+    change_df[['GEO2_MX', 'absolute_change']].to_csv("./map_layers/absolute_change.csv", index = False)
+    change_df['perc_change'] = (change_df['sum_num_intmig'] - change_df['sum_num_intmig_og']) / change_df['sum_num_intmig_og']
+    print(change_df[change_df['perc_change'] == np.inf])
+    change_df = change_df.replace([np.inf, -np.inf], np.nan)
+    change_df = change_df.fillna(0)
+    change_df[['GEO2_MX', 'perc_change']].to_csv("./map_layers/perc_change.csv", index = False)
+    print(change_df.head())
+
+
 
     #######################################################################
     # Aggregate statistics and send to a JSON                             #
@@ -260,13 +282,31 @@ def predict_migration():
     #######################################################################
     # Convert features to a gejson for rendering in Leaflet               #
     #######################################################################
-    features = convert_features_to_geojson(merged)
+    features = convert_features_to_geojson(merged, column = 'perc_migrants')
 
     with open('status.json', 'w') as outfile:
         json.dump({'status': "Status - Rendering new migration map..."}, outfile)
 
     return jsonify(features)
 
+
+
+@APP.route('/update_map', methods=['GET', 'POST'])
+def update_map():
+
+    print("VARIBALE: ", request.json['variable'])
+
+    data_path = os.path.join("map_layers", request.json['variable'] + ".csv")
+    dta_final = pd.read_csv(data_path)
+    dta_final['GEO2_MX'] = dta_final['GEO2_MX'].astype(str)
+
+    geoDF = json_normalize(geodata_collection["features"])
+    merged = pd.merge(geoDF, dta_final, left_on = "properties.shapeID", right_on = "GEO2_MX")
+
+    print(merged.head())
+
+    features = convert_features_to_geojson(merged, column = request.json['variable'])
+    return jsonify(features)
 
 
 

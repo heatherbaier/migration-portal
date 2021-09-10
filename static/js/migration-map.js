@@ -123,14 +123,14 @@ mymap.on(L.Draw.Event.DELETED, e => {
 
 // Function to color the polygons by number of migrants
 function getColor(d) {
-    return d > 5000 ? '#800026' :
-           d > 2500  ? '#BD0026' :
-           d > 500  ? '#E31A1C' :
-           d > 250  ? '#FC4E2A' :
-           d > 100   ? '#FD8D3C' :
-           d > 50   ? '#FEB24C' :
-           d > 10   ? '#FED976' :
-                      '#FFEDA0';
+    return d > .8 ? '#800026' :
+        d > .5  ? '#BD0026' :
+        d > .1  ? '#E31A1C' :
+        d > .08  ? '#FC4E2A' :
+        d > .06   ? '#FD8D3C' :
+        d > .04   ? '#FEB24C' :
+        d > .02   ? '#FED976' :
+                    '#FFEDA0';
 }
 
 
@@ -161,14 +161,14 @@ var legend = L.control({position: 'bottomleft'});
 legend.onAdd = function (map) {
 
     var div = L.DomUtil.create('div', 'info legend'),
-        grades = [0, 10, 50, 100, 250, 500, 2500, 5000],
-        labels = [];
+    grades = [0, 0.02, .04, .06, .08, .1, .5, .8, .8],
+    labels = [];
 
     // loop through our density intervals and generate a label with a colored square for each interval
     for (var i = 0; i < grades.length; i++) {
         div.innerHTML +=
             '<i style="background:' + getColor(grades[i] + 1) + '"></i> ' +
-            grades[i] + (grades[i + 1] ? ' &ndash; ' + grades[i + 1] + ' migrants<br>' : '+ migrants');
+            grades[i] + (grades[i + 1] ? ' &ndash; ' + grades[i + 1] + '%<br>' : '+ % of population');
     }
 
     return div;

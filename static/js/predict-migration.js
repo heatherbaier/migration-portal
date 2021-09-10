@@ -75,7 +75,7 @@ function predict_migration() {
 
             // Zoom the map back out to all of Mexico                
             // mymap.fitBounds(window.poly.getBounds());
-            mymap.setView(new L.LatLng(23.6345, -102.5528), 7);
+            mymap.setView(new L.LatLng(23.6345, -102.5528), 6);
             
             // Function to get the data from the Flask function/URL (TO-DO: REMOVE ALL OF THE FUNCTIONS FROM HERE AND USE WINDOW.POLY TO EDIT THEM)
             axios.get('http://127.0.0.1:5000/update_stats')

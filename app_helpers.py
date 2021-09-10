@@ -284,11 +284,11 @@ def convert_to_pandas(geodata_collection, MATCH_PATH, DATA_PATH):
     return merged
 
 
-def convert_features_to_geojson(merged):
+def convert_features_to_geojson(merged, column = 'sum_num_intmig'):
     # # Make lists of all of the features we want available to the Leaflet map
     coords = merged['geometry.coordinates']
     types = merged['geometry.type']
-    num_migrants = merged['sum_num_intmig']
+    num_migrants = merged[column]
     shapeIDs = merged['properties.shapeID']
     shapeNames = merged['properties.ipumns_simple_wgs_wdata_geo2_mx1960_2015_ADMIN_NAME']
 
