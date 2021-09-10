@@ -4,6 +4,22 @@ function make_corr_tables(data) {
     var canvasR = document.getElementById("canvas-divR")
     var scenario_title = document.getElementById('scenario-title')
 
+    // Remove the old canvas elements from the document
+    var oldcanv = document.getElementById('corr-by-category');
+    console.log(oldcanv);
+    if(oldcanv != null){
+        console.log("removing old canvas!!!")
+        canvasL.removeChild(oldcanv);
+    }
+
+    var oldcanv2 = document.getElementById('corr-by-variable');
+    console.log(oldcanv2);
+    if(oldcanv2 != null){
+        console.log("removing old canvas 2!!!")
+        canvasR.removeChild(oldcanv2);
+    }
+
+
     scenario_title.innerHTML = "Scenario breakdown";
 
     var bs_analytics = document.createElement('canvas');
@@ -50,8 +66,14 @@ function make_corr_tables(data) {
             }]
         },
         options: {
+            tooltips: {
+                titleFontSize: 20,
+                bodyFontSize: 18
+            },
             maintainAspectRatio: false,
-            legend: { display: false },
+            legend: { 
+                display: false 
+            },
             title: {
                 display: true,
                 text: "Relative changes in sociodemographic variables",
@@ -106,6 +128,10 @@ function make_corr_tables(data) {
             }]
         },
         options: {
+            tooltips: {
+                titleFontSize: 20,
+                bodyFontSize: 18
+            },
             maintainAspectRatio: false,
             legend: { display: false },
             title: {
@@ -194,6 +220,10 @@ function edit_corr_table(data, index) {
         },
         options: {
             maintainAspectRatio: false,
+            tooltips: {
+                titleFontSize: 20,
+                bodyFontSize: 18
+            },
             legend: { display: false },
             title: {
                 display: true,
@@ -219,6 +249,7 @@ function edit_corr_table(data, index) {
     });
 
 }
+
 
 
 

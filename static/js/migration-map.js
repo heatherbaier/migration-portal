@@ -1,6 +1,6 @@
 // MIGRATION MAP
 // Create the map and add the basemap tiles
-var mymap = L.map('mapid').setView([23.6345, -102.5528], zoom_start = 7);
+var mymap = L.map('mapid').setView([23.6345, -102.5528], zoom_start = 6);
 L.tileLayer('https://tiles.stadiamaps.com/tiles/alidade_smooth_dark/{z}/{x}/{y}{r}.png', {
 	maxZoom: 20,
 	attribution: '&copy; <a href="https://stadiamaps.com/">Stadia Maps</a>, &copy; <a href="https://openmaptiles.org/">OpenMapTiles</a> &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors'
@@ -193,16 +193,16 @@ function highlightFeature(e) {
 
     var layer = e.target;
 
-    // layer.setStyle({
-    //     weight: 5,
-    //     color: '#666',
-    //     dashArray: '',
-    //     fillOpacity: 0.7
-    // });
+    layer.setStyle({
+        weight: 5,
+        color: '#666',
+        dashArray: '',
+        fillOpacity: 0.7
+    });
 
-    // if (!L.Browser.ie && !L.Browser.opera && !L.Browser.edge) {
-    //     layer.bringToFront();
-    // }
+    if (!L.Browser.ie && !L.Browser.opera && !L.Browser.edge) {
+        layer.bringToFront();
+    }
 
 }
 
@@ -265,17 +265,29 @@ axios.get('http://127.0.0.1:5000/geojson-features')
 //     }) 
 
 
+var geojsonMarkerOptions = {
+    radius: 15,
+    fillColor: "#03AC13",
+    color: "#03AC13",
+    weight: 1,
+    opacity: 1,
+    fillOpacity: 1
+};
+
 // Function to get the data from the Flask function/URL (TO-DO: REMOVE ALL OF THE FUNCTIONS FROM HERE AND USE WINDOW.POLY TO EDIT THEM)
 axios.get('http://127.0.0.1:5000/border-sectors')
 
 .then(response => {
 
-    var sectors = L.geoJSON(response.data, {style: border_station_style, onEachFeature: onEachBorderStation})//.addTo(mymap);
+    var sectors = L.geoJSON(response.data, {
+                                            onEachFeature: onEachBorderStation,
+                                            pointToLayer: function (feature, latlng) {
+                                                return L.circleMarker(latlng, geojsonMarkerOptions);
+                                            }})//.addTo(mymap);
     window.sectors = sectors;
     window.sectors.addTo(mymap);
 
 }) 
-
 
 
 // 

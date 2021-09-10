@@ -304,11 +304,11 @@ def update_stats():
     corr_category_dict = {}
     for category in var_cats.keys():
         cat_columns = var_cats[category]
-        cat_vals = [v for k,v in corrs.items() if k in cat_columns]
+        cat_vals = [round(v, 4) for k,v in corrs.items() if k in cat_columns]
         if len(cat_vals) == 0:
             cat_mean_corr = 0
         else:
-            cat_mean_corr = np.mean(cat_vals)
+            cat_mean_corr = round(np.mean(cat_vals), 4)
             corr_category_dict[category] = [cat_columns, cat_vals]
         corr_means.append(cat_mean_corr)
         print(category, cat_columns, cat_mean_corr)
