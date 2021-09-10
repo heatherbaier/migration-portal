@@ -260,11 +260,9 @@ def predict_migration():
     change_df['absolute_change'] = change_df['sum_num_intmig_og'] - change_df['sum_num_intmig']
     change_df[['GEO2_MX', 'absolute_change']].to_csv("./map_layers/absolute_change.csv", index = False)
     change_df['perc_change'] = (change_df['sum_num_intmig'] - change_df['sum_num_intmig_og']) / change_df['sum_num_intmig_og']
-    print(change_df[change_df['perc_change'] == np.inf])
     change_df = change_df.replace([np.inf, -np.inf], np.nan)
     change_df = change_df.fillna(0)
     change_df[['GEO2_MX', 'perc_change']].to_csv("./map_layers/perc_change.csv", index = False)
-    print(change_df.head())
 
 
 
@@ -302,8 +300,6 @@ def update_map():
 
     geoDF = json_normalize(geodata_collection["features"])
     merged = pd.merge(geoDF, dta_final, left_on = "properties.shapeID", right_on = "GEO2_MX")
-
-    print(merged.head())
 
     features = convert_features_to_geojson(merged, column = request.json['variable'])
     return jsonify(features)

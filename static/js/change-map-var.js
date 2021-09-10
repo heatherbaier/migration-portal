@@ -1,4 +1,4 @@
-// Function to color the polygons by number of migrants
+// Function to color the polygons by total number of migrants
 function total_mig_color(d) {
 
     return d > 5000 ? '#800026' :
@@ -24,7 +24,7 @@ function total_mig_style(feature) {
 }
 
 
-// Function to color the polygons by number of migrants
+// Function to color the polygons by percentage change in migrants
 function perc_change_color(d) {
 
     return  d > .00001        ? '#440154FF' :
@@ -46,7 +46,7 @@ function perc_change_style(feature) {
 
 
 
-// Function to color the polygons by number of migrants
+// Function to color the polygons by change in migrants
 function abs_change_color(d) {
 
     return  d > .00001        ? '#440154FF' :
@@ -84,6 +84,42 @@ function change_map_var(variable) {
             mymap.removeLayer(window.poly);
             mymap.removeControl(legend);
 
+            console.log("removed legend");
+
+
+
+            legend = L.control({position: 'bottomleft'});
+            legend.onAdd = function (map) {
+
+                var div = L.DomUtil.create('div', 'info legend');
+
+                if (variable == "sum_num_intmig") {
+                    var grades = [0, 10, 50, 100, 250, 500, 2500, 5000];
+                } else if (variable == "perc_migrants") {
+                    var grades = [0, 0.02, .04, .06, .08, .1, .5, .8, .8];
+                } else if (variable == "absolute_change") {
+                    var grades = [-100000, -.00001, .00001];
+                } else {
+                    var grades = [-100000, -.00001, .00001];
+                }
+
+                var labels = [];
+
+                // loop through our density intervals and generate a label with a colored square for each interval
+                for (var i = 0; i < grades.length; i++) {
+                    div.innerHTML +=
+                        '<i style="background:' + getColor(grades[i] + 1) + '"></i> ' +
+                        grades[i] + (grades[i + 1] ? ' to ' + grades[i + 1] + '<br>' : '+');
+                }
+
+                return div;
+            };
+            legend.addTo(mymap);
+
+
+
+
+
             window.poly = [];
 
             // Remove the drawn polygons from the map and re-initalize the drawnPolys group as empty
@@ -113,6 +149,11 @@ function change_map_var(variable) {
             // Zoom the map back out to all of Mexico                
             mymap.setView(new L.LatLng(23.6345, -102.5528), 6);
 
+
+
         })
 
 }
+
+
+
