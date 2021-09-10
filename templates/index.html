@@ -168,17 +168,18 @@
                     <button id="map-options-label">Choose variable to display on the map: </button>
                 </div>
                 <div class="item-s2">
-                    <button onclick="change_map_var('absolute_change')">Absolute change in migrants</button>
-                </div>
-                <div class="item-s3">
-                    <button onclick="change_map_var('perc_change')">Percentage change in migrants</button>
-                </div>
-                <div class="item-s4">
                     <button onclick="change_map_var('sum_num_intmig')">Absolute number of migrants</button>
                 </div>
-                <div class="item-s5">
-                    <button onclick="change_map_var('perc_migrants')">Migrants as percentage of population</button>
+                <div class="item-s3">
+                    <button onclick="change_map_var('perc_migrants')">Migrants as a % of population</button>
+                </div>                
+                <div class="item-s4">
+                    <button id="change-button1" onclick="change_map_var('absolute_change')", style="display:none">Absolute change in migrants</button>
                 </div>
+                <div class="item-s5">
+                    <button id="change-button2" onclick="change_map_var('perc_change')", style="display:none">% change in migrants</button>
+                </div>
+
             </div>
 
 

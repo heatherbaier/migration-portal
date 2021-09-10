@@ -92,25 +92,48 @@ function change_map_var(variable) {
             legend.onAdd = function (map) {
 
                 var div = L.DomUtil.create('div', 'info legend');
-
-                if (variable == "sum_num_intmig") {
-                    var grades = [0, 10, 50, 100, 250, 500, 2500, 5000];
-                } else if (variable == "perc_migrants") {
-                    var grades = [0, 0.02, .04, .06, .08, .1, .5, .8, .8];
-                } else if (variable == "absolute_change") {
-                    var grades = [-100000, -.00001, .00001];
-                } else {
-                    var grades = [-100000, -.00001, .00001];
-                }
-
                 var labels = [];
 
-                // loop through our density intervals and generate a label with a colored square for each interval
-                for (var i = 0; i < grades.length; i++) {
-                    div.innerHTML +=
-                        '<i style="background:' + getColor(grades[i] + 1) + '"></i> ' +
-                        grades[i] + (grades[i + 1] ? ' to ' + grades[i + 1] + '<br>' : '+');
+                if (variable == "sum_num_intmig") {
+
+                    var grades = [0, 10, 50, 100, 250, 500, 2500, 5000];
+                    for (var i = 0; i < grades.length; i++) {
+                        div.innerHTML +=
+                            '<i style="background:' + total_mig_color(grades[i] + 1) + '"></i> ' +
+                            grades[i] + (grades[i + 1] ? ' to ' + grades[i + 1] + '<br>' : '+');
+                    }
+
+                } else if (variable == "perc_migrants") {
+
+                    var grades = [0, 0.02, .04, .06, .08, .1, .5, .8];
+                    for (var i = 0; i < grades.length; i++) {
+                        div.innerHTML +=
+                            '<i style="background:' + getColor(grades[i] + 1) + '"></i> ' +
+                            grades[i] + (grades[i + 1] ? ' to ' + grades[i + 1] + '<br>' : '+');
+                    }
+
+                } else if (variable == "absolute_change") {
+
+                    var grades = [-100000, -.00001, .00001];
+                    for (var i = 0; i < grades.length; i++) {
+                        div.innerHTML +=
+                            '<i style="background:' + abs_change_color(grades[i] + 1) + '"></i> ' +
+                            grades[i] + (grades[i + 1] ? ' to ' + grades[i + 1] + '<br>' : '+');
+                    }
+
+                } else {
+
+                    var grades = [-100000, -.00001, .00001];
+                    for (var i = 0; i < grades.length; i++) {
+                        div.innerHTML +=
+                            '<i style="background:' + perc_change_color(grades[i] + 1) + '"></i> ' +
+                            grades[i] + (grades[i + 1] ? ' to ' + grades[i + 1] + '<br>' : '+');
+                    }
+
                 }
+
+
+
 
                 return div;
             };

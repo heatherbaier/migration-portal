@@ -82,6 +82,12 @@ function predict_migration() {
 
             .then(response => {
 
+
+                document.getElementById("change-button1").style.display = 'block';
+                document.getElementById("change-button2").style.display = 'block';
+
+
+
                 // Update all of the HTML text that doesn't involve the trending icon
                 document.getElementById("total_migrants").innerHTML = response.data['predicted_migrants'].toLocaleString();
                 document.getElementById("change_migrants").innerHTML = response.data['change'].toLocaleString().concat(" migrants");
