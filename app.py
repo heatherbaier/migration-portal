@@ -348,7 +348,7 @@ def update_stats():
     corr_category_dict = {}
     for category in var_cats.keys():
         cat_columns = var_cats[category]
-        cat_vals = [round(v, 4) for k,v in corrs.items() if k in cat_columns]
+        cat_vals = [round(abs(v), 4) for k,v in corrs.items() if k in cat_columns]
         if len(cat_vals) == 0:
             cat_mean_corr = 0
         else:

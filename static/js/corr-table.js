@@ -58,7 +58,6 @@ function make_corr_tables(data) {
         'rgba(40, 30, 93, 1)'
     ];
 
-
     var ctx1 = document.getElementById('corr-by-variable').getContext('2d');
     var myChart1 = new Chart(ctx1, {
         type: 'bar',
@@ -143,7 +142,7 @@ function make_corr_tables(data) {
             legend: { display: false },
             title: {
                 display: true,
-                text: "Relative changes in sociodemographic variables",
+                text: "Absolute correlation of sociodemographic variables",
                 fontSize: 20
             },
             scales: {
