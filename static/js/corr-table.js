@@ -1,5 +1,12 @@
 function make_corr_tables(data) {
 
+    var div_to_display = document.getElementById("scenario-title")
+    div_to_display.style.display = "block"
+
+    var div_to_display2 = document.getElementById("canvas-div")
+    div_to_display2.style.display = "block"
+
+
     var canvasL = document.getElementById("canvas-divL")
     var canvasR = document.getElementById("canvas-divR")
     var scenario_title = document.getElementById('scenario-title')

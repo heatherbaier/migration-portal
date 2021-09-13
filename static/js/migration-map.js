@@ -225,13 +225,8 @@ function onEachFeature(feature, layer) {
 // On each feature, highlight/remove highlight when hovered over, zoom when clicked and add popup
 function onEachBorderStation(feature, layer) {
 
-    layer.bindPopup('<h2>Sector: ' + feature.properties.shapeID + '<br>');
-
-    layer.on({
-        mouseover: highlightFeature,
-        mouseout: resetHighlight,
-        click: zoomToFeature
-    });
+    layer.bindPopup('<h2>Sector: ' + feature.properties.shapeID + '<br>' + 
+                    '<h2>Percentage of migrants: ' + feature.properties.num_migrants + '%</h2>');
 
 }
 
@@ -252,42 +247,31 @@ axios.get('http://127.0.0.1:5000/geojson-features')
     })
 
 
+// Function to style the polygons
+function geojsonMarkerOptions(feature) {
+    return {
+        radius: feature.properties.num_migrants_normed * 4,
+        fillColor: "#03AC13",
+        color: "#03AC13",
+        weight: 1,
+        opacity: 1,
+        fillOpacity: 1
+    };
+}
 
-// // Function to get the data from the Flask function/URL (TO-DO: REMOVE ALL OF THE FUNCTIONS FROM HERE AND USE WINDOW.POLY TO EDIT THEM)
-// axios.get('http://127.0.0.1:5000/border-features')
-
-//     .then(response => {
-
-//         var stations = L.geoJSON(response.data, {style: border_station_style, onEachFeature: onEachBorderStation})//.addTo(mymap);
-//         window.stations = stations;
-//         window.stations.addTo(mymap);
-
-//     }) 
-
-
-var geojsonMarkerOptions = {
-    radius: 15,
-    fillColor: "#03AC13",
-    color: "#03AC13",
-    weight: 1,
-    opacity: 1,
-    fillOpacity: 1
-};
 
 // Function to get the data from the Flask function/URL (TO-DO: REMOVE ALL OF THE FUNCTIONS FROM HERE AND USE WINDOW.POLY TO EDIT THEM)
 axios.get('http://127.0.0.1:5000/border-sectors')
 
 .then(response => {
 
-    var sectors = L.geoJSON(response.data, {
+    var sectors = L.geoJSON(response.data, {style: geojsonMarkerOptions,
                                             onEachFeature: onEachBorderStation,
                                             pointToLayer: function (feature, latlng) {
-                                                return L.circleMarker(latlng, geojsonMarkerOptions);
+                                                return L.circleMarker(latlng);
                                             }})//.addTo(mymap);
     window.sectors = sectors;
     window.sectors.addTo(mymap);
 
 }) 
 
-
-// 

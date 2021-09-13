@@ -86,8 +86,6 @@ function predict_migration() {
                 document.getElementById("change-button1").style.display = 'block';
                 document.getElementById("change-button2").style.display = 'block';
 
-
-
                 // Update all of the HTML text that doesn't involve the trending icon
                 document.getElementById("total_migrants").innerHTML = response.data['predicted_migrants'].toLocaleString();
                 document.getElementById("change_migrants").innerHTML = response.data['change'].toLocaleString().concat(" migrants");
@@ -118,6 +116,8 @@ function predict_migration() {
 
                 // Update the status so the user knows everything is done
                 document.getElementById("status").innerHTML = "Done."
+
+                border_sector_breakout(response.data);
 
                 make_corr_tables(response.data);
 

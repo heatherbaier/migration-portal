@@ -152,6 +152,12 @@ def get_border_features():
 def get_border_sectors():
 
     coords_df = pd.read_csv("./data/sector_centroids.csv")
+    with open("./data/sector_fractions.json", "r") as f:
+        fractions = json.load(f)
+    dta = pd.read_csv(DATA_PATH)
+    total_mig = dta["sum_num_intmig"].sum()
+    max_total_mig = dta["sum_num_intmig"].max()
+
 
     x = coords_df['xcoord']
     y = coords_df['ycoord']
@@ -169,7 +175,9 @@ def get_border_sectors():
                 "coordinates": coords[i]
             },
             "properties": {
-                           'shapeID': str(names[i])
+                           'shapeID': str(names[i]),
+                           'num_migrants': round(fractions[str(names[i])] * 100, 2),
+                           'num_migrants_normed': (total_mig * fractions[str(names[i])]) / max_total_mig
                           }
         })
 
@@ -349,6 +357,18 @@ def update_stats():
         corr_means.append(cat_mean_corr)
         print(category, cat_columns, cat_mean_corr)
 
+    migs_for_bs = pd.read_csv("./map_layers/sum_num_intmig.csv")
+    migs_for_bs = migs_for_bs["sum_num_intmig"].sum()
+
+    with open("./data/sector_fractions.json", "r") as f:
+        bs_fractions = json.load(f)
+
+    bs_dict = {}
+    for k,v in bs_fractions.items():
+        bs_fractions[k] = bs_fractions[k] * migs_for_bs
+    
+
+
     return {'change': int(change),
             'p_change': round(p_change, 2),
             'predicted_migrants': round(total_pred_migrants / 5, 0),
@@ -356,7 +376,31 @@ def update_stats():
             'avg_age_change': round(avg_age_change, 0),
             'pavg_age_change': round(p_avg_age_change, 0),
             'corr_means': corr_means,
-            'corr_category_dict': corr_category_dict}
+            'corr_category_dict': corr_category_dict,
+            'bs_fractions_labels': list(bs_fractions.keys()),
+            'bs_fractions_values': list(bs_fractions.values())}
+
+
+
+
+
+
+
+@APP.route('/get_border_data', methods=['GET'])
+def get_border_data():
+
+    migs_for_bs = pd.read_csv(DATA_PATH)
+    migs_for_bs = migs_for_bs["sum_num_intmig"].sum()
+
+    with open("./data/sector_fractions.json", "r") as f:
+        bs_fractions = json.load(f)
+
+    bs_dict = {}
+    for k,v in bs_fractions.items():
+        bs_fractions[k] = bs_fractions[k] * migs_for_bs
+
+    return {'bs_fractions_labels': list(bs_fractions.keys()),
+            'bs_fractions_values': list(bs_fractions.values())}
 
 
 

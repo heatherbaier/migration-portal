@@ -132,16 +132,11 @@ function change_map_var(variable) {
 
                 }
 
-
-
-
                 return div;
+
             };
+
             legend.addTo(mymap);
-
-
-
-
 
             window.poly = [];
 
