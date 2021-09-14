@@ -265,7 +265,7 @@ def predict_migration():
     og_df = og_df[['GEO2_MX', 'sum_num_intmig', 'total_pop']].rename(columns = {'sum_num_intmig': 'sum_num_intmig_og'})
     og_df['GEO2_MX'] = og_df['GEO2_MX'].astype(str)
     change_df = pd.merge(og_df, dta_final[['GEO2_MX', 'sum_num_intmig']])
-    change_df['absolute_change'] = change_df['sum_num_intmig_og'] - change_df['sum_num_intmig']
+    change_df['absolute_change'] = change_df['sum_num_intmig'] - change_df['sum_num_intmig_og']
     change_df[['GEO2_MX', 'absolute_change']].to_csv("./map_layers/absolute_change.csv", index = False)
     change_df['perc_change'] = (change_df['sum_num_intmig'] - change_df['sum_num_intmig_og']) / change_df['sum_num_intmig_og']
     change_df = change_df.replace([np.inf, -np.inf], np.nan)

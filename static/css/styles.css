@@ -54,12 +54,11 @@ body {
 }
 
 /* Add an active class to the active dropdown button */
-.active {
-    /* background-color: white; */
+/* .active {
     color: black;
     margin-right: 20px;
     padding-right: 50px;
-}
+} */
 
 /* Dropdown container (hidden by default). Optional: add a lighter background color and some left padding to change the design of the dropdown content */
 .dropdown-container {
@@ -101,6 +100,7 @@ canvas { max-width: 800px; }
     height: 1500px; 
     width: 98%; 
     padding-top: 20px;
+    background-color: #222222;
 }
 
 .legend {

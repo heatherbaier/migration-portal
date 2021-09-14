@@ -206,7 +206,7 @@ function edit_corr_table(data, index) {
     var corr_var = document.createElement('canvas');
     corr_var.id = 'corr-by-variable';
     canvasR.appendChild(corr_var); // append the left chart to the left canvas
-    
+
 
 
 

@@ -1,5 +1,3 @@
-console.log("going to load breakout here!")
-
 var bs_config = {
                     tooltips: {
                         titleFontSize: 20,

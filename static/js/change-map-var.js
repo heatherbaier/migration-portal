@@ -27,10 +27,10 @@ function total_mig_style(feature) {
 // Function to color the polygons by percentage change in migrants
 function perc_change_color(d) {
 
-    return  d > .00001        ? '#440154FF' :
-            d > -.00001       ? '#FDE725FF' :
-            d > -100000  ? '#73D055FF':
-                           '#FDE725FF';
+    return  d > .0000001        ? '#73D055FF' : // positive change
+            d > -.0000001       ? '#808080' : // zero change
+            d > -100000         ? '#D0312D' : // negative change
+                                  '#808080' ; // other
 }
 
 // Function to style the polygons
@@ -49,10 +49,10 @@ function perc_change_style(feature) {
 // Function to color the polygons by change in migrants
 function abs_change_color(d) {
 
-    return  d > .00001        ? '#440154FF' :
-            d > -.00001       ? '#FDE725FF' :
-            d > -100000  ? '#73D055FF':
-                           '#FDE725FF';
+    return  d > .0000001        ? '#73D055FF' : // positive change
+            d > -.0000001       ? '#808080' : // zero change
+            d > -100000         ? '#D0312D' : // negative change
+                                  '#808080' ; // other
 }
 
 // Function to style the polygons
@@ -67,6 +67,8 @@ function abs_change_style(feature) {
 }
 
 
+var map_button_list = ["sum_num_intmig_button", "perc_migrants_button", "absolute_change_button", "perc_change_button"]
+
 
 function change_map_var(variable) {
 
@@ -80,12 +82,37 @@ function change_map_var(variable) {
         .then(response => {
 
 
+            // Hack for switching button colors because you suck at CSS
+            for (var mb = 0; mb < map_button_list.length; mb++) {
+                document.getElementById(map_button_list[mb]).style.backgroundColor = "#0E0C28";
+                document.getElementById(map_button_list[mb]).style.color = "white";
+                document.getElementById(map_button_list[mb]).style.fontWeight = "bold";
+            }
+
+            var var_button = document.getElementById(variable + "_button");
+            // var_button.classList.toggle("active");
+            var_button.style.backgroundColor = "white";
+            var_button.style.color = "#0E0C28";
+            var_button.style.fontWeight = "bold";
+
+
+
+
+
+
+
+
+            console.log(var_button.classList);
+
             // Remove the current migration data layer from the map
             mymap.removeLayer(window.poly);
             mymap.removeControl(legend);
 
             console.log("removed legend");
 
+
+            // console.log('')
+            getColor
 
 
             legend = L.control({position: 'bottomleft'});
@@ -96,8 +123,11 @@ function change_map_var(variable) {
 
                 if (variable == "sum_num_intmig") {
 
+
                     var grades = [0, 10, 50, 100, 250, 500, 2500, 5000];
+                    
                     for (var i = 0; i < grades.length; i++) {
+                        console.log(i, total_mig_color(grades[i] + 1));
                         div.innerHTML +=
                             '<i style="background:' + total_mig_color(grades[i] + 1) + '"></i> ' +
                             grades[i] + (grades[i + 1] ? ' to ' + grades[i + 1] + '<br>' : '+');
@@ -108,26 +138,30 @@ function change_map_var(variable) {
                     var grades = [0, 0.02, .04, .06, .08, .1, .5, .8];
                     for (var i = 0; i < grades.length; i++) {
                         div.innerHTML +=
-                            '<i style="background:' + getColor(grades[i] + 1) + '"></i> ' +
+                            '<i style="background:' + getColor(grades[i] + .01) + '"></i> ' +
                             grades[i] + (grades[i + 1] ? ' to ' + grades[i + 1] + '<br>' : '+');
                     }
 
                 } else if (variable == "absolute_change") {
 
-                    var grades = [-100000, -.00001, .00001];
+                    var grades = [10000, 0, -10000];
+                    var labels = ["Increase in migration", "No change in migration", "Decrease in migration"]
                     for (var i = 0; i < grades.length; i++) {
+                        console.log(i, abs_change_color(grades[i]));
                         div.innerHTML +=
-                            '<i style="background:' + abs_change_color(grades[i] + 1) + '"></i> ' +
-                            grades[i] + (grades[i + 1] ? ' to ' + grades[i + 1] + '<br>' : '+');
+                            '<i style="background:' + abs_change_color(grades[i]) + '"></i> ' +
+                            labels[i] + '<br>';
                     }
 
                 } else {
 
-                    var grades = [-100000, -.00001, .00001];
-                    for (var i = 0; i < grades.length; i++) {
+                    var grades = [10000, 0, -10000];
+                    var labels = ["Increase in migration", "No change in migration", "Decrease in migration"]
+                   for (var i = 0; i < grades.length; i++) {
+                        console.log(i, grades[i], perc_change_color(grades[i]));
                         div.innerHTML +=
-                            '<i style="background:' + perc_change_color(grades[i] + 1) + '"></i> ' +
-                            grades[i] + (grades[i + 1] ? ' to ' + grades[i + 1] + '<br>' : '+');
+                            '<i style="background:' + perc_change_color(grades[i]) + '"></i> ' +
+                            labels[i] + '<br>';
                     }
 
                 }
@@ -166,8 +200,6 @@ function change_map_var(variable) {
 
             // Zoom the map back out to all of Mexico                
             mymap.setView(new L.LatLng(23.6345, -102.5528), 6);
-
-
 
         })
 

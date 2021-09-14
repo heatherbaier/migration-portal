@@ -166,8 +166,9 @@ legend.onAdd = function (map) {
 
     // loop through our density intervals and generate a label with a colored square for each interval
     for (var i = 0; i < grades.length; i++) {
+        console.log(i, getColor(grades[i]));
         div.innerHTML +=
-            '<i style="background:' + getColor(grades[i] + 1) + '"></i> ' +
+            '<i style="background:' + getColor(grades[i] + .01) + '"></i> ' +
             grades[i] + (grades[i + 1] ? ' to ' + grades[i + 1] + '<br>' : '+');
     }
 
@@ -211,7 +212,7 @@ function highlightFeature(e) {
 function onEachFeature(feature, layer) {
 
     layer.bindPopup('<h2>Municipality: ' + feature.properties.shapeName + '</h2>' + 
-                    '<h2>Number of migrants: ' + feature.properties.num_migrants + '</h2>');
+                    '<h2>Value: ' + feature.properties.num_migrants + '</h2>');
 
     layer.on({
         mouseover: highlightFeature,
