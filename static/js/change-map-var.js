@@ -93,7 +93,7 @@ function change_map_var(variable) {
             // var_button.classList.toggle("active");
             var_button.style.backgroundColor = "white";
             var_button.style.color = "#0E0C28";
-            var_button.style.fontWeight = "bold";
+            var_button.style.fontWeight = "normal";
 
 
 
