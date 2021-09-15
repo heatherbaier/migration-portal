@@ -32,7 +32,6 @@ DATA_PATH = "./data/mexico2010.csv"
 MIGRATION_PATH = "./data/migration_data.json"
 CORR_TABLE_PATH = "./data/corr_table.csv"
 MATCH_PATH = "./data/gB_IPUMS_match.csv"
-MODEL_PATH = "./trained_model/ram_8_50x50_0.75_model_best.pth.tar"
 BORDER_STATIONS_PATH = "./data/border_stations7.geojson"
 GRAPH_MODEL = "./trained_model/trained_graph_model.torch"
 BAD_IDS = ["105", "115", "122", "126", "147", "153", "1622", "1684", "2027", "2043", "104", "1630", "113", "640", "400", "1631", "2054", "1693", "152", "1608"]

@@ -30,6 +30,7 @@ from model.graphsage import *
 # Create the application.
 APP = flask.Flask(__name__)
 
+# Setup status file
 with open('status.json', 'w') as outfile:
     json.dump({'status': "Startup"}, outfile)
 
@@ -37,16 +38,21 @@ with open('status.json', 'w') as outfile:
 @APP.route('/', methods=['GET','POST'])
 def index():
 
-    # Read in census data
+    """
+    Landing page
+    """
+
+    # Read in census and migration data
     df = pd.read_csv(DATA_PATH)
 
-    # Read in migration data
     with open(MIGRATION_PATH) as m:
         mig_data = json.load(m)
 
+    # Get total # of migrants and a list of muni ID's
     total_migrants = sum(list(mig_data.values()))
     municipality_ids = list(mig_data.keys())
 
+    # Calculate the average age of migrants per muni
     df['avg_age_weight'] = df['avg_age'] * df['sum_num_intmig']
     avg_age = df['avg_age_weight'].sum() / df['sum_num_intmig'].sum()
 
@@ -57,10 +63,10 @@ def index():
     with open("./var_map.json", "r") as f2:
         var_names = json.load(f2)
 
-    # Get all of the variables to send to Flask
+    # Get all of the variables to send to Flask for dropdown options
     econ, demog, family, health, edu, employ, hhold = get_column_lists(df, var_names, grouped_vars)
 
-    # Merry Christmas HTML
+    # Merry Christmas HTML!!
     return flask.render_template('index.html', 
                                   municipality_ids = municipality_ids, 
                                   econ_data = econ,
@@ -79,9 +85,13 @@ def index():
 @APP.route('/geojson-features', methods=['GET'])
 def get_all_points():
 
+    """
+    Grabs the polygons from the geojson, converts them to JSON format with geometry and data 
+    features and sends back to the webpage to render on the Leaflet map
+    """
+
     # Convert the geoJSON to a dataframe and merge it to the migration data
     feature_df = convert_to_pandas(geodata_collection, MATCH_PATH, DATA_PATH)
-    print(feature_df.columns)
     feature_df['sum_num_intmig'] = feature_df['sum_num_intmig'].fillna(0)
     feature_df['perc_migrants'] = feature_df['sum_num_intmig'] / feature_df['total_pop']
 
@@ -91,10 +101,10 @@ def get_all_points():
     types = feature_df['geometry.type']
     num_migrants = feature_df['perc_migrants']
     shapeIDs = feature_df['shapeID']
-    # shapeNames = feature_df["properties.geo2_mx1960_2015_ADMIN_NAME"]
     shapeNames = feature_df["properties.ipumns_simple_wgs_wdata_geo2_mx1960_2015_ADMIN_NAME"]
 
-    # For each of the polygons in the data frame, append it and it's data to a list of dicts to be sent as a JSON back to the Leaflet map
+    # For each of the polygons in the data frame, append it and it's data to a list 
+    # of dicts to be sent as a JSON back to the Leaflet map
     features = []
     for i in range(0, len(feature_df)):
         features.append({
@@ -109,59 +119,30 @@ def get_all_points():
                           }
         })
 
-    print('done jsonifying')
-
     return jsonify(features)
 
-
-
-@APP.route('/border-features', methods=['GET'])
-def get_border_features():
-
-    feature_df = json_normalize(border_stations["features"])
-
-    print(feature_df.columns)
-    
-    # Make lists of all of the features we want available to the Leaflet map
-    coords = feature_df['geometry.coordinates']
-    types = feature_df['geometry.type']
-    num_migrants = feature_df['properties.total_migrants'].astype(float)
-    shapeIDs = feature_df['properties.portname']
-    # shapeNames = feature_df['properties.shapeName']
-
-    # For each of the polygons in the data frame, append it and it's data to a list of dicts to be sent as a JSON back to the Leaflet map
-    features = []
-    for i in range(0, len(feature_df)):
-        features.append({
-            "type": "Feature",
-            "geometry": {
-                "type": types[i],
-                "coordinates": coords[i]
-            },
-            "properties": {
-                           'shapeID': str(shapeIDs[i]),
-                           'num_migrants': num_migrants[i]
-                          }
-        })
-
-    return jsonify(features)
 
 
 
 @APP.route('/border-sectors', methods=['GET'])
 def get_border_sectors():
 
+    """
+    Grabs the centroids of the 9 border sectors and their percentage of migrants data
+    """
+
+    # Read in centroids and fractional data
     coords_df = pd.read_csv("./data/sector_centroids.csv")
     with open("./data/sector_fractions.json", "r") as f:
         fractions = json.load(f)
     dta = pd.read_csv(DATA_PATH)
+
+    # Calcualte total migrants and max # of migrants (for normalization)
     total_mig = dta["sum_num_intmig"].sum()
     max_total_mig = dta["sum_num_intmig"].max()
 
-
-    x = coords_df['xcoord']
-    y = coords_df['ycoord']
-
+    # Convert relavant data into lists
+    x, y = coords_df['xcoord'], coords_df['ycoord']
     coords = [(x[i], y[i]) for i in range(len(x))]
     names = coords_df['sector'].to_list()
 
@@ -180,8 +161,6 @@ def get_border_sectors():
                            'num_migrants_normed': (total_mig * fractions[str(names[i])]) / max_total_mig
                           }
         })
-
-    print(features)
 
     return jsonify(features)
 
@@ -300,7 +279,11 @@ def predict_migration():
 @APP.route('/update_map', methods=['GET', 'POST'])
 def update_map():
 
-    print("VARIBALE: ", request.json['variable'])
+    """
+    Called when a user changes whic type of data to display ont he map (i.e. % v absolute & change v total)
+    """
+
+    print("Variable to map: ", request.json['variable'])
 
     data_path = os.path.join("map_layers", request.json['variable'] + ".csv")
     dta_final = pd.read_csv(data_path)
@@ -310,12 +293,17 @@ def update_map():
     merged = pd.merge(geoDF, dta_final, left_on = "properties.shapeID", right_on = "GEO2_MX")
 
     features = convert_features_to_geojson(merged, column = request.json['variable'])
+    
     return jsonify(features)
 
 
 
 @APP.route('/update_stats', methods=['GET'])
 def update_stats():
+
+    """
+    Function used to update the statistc boxes at the top of the page & the graphs below the map
+    """
 
     # Read in migration data
     df = pd.read_csv(DATA_PATH)
@@ -353,7 +341,7 @@ def update_stats():
             cat_mean_corr = 0
         else:
             cat_mean_corr = round(np.mean(cat_vals), 4)
-            corr_category_dict[category] = [cat_columns, cat_vals]
+            corr_category_dict[category] = [cat_columns, [round(v, 4) for k,v in corrs.items() if k in cat_columns]]
         corr_means.append(cat_mean_corr)
         print(category, cat_columns, cat_mean_corr)
 
@@ -389,6 +377,11 @@ def update_stats():
 @APP.route('/get_border_data', methods=['GET'])
 def get_border_data():
 
+    """
+    Function to set up the intital display of migrants to each border sector (i.e. baseline)
+    Called on document setup
+    """
+
     migs_for_bs = pd.read_csv(DATA_PATH)
     migs_for_bs = migs_for_bs["sum_num_intmig"].sum()
 
@@ -417,7 +410,7 @@ def status_update():
 @APP.route('/download_data', methods=['GET'])
 def download_data():
     return send_from_directory("./data/",
-                               "portal_data.csv", as_attachment = True)
+                               "mexico2010.csv", as_attachment = True)
 
 
 
