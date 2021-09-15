@@ -179,7 +179,7 @@ def predict_migration():
 
     # TEMPORARY UNTIL YOU GET THE BIG IMAGES DOWNLOADED
     selected_municipalities = [sm for sm in selected_municipalities if sm in munis_available]
-    selected_municipalities = [sm for sm in selected_municipalities if graph_id_dict[sm] not in BAD_IDS]
+    # selected_municipalities = [sm for sm in selected_municipalities if graph_id_dict[sm] not in BAD_IDS]
 
     # Read in the migration data and subset it to the selected municipalities
     dta = pd.read_csv(DATA_PATH)
@@ -192,7 +192,7 @@ def predict_migration():
     if len(selected_municipalities) == 0:
         selected_municipalities = [str(i) for i in dta['GEO2_MX'].to_list()]
         selected_municipalities = [sm for sm in selected_municipalities if sm in munis_available]
-        selected_municipalities = [sm for sm in selected_municipalities if graph_id_dict[sm] not in BAD_IDS]
+        # selected_municipalities = [sm for sm in selected_municipalities if graph_id_dict[sm] not in BAD_IDS]
         print("Selected municipalities since none were selected: ", selected_municipalities)
 
     dta_selected, dta_dropped, muns_to_pred = prep_dataframes(dta, request, selected_municipalities)
