@@ -18,8 +18,8 @@ import socialSigNoDrop
 importlib.reload(socialSigNoDrop)
 
 from model.utils import *
-from model.model import *
-from model.modules import *
+# from model.model import *
+# from model.modules import *
 from model.aggregator import *
 from model.encoder import *
 from model.graphsage import *
@@ -33,7 +33,7 @@ MIGRATION_PATH = "./data/migration_data.json"
 CORR_TABLE_PATH = "./data/corr_table.csv"
 MATCH_PATH = "./data/gB_IPUMS_match.csv"
 BORDER_STATIONS_PATH = "./data/border_stations7.geojson"
-GRAPH_MODEL = "./trained_model/trained_graph_model.torch"
+GRAPH_MODEL = "./trained_model/trained_graph_model_fc2_v2.torch"
 BAD_IDS = ["105", "115", "122", "126", "147", "153", "1622", "1684", "2027", "2043", "104", "1630", "113", "640", "400", "1631", "2054", "1693", "152", "1608"]
 
 gdf = gpd.read_file(SHP_PATH)
@@ -45,7 +45,7 @@ munis_available = gdf["shapeID"].to_list()
 graph_checkpoint = torch.load(GRAPH_MODEL)
 graph_checkpoint = graph_checkpoint["model_state_dict"]
 
-with open("./data/graph.json") as g:
+with open("./data/graph (1).json") as g:
     graph = json.load(g)
 
 x, adj_lists, y = [], {}, []

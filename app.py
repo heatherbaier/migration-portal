@@ -21,8 +21,8 @@ import socialSigNoDrop
 importlib.reload(socialSigNoDrop)
 from app_helpers import *
 from model.utils import *
-from model.model import *
-from model.modules import *
+# from model.model import *
+# from model.modules import *
 from model.aggregator import *
 from model.encoder import *
 from model.graphsage import *
@@ -190,7 +190,9 @@ def predict_migration():
 
     # If no muni's are selected, select them all
     if len(selected_municipalities) == 0:
-        selected_municipalities = dta['sending'].to_list()
+        selected_municipalities = [str(i) for i in dta['GEO2_MX'].to_list()]
+        selected_municipalities = [sm for sm in selected_municipalities if sm in munis_available]
+        selected_municipalities = [sm for sm in selected_municipalities if graph_id_dict[sm] not in BAD_IDS]
         print("Selected municipalities since none were selected: ", selected_municipalities)
 
     dta_selected, dta_dropped, muns_to_pred = prep_dataframes(dta, request, selected_municipalities)
