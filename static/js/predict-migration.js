@@ -97,11 +97,11 @@ function predict_migration() {
                 // if p_change is greater than 1, make icon green & trending_up and vice versa
                 if (response.data['p_change'] > 0) {
                     document.getElementById("pchange_icon").innerHTML = 'trending_up'
-                    document.getElementById("pchange_icon").style.color = 'red'
+                    // document.getElementById("pchange_icon").style.color = 'red'
                 } else {
                     // document.getElementById("pchange_migrants").innerHTML = response.data['p_change'].toString().concat("%");
                     document.getElementById("pchange_icon").innerHTML = 'trending_down'
-                    document.getElementById("pchange_icon").style.color = 'green'
+                    // document.getElementById("pchange_icon").style.color = 'green'
                 }
 
                 // if pavg_age_change is greater than 1, make icon green & trending_up and vice versa
