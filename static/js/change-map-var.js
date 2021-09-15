@@ -86,21 +86,14 @@ function change_map_var(variable) {
             for (var mb = 0; mb < map_button_list.length; mb++) {
                 document.getElementById(map_button_list[mb]).style.backgroundColor = "#0E0C28";
                 document.getElementById(map_button_list[mb]).style.color = "white";
-                document.getElementById(map_button_list[mb]).style.fontWeight = "bold";
+                document.getElementById(map_button_list[mb]).style.fontWeight = "normal";
             }
 
             var var_button = document.getElementById(variable + "_button");
             // var_button.classList.toggle("active");
             var_button.style.backgroundColor = "white";
             var_button.style.color = "#0E0C28";
-            var_button.style.fontWeight = "normal";
-
-
-
-
-
-
-
+            var_button.style.fontWeight = "bold";
 
             console.log(var_button.classList);
 

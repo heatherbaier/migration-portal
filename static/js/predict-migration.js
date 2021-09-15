@@ -83,8 +83,23 @@ function predict_migration() {
             .then(response => {
 
 
+                var map_button_list = ["sum_num_intmig_button", "perc_migrants_button", "absolute_change_button", "perc_change_button"]
+
+                // Hack for switching button colors because you suck at CSS
+                for (var mb = 0; mb < map_button_list.length; mb++) {
+                    document.getElementById(map_button_list[mb]).style.backgroundColor = "#0E0C28";
+                    document.getElementById(map_button_list[mb]).style.color = "white";
+                    document.getElementById(map_button_list[mb]).style.fontWeight = "normal";
+                }
+
+
+
                 document.getElementById("absolute_change_button").style.display = 'block';
                 document.getElementById("perc_change_button").style.display = 'block';
+                document.getElementById("perc_migrants_button").style.backgroundColor = 'white';
+                document.getElementById("perc_migrants_button").style.color = '#0E0C28';
+                document.getElementById("perc_migrants_button").style.fontWeight = 'bold';
+
 
                 // Update all of the HTML text that doesn't involve the trending icon
                 document.getElementById("total_migrants").innerHTML = response.data['predicted_migrants'].toLocaleString();
