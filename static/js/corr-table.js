@@ -175,7 +175,7 @@ function make_corr_tables(data) {
 
 function edit_corr_table(data, index) {
 
-    var categories = ["Economic", "Deomographic", "Family", "Employment", "Health", "Education", "Household"]
+    var categories = ["Economic", "Deomographic", "Family", "Health", "Employment", "Education", "Household"]
 
 
     var backgroundColors = [

@@ -48,7 +48,7 @@ axios.get('http://127.0.0.1:5000/get_border_data')
             data: {
                 labels: response.data["bs_fractions_labels"],
                 datasets: [{
-                    label: '% change',
+                    label: 'Number of migrants',
                     data: response.data["bs_fractions_values"],
                     backgroundColor: 'rgba(70, 109, 29, 0.5)',
                     borderColor: 'rgba(70, 109, 29, 1)',
@@ -88,7 +88,7 @@ function border_sector_breakout(data) {
         data: {
             labels: data["bs_fractions_labels"],
             datasets: [{
-                label: '% change',
+                label: 'Number of migrants',
                 data: data["bs_fractions_values"],
                 backgroundColor: 'rgba(70, 109, 29, 0.5)',
                 borderColor: 'rgba(70, 109, 29, 1)',
