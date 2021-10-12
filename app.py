@@ -14,15 +14,8 @@ import json
 import io
 import os
 
-# import landsat_prep as lp
-# import geograph as gg
-
-import socialSigNoDrop
-importlib.reload(socialSigNoDrop)
 from app_helpers import *
 from model.utils import *
-# from model.model import *
-# from model.modules import *
 from model.aggregator import *
 from model.encoder import *
 from model.graphsage import *

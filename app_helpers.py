@@ -14,12 +14,7 @@ import flask
 import json
 import io
 
-import socialSigNoDrop
-importlib.reload(socialSigNoDrop)
-
 from model.utils import *
-# from model.model import *
-# from model.modules import *
 from model.aggregator import *
 from model.encoder import *
 from model.graphsage import *
