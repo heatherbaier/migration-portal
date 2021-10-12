@@ -1,0 +1,8 @@
+flask
+torchvision
+conda install scikit-learn
+pandas
+geopandas
+geojson
+folium
+matplotlib

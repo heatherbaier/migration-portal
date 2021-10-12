@@ -14,8 +14,8 @@ import json
 import io
 import os
 
-import landsat_prep as lp
-import geograph as gg
+# import landsat_prep as lp
+# import geograph as gg
 
 import socialSigNoDrop
 importlib.reload(socialSigNoDrop)
@@ -77,7 +77,8 @@ def index():
                                   employ_data = employ,
                                   hhold_data = hhold,
                                   total_migrants = f'{int(total_migrants / 5):,}',
-                                  avg_age = round(avg_age, 2))
+                                  avg_age = round(avg_age, 2),
+                                  model_error = int((total_migrants / 5) * MODEL_ERROR))
 
 
 
@@ -94,6 +95,8 @@ def get_all_points():
     feature_df = convert_to_pandas(geodata_collection, MATCH_PATH, DATA_PATH)
     feature_df['sum_num_intmig'] = feature_df['sum_num_intmig'].fillna(0)
     feature_df['perc_migrants'] = feature_df['sum_num_intmig'] / feature_df['total_pop']
+
+    print(feature_df.columns)
 
     
     # Make lists of all of the features we want available to the Leaflet map

@@ -3,3 +3,4 @@ trained_model
 data
 imagery
 delete
+.DS_Store

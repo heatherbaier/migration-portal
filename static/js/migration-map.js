@@ -212,6 +212,7 @@ function highlightFeature(e) {
 function onEachFeature(feature, layer) {
 
     layer.bindPopup('<h2>Municipality: ' + feature.properties.shapeName + '</h2>' + 
+                    '<h2>ID: ' + feature.properties.shapeID + '</h2>' + 
                     '<h2>Value: ' + feature.properties.num_migrants + '</h2>');
 
     layer.on({

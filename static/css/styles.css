@@ -253,20 +253,16 @@ hr {
 .item-s2 { grid-area: s2; }
 .item-s3 { grid-area: s3; }
 .item-s4 { grid-area: s4; }
-
 .item-s5 { grid-area: s5; }
 
 
 .grid-container {
     display: grid;
-    grid-template-areas:
-        's1 s2 s3 s4'
-        's5 s5 s5 s5';
+    grid-template-areas: 's1 s2 s3 s4 s5';
     grid-gap: 40px;
     padding: 10px;
     margin-top: 40px;
     margin-right: 50px;
-    /* width: 98%; */
 }
 
 .grid-container > div {
@@ -281,14 +277,11 @@ hr {
 
 .button-container {
     display: grid;
-    grid-template-areas:
-        's1 s2 s3 s4 s5';
-        /* 's5 s5 s5 s5'; */
+    grid-template-areas: 's1 s2 s3 s4 s5';
     grid-gap: 40px;
     padding: 10px;
     margin-top: 40px;
     margin-right: 50px;
-    /* width: 98%; */
 }
 
 
@@ -300,10 +293,7 @@ hr {
     font-size: 20px;
     box-shadow: 10px 5px 5px lightgray;
     border-radius: 15px;
-    /* padding: 10px */
 }
-
-
 
 
 .button-container > div > button:hover {
@@ -315,7 +305,6 @@ hr {
     box-shadow: 10px 5px 5px lightgray;
     border-radius: 15px;
     font-weight: bold;
-    /* padding: 10px */
 }
 
 
@@ -333,33 +322,6 @@ hr {
     text-align: center;
  }
 
-
-/* #canvas-divL {
-    width: 45% !important;
-    height: 700px !important; 
-    float: 'left'
-}
-
-#canvas-divR {
-    width: 45% !important;
-    /* height: 700px !important;
-    float: 'right'
-}
-
-#canvas-div {
-    width: 100% !important;
-    /* height: 700px !important;
-    float: 'right'
-} */
-
-
-
-/* canvas{
-
-    width: 1000px !important;
-    height: 700px !important;
-
-} */
 
 /* Some media queries for responsiveness */
 @media screen and (max-height: 450px) {
