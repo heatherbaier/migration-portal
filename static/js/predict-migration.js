@@ -102,7 +102,7 @@ function predict_migration() {
 
 
                 // Update all of the HTML text that doesn't involve the trending icon
-                document.getElementById("total_migrants").innerHTML = response.data['predicted_migrants'].toLocaleString();
+                document.getElementById("total_migrants").innerHTML = response.data['predicted_migrants'].toLocaleString() + "<br> +/-" + response.data['model_error'] + "M.E.";
                 document.getElementById("change_migrants").innerHTML = response.data['change'].toLocaleString().concat(" migrants");
                 document.getElementById("avg_age").innerHTML = response.data['avg_age'];
                 document.getElementById("avg_age_change").innerHTML = response.data['avg_age_change'].toString().concat(" years");

@@ -258,7 +258,7 @@ hr {
 
 .grid-container {
     display: grid;
-    grid-template-areas: 's1 s2 s3 s4 s5';
+    grid-template-areas: 's1 s2 s3 s4';
     grid-gap: 40px;
     padding: 10px;
     margin-top: 40px;

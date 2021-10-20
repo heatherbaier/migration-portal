@@ -71,7 +71,7 @@ def index():
                                   hhold_data = hhold,
                                   total_migrants = f'{int(total_migrants / 5):,}',
                                   avg_age = round(avg_age, 2),
-                                  model_error = int((total_migrants / 5) * MODEL_ERROR))
+                                  model_error = f'{int((total_migrants / 5) * MODEL_ERROR):,}')
 
 
 
@@ -364,7 +364,8 @@ def update_stats():
             'corr_means': corr_means,
             'corr_category_dict': corr_category_dict,
             'bs_fractions_labels': list(bs_fractions.keys()),
-            'bs_fractions_values': list(bs_fractions.values())}
+            'bs_fractions_values': list(bs_fractions.values()),
+            'model_error': f'{int((round(total_pred_migrants, 0) / 5) * MODEL_ERROR):,}'}
 
 
 
