@@ -19,7 +19,7 @@ function total_mig_style(feature) {
         weight: .2,
         opacity: 1,
         color: 'white',
-        fillOpacity: 0.5
+        fillOpacity: 0.8
     };
 }
 
@@ -27,10 +27,15 @@ function total_mig_style(feature) {
 // Function to color the polygons by percentage change in migrants
 function perc_change_color(d) {
 
-    return  d > .0000001        ? '#73D055FF' : // positive change
-            d > -.0000001       ? '#808080' : // zero change
-            d > -100000         ? '#D0312D' : // negative change
+    return  d > 1               ? '#69B34C' : // positive change
+            d > .1              ? '#ACB334' : // positive change
+            d > .0000001        ? '#FAB733' :
+            d > -.0000001       ? 'white' : // zero change
+            d > -.1             ? '#FF8E15' :
+            d > -1              ? '#FF4E11' :
+            d > -100000         ? '#FF0D0D' : // negative change
                                   '#808080' ; // other
+
 }
 
 // Function to style the polygons
@@ -40,7 +45,7 @@ function perc_change_style(feature) {
         weight: .2,
         opacity: 1,
         color: 'white',
-        fillOpacity: 0.5
+        fillOpacity: 0.8
     };
 }
 
@@ -49,10 +54,15 @@ function perc_change_style(feature) {
 // Function to color the polygons by change in migrants
 function abs_change_color(d) {
 
-    return  d > .0000001        ? '#73D055FF' : // positive change
-            d > -.0000001       ? '#808080' : // zero change
-            d > -100000         ? '#D0312D' : // negative change
-                                  '#808080' ; // other
+    return  d > 10000           ? '#69B34C' : // positive change
+            d > 100              ? '#ACB334' : // positive change
+            d > .0000001         ? '#FAB733' :
+            d > -.0000001        ? 'white'   : // zero change
+            d > -10              ? '#FF8E15' :
+            d > -100             ? '#FF4E11' :
+                                   '#FF0D0D' ; // negative change
+                                //    '#808080' ; // other
+
 }
 
 // Function to style the polygons
@@ -62,7 +72,7 @@ function abs_change_style(feature) {
         weight: .2,
         opacity: 1,
         color: 'white',
-        fillOpacity: 0.5
+        fillOpacity: 0.8
     };
 }
 
@@ -137,24 +147,29 @@ function change_map_var(variable) {
 
                 } else if (variable == "absolute_change") {
 
-                    var grades = [10000, 0, -10000];
-                    var labels = ["Increase in migration", "No change in migration", "Decrease in migration"]
+
+                    var grades = [100005, 100000, 1000, .0000001, -.0000001, -10, -100, -100000];
+                    var labels = ["> 1000", "1000 to 100", "100 to 0", "No change", "-1 to -10", "-10 to -100", "-100 to -1000", "< -1000"]
                     for (var i = 0; i < grades.length; i++) {
                         console.log(i, abs_change_color(grades[i]));
+
                         div.innerHTML +=
-                            '<i style="background:' + abs_change_color(grades[i]) + '"></i> ' +
-                            labels[i] + '<br>';
+                        '<i style="background:' + abs_change_color(grades[i]) + '"></i> ' +
+                        labels[i] + '<br>';
+
                     }
 
                 } else {
 
-                    var grades = [10000, 0, -10000];
-                    var labels = ["Increase in migration", "No change in migration", "Decrease in migration"]
-                   for (var i = 0; i < grades.length; i++) {
-                        console.log(i, grades[i], perc_change_color(grades[i]));
+                    var grades = [2, 1, .1, .0000001, -.0000001, -.1, -1, -2];
+                    var labels = ["> 100%", "100% to 1%", "1% to 0", "No change", "0 to -.1%", "-.1% to -1%", "-1% to -100%", "< -100%"]
+                    for (var i = 0; i < grades.length; i++) {
+                        console.log(i, getColor(grades[i]));
+
                         div.innerHTML +=
-                            '<i style="background:' + perc_change_color(grades[i]) + '"></i> ' +
-                            labels[i] + '<br>';
+                        '<i style="background:' + perc_change_color(grades[i]) + '"></i> ' +
+                        labels[i] + '<br>';
+
                     }
 
                 }
