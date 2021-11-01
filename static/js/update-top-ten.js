@@ -11,7 +11,7 @@ function update_top_ten(data) {
 
         cur_p = "c-".concat(i.toString())
         console.log(cur_p);
-        document.getElementById(cur_p).innerHTML = data.top_changes[i]
+        document.getElementById(cur_p).innerHTML = data.top_changes[i].toString().concat("%")
 
     }
 

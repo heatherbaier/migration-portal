@@ -30,7 +30,7 @@ function perc_change_color(d) {
     return  d > 1               ? '#69B34C' : // positive change
             d > .1              ? '#ACB334' : // positive change
             d > .0000001        ? '#FAB733' :
-            d > -.0000001       ? 'white' : // zero change
+            d > -.0000001       ? '#656565' : // zero change
             d > -.1             ? '#FF8E15' :
             d > -1              ? '#FF4E11' :
             d > -100000         ? '#FF0D0D' : // negative change
@@ -57,7 +57,7 @@ function abs_change_color(d) {
     return  d > 10000           ? '#69B34C' : // positive change
             d > 100              ? '#ACB334' : // positive change
             d > .0000001         ? '#FAB733' :
-            d > -.0000001        ? 'white'   : // zero change
+            d > -.0000001        ? '#656565'   : // zero change
             d > -10              ? '#FF8E15' :
             d > -100             ? '#FF4E11' :
                                    '#FF0D0D' ; // negative change

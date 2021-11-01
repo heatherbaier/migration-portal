@@ -352,8 +352,12 @@ def update_stats():
     
 
     changes = pd.read_csv("./map_layers/perc_change.csv").sort_values(by = ["perc_change"], ascending = False)
+    changes["GEO2_MX"] = changes["GEO2_MX"].astype(str)
+    with open("./data/shapeName_shapeID_dict.json", "r") as f:
+        id_map = json.load(f)
+    changes["GEO2_MX"] = changes["GEO2_MX"].astype(str).map(id_map)
     top_munis = changes["GEO2_MX"].to_list()[0:10]
-    top_changes = changes["perc_change"].to_list()[0:10]
+    top_changes = changes["perc_change"].round(2).to_list()[0:10]
 
 
     return {'change': int(change),
