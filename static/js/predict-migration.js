@@ -136,6 +136,8 @@ function predict_migration() {
 
                 make_corr_tables(response.data);
 
+                update_top_ten(response.data);
+
             });
 
         });

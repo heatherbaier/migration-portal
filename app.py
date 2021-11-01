@@ -249,8 +249,6 @@ def predict_migration():
     change_df = change_df.fillna(0)
     change_df[['GEO2_MX', 'perc_change']].to_csv("./map_layers/perc_change.csv", index = False)
 
-
-
     #######################################################################
     # Aggregate statistics and send to a JSON                             #
     #######################################################################
@@ -349,10 +347,13 @@ def update_stats():
     with open("./data/sector_fractions.json", "r") as f:
         bs_fractions = json.load(f)
 
-    bs_dict = {}
     for k,v in bs_fractions.items():
         bs_fractions[k] = bs_fractions[k] * migs_for_bs
     
+
+    changes = pd.read_csv("./map_layers/perc_change.csv").sort_values(by = ["perc_change"], ascending = False)
+    top_munis = changes["GEO2_MX"].to_list()[0:10]
+    top_changes = changes["perc_change"].to_list()[0:10]
 
 
     return {'change': int(change),
@@ -365,7 +366,9 @@ def update_stats():
             'corr_category_dict': corr_category_dict,
             'bs_fractions_labels': list(bs_fractions.keys()),
             'bs_fractions_values': list(bs_fractions.values()),
-            'model_error': f'{int((round(total_pred_migrants, 0) / 5) * MODEL_ERROR):,}'}
+            'model_error': f'{int((round(total_pred_migrants, 0) / 5) * MODEL_ERROR):,}',
+            'top_munis': top_munis,
+            'top_changes': top_changes}
 
 
 
@@ -387,7 +390,6 @@ def get_border_data():
     with open("./data/sector_fractions.json", "r") as f:
         bs_fractions = json.load(f)
 
-    bs_dict = {}
     for k,v in bs_fractions.items():
         bs_fractions[k] = bs_fractions[k] * migs_for_bs
 

@@ -318,6 +318,30 @@ hr {
 }
 
 
+#top-ten {
+    width: 100%;
+    border-spacing: 0 15px;
+    font-size: 22px;
+}
+
+#top-ten th {
+    padding-top: 12px;
+    padding-bottom: 12px;
+    text-align: left;
+    background-color: #04AA6D;
+    color: white;
+  }
+
+#top-ten td {
+    padding: 5px;
+}
+
+
+#top-ten tr:nth-child(even){background-color: #f2f2f2;}
+
+#top-ten tr:hover {background-color: #ddd;}
+
+
 #confirm .message {
     text-align: center;
  }

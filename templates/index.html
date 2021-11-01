@@ -23,7 +23,8 @@
     <script src="{{url_for('static', filename='js/corr-table.js')}}"></script>
     <script src="{{url_for('static', filename='js/change-map-var.js')}}"></script>
     <script src="{{url_for('static', filename='js/border-sector-breakout.js')}}"></script>
-    
+    <script src="{{url_for('static', filename='js/update-top-ten.js')}}"></script>
+
     <script src="https://d3js.org/d3.v4.js"></script>
     <script src="https://canvasjs.com/assets/script/canvasjs.min.js"></script>
 
@@ -112,10 +113,15 @@
             <div><button class="predict-button" id='submit' onclick="predict_migration()">Predict new migration pattern</button></div>
             <h2 id="status"></h2>
 
-            <br><br><hr><br>
+            <hr>
+
+            <!-- <div><a href="http://127.0.0.1:5000/download_data"><button class="predict-button" id='download'>Download data</button></a></div> -->
+
+
+
 
             <!-- Directions to user -->
-            <div>
+            <!-- <div>
                 <h2 style="margin-left: 40px; font-size: 28px;">Directions to user:</h2>
                 <ol style="margin-left: 40px; font-size: 24px; font-family: Roboto; line-height: 1.6;">
                     <li>Click on either the polygon or rectangle icons on the map to draw an area of interest (AOI) over municipalities you wish to manipualte data for. You can draw as many AOI's as you wish. To delete an AOI, click on the trash can icon on the map, then click on the AOI you wish to delte and hit 'save' next to the trash can icon.</li>
@@ -123,9 +129,8 @@
                     <li>Once you are happy with your selections, click 'Predict new migration pattern' and wait for the update migration predictions.</li>
                 </ol>
 
-                <div><a href="http://127.0.0.1:5000/download_data"><button class="predict-button" id='download'>Download data</button></a></div>
 
-            </div>
+            </div> -->
 
         </div>
 
@@ -192,10 +197,27 @@
 
                 <hr>
 
-                <h2 id='bs-title'></h2>
+                
                 <div id='bs-div' style='width: 100%; height: 700px'>
-                    <div id='bs-divL' style='width: 45%; float: left; height: 700px'></div>
-                    <div id='bs-divR' style='width: 45%; float: right; height: 700px'></div>
+                    <div id='bs-divL' style='width: 45%; float: left; height: 700px'>
+                        <h2 id='bs-title'></h2>
+                    </div>
+                    <div id='bs-divR' style='width: 45%; float: right; height: 700px; display:none;'>
+                        <h2 id='top-ten-title' style="display:none;">Top ten changes</h2>
+                        <table id='top-ten'>
+                            <tr> <th>Rank</th> <th>Municipality</th> <th>Percentage Change</th> </tr>
+                            <tr> <td>1</td> <td id="m-0">0</td> <td id="c-0">0</td> </tr>
+                            <tr> <td>2</td> <td id="m-1">0</td> <td id="c-1">0</td> </tr>
+                            <tr> <td>3</td> <td id="m-2">0</td> <td id="c-2">0</td> </tr>
+                            <tr> <td>4</td> <td id="m-3">0</td> <td id="c-3">0</td> </tr>
+                            <tr> <td>5</td> <td id="m-4">0</td> <td id="c-4">0</td> </tr>
+                            <tr> <td>6</td> <td id="m-5">0</td> <td id="c-5">0</td> </tr>
+                            <tr> <td>7</td> <td id="m-6">0</td> <td id="c-6">0</td> </tr>
+                            <tr> <td>8</td> <td id="m-7">0</td> <td id="c-7">0</td> </tr>
+                            <tr> <td>9</td> <td id="m-8">0</td> <td id="c-8">0</td> </tr>
+                            <tr> <td>10</td> <td id="m-9">0</td> <td id="c-9">0</td> </tr>
+                          </table>
+                    </div>
                 </div>
 
                 <h2 id='scenario-title' style="display: none;"></h2>
