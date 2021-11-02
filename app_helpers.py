@@ -22,7 +22,7 @@ from model.graphsage import *
 
 # Path variables
 GEOJSON_PATH = "./data/ipumns_simple_wgs_wdata8.geojson"
-SHP_PATH = "./data/useforportal.shp"
+SHP_PATH = "./data/useforportal2.shp"
 DATA_PATH = "./data/mexico2010.csv"
 MIGRATION_PATH = "./data/migration_data.json"
 CORR_TABLE_PATH = "./data/corr_table.csv"
@@ -41,7 +41,7 @@ munis_available = gdf["shapeID"].to_list()
 graph_checkpoint = torch.load(GRAPH_MODEL)
 graph_checkpoint = graph_checkpoint["model_state_dict"]
 
-with open("./data/graph (1).json") as g:
+with open("./data/graph_new.json") as g:
     graph = json.load(g)
 
 x, adj_lists, y = [], {}, []
@@ -92,12 +92,16 @@ def predict(graph, selected_muni_ref_dict, new_census_vals, selected_municipalit
     model = SupervisedGraphSage(num_classes = 1, enc = enc)
     model.load_state_dict(graph_checkpoint)
 
+
     predictions = []
     for muni in selected_municipalities:
-        muni_ref = graph_id_dict[muni]        
-        input = [muni_ref]
-        prediction = int(model.forward(input).item())
-        predictions.append(prediction)
+        try:
+            muni_ref = graph_id_dict[muni]        
+            input = [muni_ref]
+            prediction = int(model.forward(input).item())
+            predictions.append(prediction)
+        except:
+            predictions.append(0)
 
     print("PREDICTIONS: ", predictions)
     
