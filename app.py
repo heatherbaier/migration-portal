@@ -351,13 +351,16 @@ def update_stats():
         bs_fractions[k] = bs_fractions[k] * migs_for_bs
     
 
-    changes = pd.read_csv("./map_layers/perc_change.csv").sort_values(by = ["perc_change"], ascending = False)
+    changes = pd.read_csv("./map_layers/absolute_change.csv").sort_values(by = ["absolute_change"], ascending = False)
     changes["GEO2_MX"] = changes["GEO2_MX"].astype(str)
     with open("./data/shapeName_shapeID_dict.json", "r") as f:
         id_map = json.load(f)
     changes["GEO2_MX"] = changes["GEO2_MX"].astype(str).map(id_map)
     top_munis = changes["GEO2_MX"].to_list()[0:10]
-    top_changes = changes["perc_change"].round(2).to_list()[0:10]
+    top_changes = changes["absolute_change"].round(2).to_list()[0:10]
+
+    bottom_munis = changes["GEO2_MX"].to_list()[-10:][::-1]
+    bottom_changes = changes["absolute_change"].round(2).to_list()[-10:][::-1]
 
 
     return {'change': int(change),
@@ -372,7 +375,10 @@ def update_stats():
             'bs_fractions_values': list(bs_fractions.values()),
             'model_error': f'{int((round(total_pred_migrants, 0) / 5) * MODEL_ERROR):,}',
             'top_munis': top_munis,
-            'top_changes': top_changes}
+            'top_changes': top_changes,
+            'bottom_munis': bottom_munis,
+            'bottom_changes': bottom_changes,
+            }
 
 
 

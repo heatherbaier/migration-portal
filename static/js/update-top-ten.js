@@ -11,7 +11,16 @@ function update_top_ten(data) {
 
         cur_p = "c-".concat(i.toString())
         console.log(cur_p);
-        document.getElementById(cur_p).innerHTML = data.top_changes[i].toString().concat("%")
+        document.getElementById(cur_p).innerHTML = data.top_changes[i].toString().concat(" migrants")
+
+        cur_id = "mb-".concat(i.toString())
+        console.log(cur_id);
+        document.getElementById(cur_id).innerHTML = data.bottom_munis[i]
+
+        cur_p = "cb-".concat(i.toString())
+        console.log(cur_p);
+        document.getElementById(cur_p).innerHTML = data.bottom_changes[i].toString().concat(" migrants")
+
 
     }
 
