@@ -122,30 +122,41 @@ function drilldown(target) {
             return response.text();
         }).then(function (text) {
 
+            // Parse data from Flask into JSON
             data = JSON.parse(text);
 
-            console.log(data)
-
+            // Update text on screen to say:
+            // XX MUNI is in YY Percentile...
             document.getElementById("mig_perc").style.fontSize = "28px";
             document.getElementById("mig_perc").style.textAlign = "center";
             document.getElementById("mig_perc").innerHTML = target.feature.properties.shapeName + " is in the " + data['mig_perc'] + "st percentile of all municipalities in number of migrants."
 
+            // Make the histogram chart with percentiles
+            // TO-DO: ADD VERTICAL LINE FOR MUNI'S PLACE ON HISTOGRAM
             make_perc_chart(data['mig_hist_counts'], data['mig_hist_bins'])
 
+            // Parent node id="drill"
             var parent = document.getElementById("drill");
 
+            // Create the uncertainty header
             var unc_title = document.createElement("h3")
+            unc_title.id = "unc_title"
             unc_title.innerHTML = "Uncertainty";
 
+            // Create the text that says..
+            // XX MUNI has a YY level of uncertainty
             var unc_level = document.createElement("h5")
+            unc_level.id = "unc_level"
             unc_level.innerHTML = target.feature.properties.shapeName + " has a HIGH level of uncertainty"
             unc_level.style.fontSize = "28px";
             unc_level.textAlign = "center";
 
+            var hr = document.createElement("hr")
+            hr.id = "unc_hr"
 
-
+            // Append the title, an hr and the uncertainity text to the document
             parent.appendChild(unc_title);
-            parent.appendChild(document.createElement("hr"));
+            parent.appendChild(hr);
             parent.appendChild(unc_level);
 
         })
