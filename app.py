@@ -8,6 +8,7 @@ import numpy as np
 import importlib
 import geojson
 import folium
+import scipy
 import torch
 import flask
 import json
@@ -60,7 +61,7 @@ def index():
     econ, demog, family, health, edu, employ, hhold = get_column_lists(df, var_names, grouped_vars)
 
     # Merry Christmas HTML!!
-    return flask.render_template('index.html', 
+    return flask.render_template('index1.html', 
                                   municipality_ids = municipality_ids, 
                                   econ_data = econ,
                                   demog_data = demog,
@@ -73,6 +74,117 @@ def index():
                                   avg_age = round(avg_age, 2),
                                   model_error = f'{int((total_migrants / 5) * MODEL_ERROR):,}')
 
+
+@APP.route('/scenario', methods=['GET','POST'])
+def scenario():
+
+    """
+    Landing page
+    """
+
+    # Read in census and migration data
+    df = pd.read_csv(DATA_PATH)
+
+    with open(MIGRATION_PATH) as m:
+        mig_data = json.load(m)
+
+    # Get total # of migrants and a list of muni ID's
+    total_migrants = sum(list(mig_data.values()))
+    municipality_ids = list(mig_data.keys())
+
+    # Calculate the average age of migrants per muni
+    df['avg_age_weight'] = df['avg_age'] * df['sum_num_intmig']
+    avg_age = df['avg_age_weight'].sum() / df['sum_num_intmig'].sum()
+
+    # Open the variables JSON and the JSON containing the readable translation of the variables
+    with open("./vars.json", "r") as f:
+        grouped_vars = json.load(f)
+
+    with open("./var_map.json", "r") as f2:
+        var_names = json.load(f2)
+
+    # Get all of the variables to send to Flask for dropdown options
+    econ, demog, family, health, edu, employ, hhold = get_column_lists(df, var_names, grouped_vars)
+
+    # Merry Christmas HTML!!
+    return flask.render_template('scenario.html', 
+                                  municipality_ids = municipality_ids, 
+                                  econ_data = econ,
+                                  demog_data = demog,
+                                  family_data = family,
+                                  health_data = health,
+                                  edu_data = edu,
+                                  employ_data = employ,
+                                  hhold_data = hhold,
+                                  total_migrants = f'{int(total_migrants / 5):,}',
+                                  avg_age = round(avg_age, 2),
+                                  model_error = f'{int((total_migrants / 5) * MODEL_ERROR):,}')
+
+
+
+
+
+@APP.route('/cat_select', methods=['GET','POST'])
+def cat_select():
+
+    """
+    Landing page
+    """
+
+    category = request.json["selected_cat"]
+
+    # Read in census and migration data
+    df = pd.read_csv(DATA_PATH)
+
+    # Calculate the average age of migrants per muni
+    df['avg_age_weight'] = df['avg_age'] * df['sum_num_intmig']
+
+    # Open the variables JSON and the JSON containing the readable translation of the variables
+    with open("./vars.json", "r") as f:
+        grouped_vars = json.load(f)
+
+    with open("./var_map.json", "r") as f2:
+        var_names = json.load(f2)
+
+    econ = get_column_lists(df, var_names, grouped_vars, category)
+
+    econ = list(econ)
+
+    print("category:", category, econ)
+
+    return {'categories': econ}
+
+
+
+
+@APP.route('/drilldown', methods=['GET', 'POST'])
+def drilldown():
+
+    drilldown_muni = request.json['drilldown_muni']
+
+    print("drilldown_muni: ", drilldown_muni)
+
+    df = pd.read_csv(DATA_PATH)
+
+    num_migs = df[df['GEO2_MX'] == int(drilldown_muni)]['sum_num_intmig'].values[0]
+
+    all_migs = df['sum_num_intmig'].values
+
+    mig_perc = scipy.stats.percentileofscore(all_migs, num_migs) 
+
+    mig_hist_counts, mig_hist_bins = np.histogram(df['sum_num_intmig'])
+
+    print("NUM MIGS: ", num_migs, mig_perc)
+
+    print({"mig_perc": round(mig_perc, 0),
+            "mig_hist_counts": list(mig_hist_counts),
+            "mig_hist_bins": list(mig_hist_bins)
+            })
+
+    return {"mig_perc": round(mig_perc, 0),
+            "mig_hist_counts": [str(i) for i in list(mig_hist_counts)],
+            "mig_hist_bins": [str(i) for i in list(mig_hist_bins)]
+            }
 
 
 

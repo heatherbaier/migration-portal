@@ -13,7 +13,7 @@ function predict_migration() {
         percent_changes.push(inputs[i].value);
     }
 
-    // If there are no municipalities slected, provide the user with the option to either go back and pick some or add the inputted increases to all of them
+    // If there are no municipalities selected, provide the user with the option to either go back and pick some or add the inputted increases to all of them
     if (window.selected_polys.length == 0) {
         if (confirm("\nNo municipalities have been selected on the map.\n\nPress 'OK' to apply your variable changes to all of the municipalities in Mexico or 'Cancel' to go back and choose a subset of municipalities.") != true) {
             return 
