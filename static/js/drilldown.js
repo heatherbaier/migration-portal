@@ -51,7 +51,7 @@ function make_perc_chart(counts, bins) {
 
 
     var plot1_div = document.getElementById("dd-plot1")
-    plot1_div.style.height = "30%";
+    plot1_div.style.height = "35%";
 
 
     var plot1_check = document.getElementById('plot1');
@@ -99,6 +99,7 @@ function drilldown(target) {
     document.getElementById("drill").style.display = "block"
     document.getElementById("drill").style.width = "25%"
     document.getElementById("data").style.width = "50%"
+    document.getElementById("radio-layers").style.marginRight = "28%"
 
     document.getElementById("drill-muni").innerHTML = target.feature.properties.shapeName.concat(" Analytics");
 

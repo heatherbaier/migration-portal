@@ -100,6 +100,13 @@ function predict_migration() {
                 document.getElementById("perc_migrants_button").style.color = '#0E0C28';
                 document.getElementById("perc_migrants_button").style.fontWeight = 'bold';
 
+                document.getElementById("absolute_change_button").style.display = 'inline';
+                document.getElementById("absolute_change_label").style.display = 'inline';
+                document.getElementById("perc_change_button").style.display = 'inline';
+                document.getElementById("perc_change_label").style.display = 'inline';
+
+
+
 
                 // Update all of the HTML text that doesn't involve the trending icon
                 document.getElementById("total_migrants").innerHTML = response.data['predicted_migrants'].toLocaleString() + "<br> +/-" + response.data['model_error'] + "M.E.";

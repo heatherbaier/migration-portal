@@ -7,7 +7,9 @@ function var_drilldown(elem) {
     document.getElementById("drill").style.display = "block"
     document.getElementById("drill").style.width = "25%"
     document.getElementById("data").style.width = "50%"
-    document.getElementById("drill-muni").innerHTML = elem.id.slice(5).concat(" Analytics");    
+    document.getElementById("drill-muni").style.fontSize = "35px"
+    document.getElementById("drill-muni").innerHTML = elem.id.slice(5)
+    document.getElementById("radio-layers").style.marginRight = "28%"
 
     // Go through and remove anything that might be in the column already
     if (document.getElementById("plot1") != null) {
@@ -50,7 +52,12 @@ function var_drilldown(elem) {
 
             document.getElementById("mig_perc").style.fontSize = "28px";
             document.getElementById("mig_perc").style.textAlign = "center";
-            document.getElementById("mig_perc").innerHTML = elem.id.slice(5) + " is ranked <br><h1>" + data['var_rank'] + "</h1>in feature importance out of XX variables."
+            document.getElementById("mig_perc").innerHTML = elem.id.slice(5) + 
+                                                            " is ranked <br><h1>" + data['var_rank'] + 
+                                                            "</h1>in feature importance out of " + data['num_vars'] + " variables and <br><h1>" + 
+                                                            data['var_cat_rank'] + 
+                                                            "</h1> among the " + data['num_cat_vars'] + " variables in its category." +
+                                                            "and is considered <b>" + data['quant'] + "</b>"
 
 
         })

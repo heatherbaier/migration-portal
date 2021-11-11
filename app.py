@@ -199,18 +199,47 @@ def var_drilldown():
 
     with open("./var_map.json", "r") as f:
         var_names = json.load(f)
+    for k,v in var_names.items():
+        if v == info_var:
+            mapped_name = k
+            break
+
+    print("MAPPED NAME: ", mapped_name)
+
+    with open("./vars.json", "r") as f2:
+        var_cats = json.load(f2)
+    for k in var_cats.keys():
+        if mapped_name in var_cats[k]:
+            var_cat = k
+            cat_vars = var_cats[k]
+            break
+    
+    print("VARIABLE CATEGORY: ", var_cat)
+    print("CATEGORY VARIABLES: ", cat_vars)
 
     # print(list(var_names.keys()))
 
-    df = df[df['var'].isin(list(var_names.keys()))]
-    df['var'] = df['var'].map(var_names)
+    # df = df[df['var'].isin(list(var_names.keys()))]
+    # df['var'] = df['var'].map(var_names)
 
-    var_rank = df[df['var'] == info_var]['rank'].values[0]
+    var_rank = df[df['var'] == mapped_name]['rank'].values[0]
     print(var_rank)
 
     print(df.head())
 
-    return {'var_rank': str(var_rank)}
+    cat_df = df[df['var'].isin(cat_vars)]
+    cat_df = cat_df.sort_values(by = "impact", ascending = False)
+    cat_df['rank'] = [i for i in range(len(cat_df))]
+    var_cat_rank = cat_df[cat_df['var'] == mapped_name]['rank'].values[0]
+    var_quant = cat_df[cat_df['var'] == mapped_name]['quant'].values[0]
+
+
+    return {'var_rank': str(var_rank + 1),
+            'num_vars': str(len(list(var_names.keys()))),
+            'var_cat_rank': str(var_cat_rank + 1),
+            'num_cat_vars': str(len(cat_df)),
+            'quant': var_quant
+            }
 
     # num_migs = df[df['GEO2_MX'] == int(drilldown_muni)]['sum_num_intmig'].values[0]
 
@@ -322,6 +351,8 @@ def get_border_sectors():
 
 @APP.route('/predict_migration', methods=['GET', 'POST'])
 def predict_migration():
+
+    print(request.json)
 
     with open('status.json', 'w') as outfile:
         json.dump({'status': "Status - Starting predictions."}, outfile)
