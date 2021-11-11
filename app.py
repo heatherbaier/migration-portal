@@ -75,55 +75,6 @@ def index():
                                   model_error = f'{int((total_migrants / 5) * MODEL_ERROR):,}')
 
 
-@APP.route('/scenario', methods=['GET','POST'])
-def scenario():
-
-    """
-    Landing page
-    """
-
-    # Read in census and migration data
-    df = pd.read_csv(DATA_PATH)
-
-    with open(MIGRATION_PATH) as m:
-        mig_data = json.load(m)
-
-    # Get total # of migrants and a list of muni ID's
-    total_migrants = sum(list(mig_data.values()))
-    municipality_ids = list(mig_data.keys())
-
-    # Calculate the average age of migrants per muni
-    df['avg_age_weight'] = df['avg_age'] * df['sum_num_intmig']
-    avg_age = df['avg_age_weight'].sum() / df['sum_num_intmig'].sum()
-
-    # Open the variables JSON and the JSON containing the readable translation of the variables
-    with open("./vars.json", "r") as f:
-        grouped_vars = json.load(f)
-
-    with open("./var_map.json", "r") as f2:
-        var_names = json.load(f2)
-
-    # Get all of the variables to send to Flask for dropdown options
-    econ, demog, family, health, edu, employ, hhold = get_column_lists(df, var_names, grouped_vars)
-
-    # Merry Christmas HTML!!
-    return flask.render_template('scenario.html', 
-                                  municipality_ids = municipality_ids, 
-                                  econ_data = econ,
-                                  demog_data = demog,
-                                  family_data = family,
-                                  health_data = health,
-                                  edu_data = edu,
-                                  employ_data = employ,
-                                  hhold_data = hhold,
-                                  total_migrants = f'{int(total_migrants / 5):,}',
-                                  avg_age = round(avg_age, 2),
-                                  model_error = f'{int((total_migrants / 5) * MODEL_ERROR):,}')
-
-
-
-
-
 @APP.route('/cat_select', methods=['GET','POST'])
 def cat_select():
 
@@ -235,8 +186,13 @@ def var_drilldown():
 
     ale_df = pd.read_csv(ALE_PATH)
     ale = list(ale_df[mapped_name].values)
-    # ale = [str(i) for i in ale]
+    ale = [round(i / 5, 0) for i in ale]
 
+    with open(ALE_INTERVALS_PATH, "r") as ale_i:
+        ale_i = json.load(ale_i)
+    
+    print(len(ale_i[mapped_name]))
+    print(len(ale))
 
     return {'var_rank': str(var_rank + 1),
             'num_vars': str(len(list(var_names.keys()))),
@@ -244,6 +200,7 @@ def var_drilldown():
             'num_cat_vars': str(len(cat_df)),
             'quant': var_quant,
             'ale_values': ale,
+            'ale_labels': [" to ".join(i) for i in ale_i[mapped_name]],
             }
             
 
@@ -442,6 +399,37 @@ def predict_migration():
         json.dump({'status': "Status - Rendering new migration map..."}, outfile)
 
     return jsonify(features)
+
+
+# @APP.route('/change_year', methods=['GET', 'POST'])
+# def change_year():
+
+#     """
+#     Called when a user changes whic type of data to display ont he map (i.e. % v absolute & change v total)
+#     """
+
+#     year = request.json['year']
+#     variable = request.json['var']
+
+#     print(year)
+
+#     if variable == 'perc_migrants':
+
+#         # data_path = os.path.join("map_layers", request.json['variable'] + ".csv")
+#         if year == "2015":
+#             dta_final = pd.read_csv("./data/mex2015_preds.csv")
+#             dta_final['shapeID'] = 1
+#         else:
+#             dta_final = pd.read_csv("./map_layers/perc_migrants.csv")
+
+#         dta_final['GEO2_MX'] = dta_final['GEO2_MX'].astype(str)
+
+#         geoDF = json_normalize(geodata_collection["features"])
+#         merged = pd.merge(geoDF, dta_final, left_on = "properties.shapeID", right_on = "GEO2_MX")
+
+#         features = convert_features_to_geojson(merged, column = "perc_migrants")
+        
+#         return jsonify(features)
 
 
 

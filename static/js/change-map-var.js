@@ -86,11 +86,11 @@ function change_map_var(variable) {
 
     var to_send = {'variable': variable}
 
+    window.map_var = variable
 
     axios.post('http://127.0.0.1:5000/update_map', to_send)
 
         .then(response => {
-
 
             // Hack for switching button colors because you suck at CSS
             for (var mb = 0; mb < map_button_list.length; mb++) {
@@ -113,9 +113,8 @@ function change_map_var(variable) {
 
             console.log("removed legend");
 
-
             // console.log('')
-            getColor
+            // getColor
 
 
             legend = L.control({position: 'bottomleft'});

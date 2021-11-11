@@ -30,6 +30,7 @@
 
 </head>
 
+
 <html>
 
 <body style="background-color: #EFEFF6;">
@@ -47,9 +48,9 @@
           <button class="dropdown-btn"><i class="material-icons">paid</i><span style="padding-left: 20px;">Economic Variables</span> <i class="fa fa-caret-down"></i></button>
           <div class="dropdown-container">
               {% for econ_var in econ_data %}
-                  <input type="number" id="{{ econ_var }}" value="100">
-                  <label id="label_{{ econ_var }}" style="font-weight: normal;">{{ econ_var }}</label>
-                  <i class="material-icons info" id="info_{{ econ_var }}" onclick="var_drilldown(this)">info</i><br><br>          
+                  <input type="number" id="{{ econ_var }}" value="100" style="display: inline;">
+                  <label id="label_{{ econ_var }}" style="font-weight: normal; display: inline;">{{ econ_var }}</label>
+                  <i class="material-icons info" id="info_{{ econ_var }}" onclick="var_drilldown(this)" style="display: inline;">info</i><br><br>          
               {% endfor %}
           </div>
 
@@ -57,9 +58,9 @@
           <button class="dropdown-btn"><i class="material-icons">people</i><span style="padding-left: 20px;">Demographic Variables</span><i class="fa fa-caret-down"></i></button>
           <div class="dropdown-container">
               {% for demog_var in demog_data %}
-                  <input type="number" id="{{ demog_var }}" value="100">
-                  <label id="label_{{ demog_var }}" style="font-weight: normal;">{{ demog_var }}</label>
-                  <i class="material-icons info" id="info_{{ demog_var }}" onclick="var_drilldown(this)">info</i><br><br>          
+                  <input type="number" id="{{ demog_var }}" value="100" style="display: inline;">
+                  <label id="label_{{ demog_var }}" style="font-weight: normal; display: inline;">{{ demog_var }}</label>
+                  <i class="material-icons info" id="info_{{ demog_var }}" onclick="var_drilldown(this)" style="display: inline;">info</i><br><br>          
               {% endfor %}
           </div>
 
@@ -67,9 +68,9 @@
           <button class="dropdown-btn"><i class="material-icons">pregnant_woman</i><span style="padding-left: 20px;">Family Unit Variables</span><i class="fa fa-caret-down"></i></button>
           <div class="dropdown-container">
               {% for family_var in family_data %}
-                  <input type="number" id="{{ family_var }}" value="100">
-                  <label id="label_{{ family_var }}" style="font-weight: normal;">{{ family_var }}</label>
-                  <i class="material-icons info" id="info_{{ family_var }}" onclick="var_drilldown(this)">info</i><br><br>          
+                  <input type="number" id="{{ family_var }}" value="100" style="display: inline;">
+                  <label id="label_{{ family_var }}" style="font-weight: normal; display: inline;">{{ family_var }}</label>
+                  <i class="material-icons info" id="info_{{ family_var }}" onclick="var_drilldown(this)" style="display: inline;">info</i><br><br>          
               {% endfor %}
           </div>
 
@@ -77,9 +78,9 @@
           <button class="dropdown-btn"><i class="material-icons">health_and_safety</i><span style="padding-left: 20px;">Health Variables</span><i class="fa fa-caret-down"></i></button>
           <div class="dropdown-container">
               {% for health_var in health_data %}
-                  <input type="number" id="{{ health_var }}" value="100">
-                  <label id="label_{{ health_var }}" style="font-weight: normal;">{{ health_var }}</label>
-                  <i class="material-icons info" id="info_{{ health_var }}" onclick="var_drilldown(this)">info</i><br><br>          
+                  <input type="number" id="{{ health_var }}" value="100" style="display: inline;">
+                  <label id="label_{{ health_var }}" style="font-weight: normal; display: inline;">{{ health_var }}</label>
+                  <i class="material-icons info" id="info_{{ health_var }}" onclick="var_drilldown(this)" style="display: inline;">info</i><br><br>          
               {% endfor %}
           </div>
 
@@ -87,9 +88,9 @@
           <button class="dropdown-btn"><i class="material-icons">meeting_room</i><span style="padding-left: 20px;">Occupational Variables</span><i class="fa fa-caret-down"></i></button>
           <div class="dropdown-container">
               {% for employ_var in employ_data %}
-                  <input type="number" id="{{ employ_var }}" value="100">
-                  <label id="label_{{ employ_var }}" style="font-weight: normal;">{{ employ_var }}</label>
-                  <i class="material-icons info" id="info_{{ employ_var }}" onclick="var_drilldown(this)">info</i><br><br>          
+                  <input type="number" id="{{ employ_var }}" value="100" style="display: inline;">
+                  <label id="label_{{ employ_var }}" style="font-weight: normal; display: inline;">{{ employ_var }}</label>
+                  <i class="material-icons info" id="info_{{ employ_var }}" onclick="var_drilldown(this)" style="display: inline;">info</i><br><br>          
               {% endfor %}
           </div>
 
@@ -97,9 +98,9 @@
           <button class="dropdown-btn"><i class="material-icons">local_library</i><span style="padding-left: 20px;">Education Variables</span><i class="fa fa-caret-down"></i></button>
           <div class="dropdown-container">
               {% for edu_var in edu_data %}
-                  <input type="number" id="{{ edu_var }}" value="100">
-                  <label id="label_{{ edu_var }}" style="font-weight: normal;">{{ edu_var }}</label>
-                  <i class="material-icons info" id="info_{{ edu_var }}" onclick="var_drilldown(this)">info</i><br><br>          
+                  <input type="number" id="{{ edu_var }}" value="100" style="display: inline;">
+                  <label id="label_{{ edu_var }}" style="font-weight: normal; display: inline;">{{ edu_var }}</label>
+                  <i class="material-icons info" id="info_{{ edu_var }}" onclick="var_drilldown(this)" style="display: inline;">info</i><br><br>          
               {% endfor %}
           </div>
 
@@ -107,9 +108,9 @@
           <button class="dropdown-btn"><i class="material-icons">home</i><span style="padding-left: 20px;">Household Variables</span><i class="fa fa-caret-down"></i></button>
           <div class="dropdown-container">
               {% for hhold_var in hhold_data %}
-                  <input type="number" id="{{ hhold_var }}" value="100">
-                  <label id="label_{{ hhold_var }}" style="font-weight: normal;">{{ hhold_var }}</label>
-                  <i class="material-icons info" id="info_{{ hhold_var }}" onclick="var_drilldown(this)">info</i><br><br>          
+                  <input type="number" id="{{ hhold_var }}" value="100" style="display: inline;">
+                  <label id="label_{{ hhold_var }}" style="font-weight: normal; display: inline;">{{ hhold_var }}</label>
+                  <i class="material-icons info" id="info_{{ hhold_var }}" onclick="var_drilldown(this)" style="display: inline;">info</i><br><br>          
               {% endfor %}
           </div>
 
@@ -170,8 +171,16 @@
             <h3 id="mig_perc"></h3>
             <br><br><br><br>
             <h5 style="display:none;" id="ale-title">Effect on Migration Prediction</h5>
+
+            <div class="popup" onclick="myFunction()">How to interpret Effect
+                <span class="popuptext" id="myPopup">A Simple Popup!</span>
+            </div>
+
             <hr>
             <div id="dd-plot1"></div>
+            <br><br>
+            <h4 id="ale-exp-title"></h4>
+            <h4 id="ale-exp-text"></h4>
         </div>
 
 
@@ -185,5 +194,12 @@
 <script src="{{url_for('static', filename='js/dropdown.js')}}"></script>
 <script src="{{url_for('static', filename='js/time-slider.js')}}"></script>
 
+<script>
+    // When the user clicks on div, open the popup
+    function myFunction() {
+      var popup = document.getElementById("myPopup");
+      popup.classList.toggle("show");
+    }
+</script>
 
 </html>

@@ -28,7 +28,8 @@ MIGRATION_PATH = "./data/migration_data.json"
 CORR_TABLE_PATH = "./data/corr_table.csv"
 MATCH_PATH = "./data/gB_IPUMS_match.csv"
 IMPACT_PATH = "./data/impact.csv"
-ALE_PATH = "./data/ale_v1.csv"
+ALE_PATH = "./data/ale_v10.csv"
+ALE_INTERVALS_PATH = "./data/ale_intervals.json"
 BORDER_STATIONS_PATH = "./data/border_stations7.geojson"
 GRAPH_MODEL = "./trained_model/trained_graph_model_fc2_v4.torch"
 # BAD_IDS = ["105", "115", "122", "126", "147", "153", "1622", "1684", "2027", "2043", "104", "1630", "113", "640", "400", "1631", "2054", "1693", "152", "1608"]
@@ -93,7 +94,6 @@ def predict(graph, selected_muni_ref_dict, new_census_vals, selected_municipalit
     enc = Encoder(features = x, feature_dim = x.shape[1], embed_dim = 128, adj_lists = adj_lists, aggregator = agg)
     model = SupervisedGraphSage(num_classes = 1, enc = enc)
     model.load_state_dict(graph_checkpoint)
-
 
     predictions = []
     for muni in selected_municipalities:

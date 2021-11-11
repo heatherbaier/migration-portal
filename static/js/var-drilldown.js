@@ -46,10 +46,16 @@ var bs_config = {
       }
 }
 
-function make_ale_plot(data) {
+function removeAllChildNodes(parent) {
+    while (parent.firstChild) {
+        parent.removeChild(parent.firstChild);
+    }
+}
+
+function make_ale_plot(data, labels) {
 
     var plot1_div = document.getElementById("dd-plot1")
-    plot1_div.style.height = "35%";
+    plot1_div.style.height = "40%";
 
     var plot1_check = document.getElementById('plot1');
 
@@ -69,9 +75,9 @@ function make_ale_plot(data) {
     var myChart1 = new Chart(ctx1, {
         type: 'line',
         data: {
-            labels: [1,2,3,4,5,6,7,8,9,10],
+            labels: labels,
             datasets: [{
-                label: 'Number of migrants',
+                label: 'Change from average: ',
                 data: data,
                 fill: false,
                 backgroundColor: 'rgba(70, 109, 29, 0.5)',
@@ -120,6 +126,9 @@ function var_drilldown(elem) {
     }
 
 
+    // var container = document.querySelector("#ale-intervals");
+    // removeAllChildNodes(container);
+
     fetch('/var_drilldown', {
 
         // When the data gets POSTed back to Flask, it'll be in JSON format
@@ -153,7 +162,32 @@ function var_drilldown(elem) {
                                                             "</h1> among the " + data['num_cat_vars'] + " variables in its category." +
                                                             "and is considered <b>" + data['quant'] + "</b>"
 
-            make_ale_plot(data['ale_values'])                                              
+            make_ale_plot(data['ale_values'], data['ale_labels'])   
+            
+            // var ale_exp_title = document.getElementById("ale-exp-title");
+            // ale_exp_title.innerHTML = ""
+
+            // var ale_exp_text = document.getElementById("ale-exp-text");
+            // ale_exp_text.innerHTML = "For example, an estimate of " + data['ale_values'][2] + " between " + data['ale_labels'][2] + " means that the prediction is different by about " + data['ale_values'][2] + " migrants compared to the average prediction."
+
+            console.log(data['ale_values']);
+
+            document.getElementById("myPopup").innerHTML = "For example, an effect of " + data['ale_values'][2].toLocaleString() + " between the interval " + data['ale_labels'][2] + " means that the prediction is different by about " + data['ale_values'][2].toLocaleString() + " migrants compared to the average prediction, if the value of " + elem.id.slice(5) + " is changed for all municipalities that fall within the interval."
+
+
+            // var cur_int;
+            // for (i = 0; i < data["ale_labels"].length; i++) {
+
+            //     
+            //     
+            //     cur_int.innerHTML = "<b>Interval " + i.toString() +  ": </b>" + data["ale_labels"][i]
+            //     cur_int.style.fontSize = "23px"
+            //     cur_int.style.textAlign = "center"
+
+
+            //     int_parent.appendChild(cur_int)
+
+            // }
 
         })
 
