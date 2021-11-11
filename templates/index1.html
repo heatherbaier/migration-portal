@@ -145,7 +145,6 @@
             </div>
             
 
-            <!-- <div style="width: 50%"> -->
             <div class="stack-top" id='radio-layers'>
                 <input type="radio" id="sum_num_intmig_button" name="map_layers" value="sum_num_intmig" onclick="change_map_var('sum_num_intmig')">
                 <label for="sum_num_intmig_button">Absolute number of migrants</label><br>
@@ -158,15 +157,20 @@
             </div>
 
             <div class="box" id="mapid" style="height: 77%"></div>
-            <!-- </div> -->
 
         </div>
 
 
         <div class="column" id="drill" style="display: none; width: 25%;">
             <h2 id='drill-muni'></h2>
+            <!-- <hr> -->
+            <br><br>
+            <h5 style="display:none;" id="fi-title">Feature Importance</h5>
             <hr>
             <h3 id="mig_perc"></h3>
+            <br><br><br><br>
+            <h5 style="display:none;" id="ale-title">Effect on Migration Prediction</h5>
+            <hr>
             <div id="dd-plot1"></div>
         </div>
 
@@ -176,7 +180,7 @@
 </body>
 
 <script src="{{url_for('static', filename='js/var-drilldown.js')}}"></script>
-<script src="{{url_for('static', filename='js/drilldown.js')}}"></script>
+<!-- <script src="{{url_for('static', filename='js/drilldown.js')}}"></script> -->
 <script src="{{url_for('static', filename='js/migration-map.js')}}"></script>
 <script src="{{url_for('static', filename='js/dropdown.js')}}"></script>
 <script src="{{url_for('static', filename='js/time-slider.js')}}"></script>

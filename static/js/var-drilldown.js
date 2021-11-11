@@ -1,3 +1,91 @@
+var bs_config = {
+    tooltips: {
+        titleFontSize: 20,
+        bodyFontSize: 18
+    },
+    maintainAspectRatio: false,
+    legend: { 
+        display: false 
+    },
+    title: {
+        display: true,
+        fontSize: 20
+    },
+    scales: {
+            y: {
+                beginAtZero: true
+            },
+            yAxes: [{
+                ticks: {
+                    fontSize: 20
+                }
+            }],
+            xAxes: [{
+                ticks: {
+                    fontSize: 15
+                }
+            }]
+    },
+    annotation: {
+        annotations: [
+          {
+            drawTime: "afterDatasetsDraw",
+            type: "line",
+            mode: "vertical",
+            scaleID: "x-axis-0",
+            value: 30000,
+            borderWidth: 5,
+            borderColor: "red",
+            label: {
+              content: "TODAY",
+              enabled: true,
+              position: "top"
+            }
+          }
+        ]
+      }
+}
+
+function make_ale_plot(data) {
+
+    var plot1_div = document.getElementById("dd-plot1")
+    plot1_div.style.height = "35%";
+
+    var plot1_check = document.getElementById('plot1');
+
+    console.log("plot1_check", plot1_check)
+
+    if (plot1_check != null){
+        console.log("removing old canvas!!!")
+        plot1_div.removeChild(plot1_check);
+    }
+
+    var plot1 = document.createElement('canvas');
+
+    plot1.id = 'plot1';
+    plot1_div.appendChild(plot1); // append the left chart to the left canvas
+
+    var ctx1 = document.getElementById('plot1').getContext('2d');
+    var myChart1 = new Chart(ctx1, {
+        type: 'line',
+        data: {
+            labels: [1,2,3,4,5,6,7,8,9,10],
+            datasets: [{
+                label: 'Number of migrants',
+                data: data,
+                fill: false,
+                backgroundColor: 'rgba(70, 109, 29, 0.5)',
+                borderColor: '#74b4ef',
+                borderWidth: 5
+            }]
+        },
+        options: bs_config
+    });
+
+
+}
+
+
 function var_drilldown(elem) {
 
     console.log(elem.id)
@@ -10,6 +98,12 @@ function var_drilldown(elem) {
     document.getElementById("drill-muni").style.fontSize = "35px"
     document.getElementById("drill-muni").innerHTML = elem.id.slice(5)
     document.getElementById("radio-layers").style.marginRight = "28%"
+    document.getElementById("fi-title").style.display = "block"
+    document.getElementById("ale-title").style.display = "block"
+    document.getElementById("drill-muni").style.fontWeight = "bold"
+    document.getElementById("fi-title").style.fontWeight = "bold"
+    document.getElementById("ale-title").style.fontWeight = "bold"
+
 
     // Go through and remove anything that might be in the column already
     if (document.getElementById("plot1") != null) {
@@ -59,6 +153,7 @@ function var_drilldown(elem) {
                                                             "</h1> among the " + data['num_cat_vars'] + " variables in its category." +
                                                             "and is considered <b>" + data['quant'] + "</b>"
 
+            make_ale_plot(data['ale_values'])                                              
 
         })
 

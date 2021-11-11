@@ -233,35 +233,19 @@ def var_drilldown():
     var_cat_rank = cat_df[cat_df['var'] == mapped_name]['rank'].values[0]
     var_quant = cat_df[cat_df['var'] == mapped_name]['quant'].values[0]
 
+    ale_df = pd.read_csv(ALE_PATH)
+    ale = list(ale_df[mapped_name].values)
+    # ale = [str(i) for i in ale]
+
 
     return {'var_rank': str(var_rank + 1),
             'num_vars': str(len(list(var_names.keys()))),
             'var_cat_rank': str(var_cat_rank + 1),
             'num_cat_vars': str(len(cat_df)),
-            'quant': var_quant
+            'quant': var_quant,
+            'ale_values': ale,
             }
-
-    # num_migs = df[df['GEO2_MX'] == int(drilldown_muni)]['sum_num_intmig'].values[0]
-
-    # all_migs = df['sum_num_intmig'].values
-
-    # mig_perc = scipy.stats.percentileofscore(all_migs, num_migs) 
-
-    # mig_hist_counts, mig_hist_bins = np.histogram(df['sum_num_intmig'])
-
-    # print("NUM MIGS: ", num_migs, mig_perc)
-
-    # print({"mig_perc": round(mig_perc, 0),
-    #         "mig_hist_counts": list(mig_hist_counts),
-    #         "mig_hist_bins": list(mig_hist_bins)
-    #         })
-
-    # return {"mig_perc": round(mig_perc, 0),
-    #         "mig_hist_counts": [str(i) for i in list(mig_hist_counts)],
-    #         "mig_hist_bins": [str(i) for i in list(mig_hist_bins)]
-    #         }
-
-
+            
 
 @APP.route('/geojson-features', methods=['GET'])
 def get_all_points():
