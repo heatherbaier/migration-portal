@@ -109,20 +109,30 @@ function predict_migration() {
 
 
                 // Update all of the HTML text that doesn't involve the trending icon
-                document.getElementById("total_migrants").innerHTML = response.data['predicted_migrants'].toLocaleString() + "<br> +/-" + response.data['model_error'] + "M.E.";
-                document.getElementById("change_migrants").innerHTML = response.data['change'].toLocaleString().concat(" migrants");
+                document.getElementById("grid-container").style.gridTemplateColumns = "auto auto auto auto";
+                document.getElementById("total_migrants").innerHTML = response.data['predicted_migrants'].toLocaleString();
+
+                document.getElementById("change_migrants").style.display = "inline";
+                document.getElementById("change_migrants_t").innerHTML = response.data['change'].toLocaleString();
+                document.getElementById("p_change_migrants_t").innerHTML = response.data['p_change'].toString().concat("%");
+                
                 document.getElementById("avg_age").innerHTML = response.data['avg_age'];
-                document.getElementById("avg_age_change").innerHTML = response.data['avg_age_change'].toString().concat(" years");
-                document.getElementById("pchange_migrants").innerHTML = response.data['p_change'].toString().concat("%");
-                document.getElementById("pavg_age_change").innerHTML = response.data['pavg_age_change'].toString().concat("%");
+                
+                document.getElementById("avg_age_change").style.display = "inline";
+                document.getElementById("avg_age_change_t").innerHTML = response.data['avg_age_change'].toString();
+                document.getElementById("pavg_age_change_t").innerHTML = response.data['pavg_age_change'].toString();//.concat(" years");
+
+
 
                 // if p_change is greater than 1, make icon green & trending_up and vice versa
                 if (response.data['p_change'] > 0) {
                     document.getElementById("pchange_icon").innerHTML = 'trending_up'
+                    document.getElementById("pchange_icon").style.boxShadow = "0 0 0 0 white"
                     // document.getElementById("pchange_icon").style.color = 'red'
                 } else {
                     // document.getElementById("pchange_migrants").innerHTML = response.data['p_change'].toString().concat("%");
                     document.getElementById("pchange_icon").innerHTML = 'trending_down'
+                    document.getElementById("pchange_icon").style.boxShadow = "0 0 0 0 white"
                     // document.getElementById("pchange_icon").style.color = 'green'
                 }
 
@@ -130,10 +140,12 @@ function predict_migration() {
                 if (response.data['pavg_age_change'] > 0) {
                     document.getElementById("page_change_icon").innerHTML = 'trending_up'
                     document.getElementById("page_change_icon").style.color = 'black'
+                    document.getElementById("page_change_icon").style.boxShadow = "0 0 0 0 white"
                 } else {
                     // document.getElementById("pavg_age_change").innerHTML = response.data['pavg_age_change'].toString().concat("%");
                     document.getElementById("page_change_icon").innerHTML = 'trending_down'
                     document.getElementById("page_change_icon").style.color = 'black'
+                    document.getElementById("page_change_icon").style.boxShadow = "0 0 0 0 white"
                 }
 
                 // Update the status so the user knows everything is done

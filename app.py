@@ -60,6 +60,11 @@ def index():
     # Get all of the variables to send to Flask for dropdown options
     econ, demog, family, health, edu, employ, hhold = get_column_lists(df, var_names, grouped_vars)
 
+    # response = flask.jsonify({'some': 'data'})
+    # response.headers.add('Access-Control-Allow-Origin', '*')
+    # return response
+
+
     # Merry Christmas HTML!!
     return flask.render_template('index1.html', 
                                   municipality_ids = municipality_ids, 
@@ -142,12 +147,17 @@ def drilldown():
 @APP.route('/var_drilldown', methods=['GET', 'POST'])
 def var_drilldown():
 
+    """
+    Function to return data for the variable drilldown sidebar
+    """
+
+    # Save the requested variable
     info_var = request.json['info_var']
 
-    print("info_var: ", info_var)
-
+    # Read in impact CSV
     df = pd.read_csv(IMPACT_PATH)
 
+    # Get the underscored version of the variable name
     with open("./var_map.json", "r") as f:
         var_names = json.load(f)
     for k,v in var_names.items():
@@ -155,8 +165,7 @@ def var_drilldown():
             mapped_name = k
             break
 
-    print("MAPPED NAME: ", mapped_name)
-
+    # Get the category and list of other category variables of the variable
     with open("./vars.json", "r") as f2:
         var_cats = json.load(f2)
     for k in var_cats.keys():
@@ -164,26 +173,18 @@ def var_drilldown():
             var_cat = k
             cat_vars = var_cats[k]
             break
-    
-    print("VARIABLE CATEGORY: ", var_cat)
-    print("CATEGORY VARIABLES: ", cat_vars)
 
-    # print(list(var_names.keys()))
-
-    # df = df[df['var'].isin(list(var_names.keys()))]
-    # df['var'] = df['var'].map(var_names)
-
+    # Get the variable's rank
     var_rank = df[df['var'] == mapped_name]['rank'].values[0]
-    print(var_rank)
 
-    print(df.head())
-
+    # Get cateogry, rank and impact data on the variable
     cat_df = df[df['var'].isin(cat_vars)]
     cat_df = cat_df.sort_values(by = "impact", ascending = False)
     cat_df['rank'] = [i for i in range(len(cat_df))]
     var_cat_rank = cat_df[cat_df['var'] == mapped_name]['rank'].values[0]
     var_quant = cat_df[cat_df['var'] == mapped_name]['quant'].values[0]
 
+    # Get ALE data on the variable
     ale_df = pd.read_csv(ALE_PATH)
     ale = list(ale_df[mapped_name].values)
     ale = [round(i / 5, 0) for i in ale]
@@ -191,9 +192,7 @@ def var_drilldown():
     with open(ALE_INTERVALS_PATH, "r") as ale_i:
         ale_i = json.load(ale_i)
     
-    print(len(ale_i[mapped_name]))
-    print(len(ale))
-
+    # Send back to server
     return {'var_rank': str(var_rank + 1),
             'num_vars': str(len(list(var_names.keys()))),
             'var_cat_rank': str(var_cat_rank + 1),
@@ -216,9 +215,6 @@ def get_all_points():
     feature_df = convert_to_pandas(geodata_collection, MATCH_PATH, DATA_PATH)
     feature_df['sum_num_intmig'] = feature_df['sum_num_intmig'].fillna(0)
     feature_df['perc_migrants'] = feature_df['sum_num_intmig'] / feature_df['total_pop']
-
-    print(feature_df.columns)
-
     
     # Make lists of all of the features we want available to the Leaflet map
     coords = feature_df['geometry.coordinates']
@@ -243,7 +239,13 @@ def get_all_points():
                           }
         })
 
-    return jsonify(features)
+
+    response = jsonify(features)
+
+    # Enable Access-Control-Allow-Origin
+    response.headers.add("Access-Control-Allow-Origin", "*")        
+
+    return response
 
 
 
@@ -286,8 +288,12 @@ def get_border_sectors():
                           }
         })
 
-    return jsonify(features)
+    response = jsonify(features)
 
+    # Enable Access-Control-Allow-Origin
+    response.headers.add("Access-Control-Allow-Origin", "*")        
+
+    return response
 
 
 @APP.route('/predict_migration', methods=['GET', 'POST'])
@@ -590,5 +596,4 @@ def download_data():
 if __name__ == '__main__':
     APP.debug=True
     APP.run()
-
 

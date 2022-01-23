@@ -40,7 +40,7 @@
 
         <div class="column" id="nav" style="background-color:#EFEFF6;">
 
-          <h2 style="margin-left: 20px; padding: 10px; font-size: 40px">Migration Data Portal</h2>
+          <h2 style="margin-left: 20px; padding: 10px; font-size: 38px">Migration Data Portal</h2>
           <h5 style="margin-left: 20px; padding: 10px">Adjustable sociodemographic variables:</h5>
           <br>
 
@@ -115,8 +115,8 @@
           </div>
 
           <br><br>
-          <div><button class="predict-button" id='submit' onclick="predict_migration()">Predict new migration pattern</button></div>
-          <h2 id="status"></h2>
+          <div id='pb-div'><button class="predict-button" id='submit' onclick="predict_migration()">Predict new migration pattern</button></div>
+          <!-- <h2 id="status"></h2> -->
 
         </div>
 
@@ -124,26 +124,42 @@
 
         <div class="column" id="data">
 
-            <div class="grid-container" style="height: 16%">
+            <div id="grid-container" class="grid-container" style="height: 20%">
                 <div class="grid-item">
-                    <h2 class='top-stat'>{{ total_migrants }}</h2>
+                    <h2 id="total_migrants" class='top-stat'>{{ total_migrants }}</h2>
                     <br>
-                    <h4>Total Number of Migrants</h4> 
+                    <h4 style="text-align: center;">Total Number of Migrants</h4> 
                 </div>
                 <div class="grid-item">
-                    <h2 class='top-stat'>{{ avg_age }}</h2>
+                    <h2 id="avg_age" class='top-stat'>{{ avg_age }}</h2>
                     <br>
                     <h4>Average Age of Migrants</h4> 
                 </div>
+                <div id="change_migrants" class="grid-item" style="display:none;">
+                    <div style="width: 100%; display: inline;">
+                        <h6 id="change_migrants_t" class="top-stat">0</h6>
+                        <i id='pchange_icon' class="material-icons"></i>
+                        <h6 id="p_change_migrants_t" class="top-stat">0</h6>
+                    </div>
+                    <br>
+                    <h4>Change in number of migrants</h4> 
+                </div>
+                <div id="avg_age_change" class="grid-item" style="display:none;">
+                    <h6 class="top-stat" id="avg_age_change_t">0</h6>
+                    <i id='page_change_icon' class="material-icons"></i>
+                    <h6 id="pavg_age_change_t" class="top-stat">0</h6>
+                    <br>
+                    <h4>Change in average age of migrants</h4> 
+                </div>
             </div>   
 
-            <div id="time-slider-d" style="height: 7%;">
+            <!-- <div id="time-slider-d" style="height: 7%;">
                 <div id="time-slider" style="height: 70%; width: 100%; padding: 10px; text-align: center;">
                     <i class="material-icons chev ts-i" id="lc" style="visibility: hidden;" onclick="change_year('decrease')">chevron_left</i>
                     <h3 class="ts-i" id='ts-year'>2010</h3>
                     <i class="material-icons chev ts-i" id="rc" onclick="change_year('increase')">chevron_right</i>
                 </div>
-            </div>
+            </div> -->
             
 
             <div class="stack-top" id='radio-layers'>
@@ -157,7 +173,7 @@
                 <label style="display: none;" for="perc_change_button" id="perc_change_label">% change in migrants</label>
             </div>
 
-            <div class="box" id="mapid" style="height: 77%"></div>
+            <div class="box" id="mapid" style="height: 80%"></div>
 
         </div>
 

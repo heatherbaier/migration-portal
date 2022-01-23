@@ -39,11 +39,18 @@
     clear: both;
   }
 
+  #pchange_icon1, #pchange_icon2 {
+    box-shadow: 0 0 0 0 white;
+  }
+
+  #grid-container {
+    grid-template-columns: auto auto;
+  }
 
   .grid-container {
     display: grid;
     grid-gap: 10px;
-    grid-template-columns: auto auto;
+    text-align: center;
     /* background-color: #2196F3; */
     padding: 10px;
     /* box-shadow: 0 0 10px 5px lightgray; */
@@ -56,9 +63,10 @@
     padding: 20px;
     font-size: 30px;
     text-align: center;
-    height: 80%;
+    height: 95%;
     box-shadow: 0 0 10px 5px lightgray;
-    height: 100%;
+    position: relative;
+    /* height: 100%; */
   }
 
 
@@ -89,6 +97,10 @@ h3 {
 
 h5 {
     font-size: 30px;
+}
+
+h6 {
+    font-size: 40px;
 }
 
 .top-stat {
@@ -187,13 +199,13 @@ h5 {
     display: block;
     border: none;
     background: none;
-    width: 100%;
+    width: 90%;
     text-align: left;
     cursor: pointer;
     outline: none;
     margin-left: 20px;
-    margin-right: 20px;
-    padding-right: 50px;
+    /* margin-right: 20px; */
+    /* padding-right: 50px; */
     font-family: Roboto;
 }
 
@@ -286,6 +298,11 @@ input[type=number] {
 }
 
 
+#pb-div {
+    width: 100%;
+    text-align: center;
+}
+
 .predict-button {
     background-color: #dbe4e9;
     color: black;
@@ -294,7 +311,9 @@ input[type=number] {
     border-radius: 10px;
     font-family: Roboto; 
     box-shadow: 10px 5px 5px lightgray;
-    margin-left: 110px;
+    /* margin: 0 auto;
+    position: relative; */
+    text-align: center;
     width: 575px;
     font-weight: bolder;
     cursor: pointer;

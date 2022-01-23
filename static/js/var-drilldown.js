@@ -157,9 +157,9 @@ function var_drilldown(elem) {
             document.getElementById("mig_perc").style.textAlign = "center";
             document.getElementById("mig_perc").innerHTML = elem.id.slice(5) + 
                                                             " is ranked <br><h1>" + data['var_rank'] + 
-                                                            "</h1>in feature importance out of " + data['num_vars'] + " variables and <br><h1>" + 
+                                                            "</h1>in feature importance out of " + "206" + " variables,<br><h1>" + 
                                                             data['var_cat_rank'] + 
-                                                            "</h1> among the " + data['num_cat_vars'] + " variables in its category." +
+                                                            "</h1> among the " + data['num_cat_vars'] + " variables in its category," +
                                                             "and is considered <b>" + data['quant'] + "</b>"
 
             make_ale_plot(data['ale_values'], data['ale_labels'])   

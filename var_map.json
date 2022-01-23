@@ -5,9 +5,9 @@
     "avg_ncouples": "Average number of couples",
     "perc_yes_citizen": "Percentage of people with Mexican citizenship",
     "perc_yes_indig": "Percentage of population of indigenous status",
-    "perc_yes_speakind": "Percentage of population speaking an indigenous langauge",
+    "perc_yes_speakind": "Percentage of population speaking an indigenous language",
     "perc_yes_and_spanish_speakind": "Percentage of population speaking both spanish and an indigenous language", 
-    "perc_yes_only_indig_speakind": "Percentage of population speaking only an indigenous langauge",
+    "perc_yes_only_indig_speakind": "Percentage of population speaking only an indigenous language",
     "avg_age": "Average age",
     "total_pop": "Total population",
     "perc_single": "Percentage of household heads that are single",
@@ -111,7 +111,6 @@
     "perc_extended_family_hhtype" : "Percentage of population living with extended family (relatives only)",
     "perc_composite_hhytpe" : "Percentage of population living with a composite household (family and non-relatives)",
     "perc_non_family_hhtype" : "Percentage of population living as a non-family household"
-
 }
 
 
