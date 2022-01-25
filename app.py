@@ -8,6 +8,7 @@ import numpy as np
 import importlib
 import geojson
 import folium
+import scipy
 import torch
 import flask
 import json
@@ -57,10 +58,15 @@ def index():
         var_names = json.load(f2)
 
     # Get all of the variables to send to Flask for dropdown options
-    econ, demog, family, health, edu, employ, hhold = get_column_lists(df, var_names, grouped_vars)
+    econ, demog, family, health, edu, employ, hhold, crime = get_column_lists(df, var_names, grouped_vars)
+
+    # response = flask.jsonify({'some': 'data'})
+    # response.headers.add('Access-Control-Allow-Origin', '*')
+    # return response
+
 
     # Merry Christmas HTML!!
-    return flask.render_template('index.html', 
+    return flask.render_template('index1.html', 
                                   municipality_ids = municipality_ids, 
                                   econ_data = econ,
                                   demog_data = demog,
@@ -69,12 +75,155 @@ def index():
                                   edu_data = edu,
                                   employ_data = employ,
                                   hhold_data = hhold,
+                                  crime_data = crime,
                                   total_migrants = f'{int(total_migrants / 5):,}',
                                   avg_age = round(avg_age, 2),
                                   model_error = f'{int((total_migrants / 5) * MODEL_ERROR):,}')
 
 
+@APP.route('/cat_select', methods=['GET','POST'])
+def cat_select():
 
+    """
+    Landing page
+    """
+
+    category = request.json["selected_cat"]
+
+    # Read in census and migration data
+    df = pd.read_csv(DATA_PATH)
+
+    # Calculate the average age of migrants per muni
+    df['avg_age_weight'] = df['avg_age'] * df['sum_num_intmig']
+
+    # Open the variables JSON and the JSON containing the readable translation of the variables
+    with open("./vars.json", "r") as f:
+        grouped_vars = json.load(f)
+
+    with open("./var_map.json", "r") as f2:
+        var_names = json.load(f2)
+
+    econ = get_column_lists(df, var_names, grouped_vars, category)
+
+    econ = list(econ)
+
+    print("category:", category, econ)
+
+    return {'categories': econ}
+
+
+
+
+@APP.route('/drilldown', methods=['GET', 'POST'])
+def drilldown():
+
+    drilldown_muni = request.json['drilldown_muni']
+
+    print("drilldown_muni: ", drilldown_muni)
+
+    df = pd.read_csv(DATA_PATH)
+
+    num_migs = df[df['GEO2_MX'] == int(drilldown_muni)]['sum_num_intmig'].values[0]
+
+    all_migs = df['sum_num_intmig'].values
+
+    mig_perc = scipy.stats.percentileofscore(all_migs, num_migs) 
+
+    mig_hist_counts, mig_hist_bins = np.histogram(df['sum_num_intmig'])
+
+    print("NUM MIGS: ", num_migs, mig_perc)
+
+    print({"mig_perc": round(mig_perc, 0),
+            "mig_hist_counts": list(mig_hist_counts),
+            "mig_hist_bins": list(mig_hist_bins)
+            })
+
+    return {"mig_perc": round(mig_perc, 0),
+            "mig_hist_counts": [str(i) for i in list(mig_hist_counts)],
+            "mig_hist_bins": [str(i) for i in list(mig_hist_bins)]
+            }
+
+
+
+@APP.route('/var_drilldown', methods=['GET', 'POST'])
+def var_drilldown():
+
+    """
+    Function to return data for the variable drilldown sidebar
+    """
+
+    # Save the requested variable
+    info_var = request.json['info_var']
+
+    # Read in impact CSV
+    df = pd.read_csv(IMPACT_PATH)
+
+    # Get the underscored version of the variable name
+    with open("./var_map.json", "r") as f:
+        var_names = json.load(f)
+    for k,v in var_names.items():
+        if v == info_var:
+            mapped_name = k
+            break
+
+    # Get the category and list of other category variables of the variable
+    with open("./vars.json", "r") as f2:
+        var_cats = json.load(f2)
+    for k in var_cats.keys():
+        if mapped_name in var_cats[k]:
+            var_cat = k
+            cat_vars = var_cats[k]
+            break
+
+    # Get the variable's rank
+    var_rank = df[df['var'] == mapped_name]['rank'].values[0]
+
+    # Get cateogry, rank and impact data on the variable
+    cat_df = df[df['var'].isin(cat_vars)]
+    cat_df = cat_df.sort_values(by = "impact", ascending = False)
+    cat_df['rank'] = [i for i in range(len(cat_df))]
+    var_cat_rank = cat_df[cat_df['var'] == mapped_name]['rank'].values[0]
+    var_quant = cat_df[cat_df['var'] == mapped_name]['quant'].values[0]
+
+    # try:
+
+    # Get ALE data on the variable
+    ale_df = pd.read_csv(ALE_PATH)
+    ale = list(ale_df[mapped_name].values)
+    ale = [round(i / 5, 0) for i in ale]
+
+    with open(ALE_INTERVALS_PATH, "r") as ale_i:
+        ale_i = json.load(ale_i)
+
+    ale_labels = [" to ".join(i) for i in ale_i[mapped_name]]
+
+    # except:
+
+    #     print("FAILED AT VARIABLE: ", mapped_name)
+
+    #     mapped_name = 'sum_income'
+
+    #     # Get ALE data on the variable
+    #     ale_df = pd.read_csv(ALE_PATH)
+    #     ale = list(ale_df[mapped_name].values)
+    #     ale = [round(i / 5, 0) for i in ale]
+
+    #     with open(ALE_INTERVALS_PATH, "r") as ale_i:
+    #         ale_i = json.load(ale_i)
+
+    #     ale_labels = [" to ".join(i) for i in ale_i[mapped_name]]
+
+    
+    # Send back to server
+    return {'var_rank': str(var_rank + 1),
+            'num_vars': str(len(list(var_names.keys()))),
+            'var_cat_rank': str(var_cat_rank + 1),
+            'num_cat_vars': str(len(cat_df)),
+            'quant': var_quant,
+            'ale_values': ale,
+            'ale_labels': ale_labels,
+            }
+            
 
 @APP.route('/geojson-features', methods=['GET'])
 def get_all_points():
@@ -88,9 +237,6 @@ def get_all_points():
     feature_df = convert_to_pandas(geodata_collection, MATCH_PATH, DATA_PATH)
     feature_df['sum_num_intmig'] = feature_df['sum_num_intmig'].fillna(0)
     feature_df['perc_migrants'] = feature_df['sum_num_intmig'] / feature_df['total_pop']
-
-    print(feature_df.columns)
-
     
     # Make lists of all of the features we want available to the Leaflet map
     coords = feature_df['geometry.coordinates']
@@ -115,7 +261,13 @@ def get_all_points():
                           }
         })
 
-    return jsonify(features)
+
+    response = jsonify(features)
+
+    # Enable Access-Control-Allow-Origin
+    response.headers.add("Access-Control-Allow-Origin", "*")        
+
+    return response
 
 
 
@@ -158,12 +310,18 @@ def get_border_sectors():
                           }
         })
 
-    return jsonify(features)
+    response = jsonify(features)
 
+    # Enable Access-Control-Allow-Origin
+    response.headers.add("Access-Control-Allow-Origin", "*")        
+
+    return response
 
 
 @APP.route('/predict_migration', methods=['GET', 'POST'])
 def predict_migration():
+
+    print(request.json)
 
     with open('status.json', 'w') as outfile:
         json.dump({'status': "Status - Starting predictions."}, outfile)
@@ -269,6 +427,37 @@ def predict_migration():
         json.dump({'status': "Status - Rendering new migration map..."}, outfile)
 
     return jsonify(features)
+
+
+# @APP.route('/change_year', methods=['GET', 'POST'])
+# def change_year():
+
+#     """
+#     Called when a user changes whic type of data to display ont he map (i.e. % v absolute & change v total)
+#     """
+
+#     year = request.json['year']
+#     variable = request.json['var']
+
+#     print(year)
+
+#     if variable == 'perc_migrants':
+
+#         # data_path = os.path.join("map_layers", request.json['variable'] + ".csv")
+#         if year == "2015":
+#             dta_final = pd.read_csv("./data/mex2015_preds.csv")
+#             dta_final['shapeID'] = 1
+#         else:
+#             dta_final = pd.read_csv("./map_layers/perc_migrants.csv")
+
+#         dta_final['GEO2_MX'] = dta_final['GEO2_MX'].astype(str)
+
+#         geoDF = json_normalize(geodata_collection["features"])
+#         merged = pd.merge(geoDF, dta_final, left_on = "properties.shapeID", right_on = "GEO2_MX")
+
+#         features = convert_features_to_geojson(merged, column = "perc_migrants")
+        
+#         return jsonify(features)
 
 
 
@@ -429,5 +618,4 @@ def download_data():
 if __name__ == '__main__':
     APP.debug=True
     APP.run()
-
 
