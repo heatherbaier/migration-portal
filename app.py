@@ -58,7 +58,7 @@ def index():
         var_names = json.load(f2)
 
     # Get all of the variables to send to Flask for dropdown options
-    econ, demog, family, health, edu, employ, hhold = get_column_lists(df, var_names, grouped_vars)
+    econ, demog, family, health, edu, employ, hhold, crime = get_column_lists(df, var_names, grouped_vars)
 
     # response = flask.jsonify({'some': 'data'})
     # response.headers.add('Access-Control-Allow-Origin', '*')
@@ -75,6 +75,7 @@ def index():
                                   edu_data = edu,
                                   employ_data = employ,
                                   hhold_data = hhold,
+                                  crime_data = crime,
                                   total_migrants = f'{int(total_migrants / 5):,}',
                                   avg_age = round(avg_age, 2),
                                   model_error = f'{int((total_migrants / 5) * MODEL_ERROR):,}')
@@ -184,6 +185,8 @@ def var_drilldown():
     var_cat_rank = cat_df[cat_df['var'] == mapped_name]['rank'].values[0]
     var_quant = cat_df[cat_df['var'] == mapped_name]['quant'].values[0]
 
+    # try:
+
     # Get ALE data on the variable
     ale_df = pd.read_csv(ALE_PATH)
     ale = list(ale_df[mapped_name].values)
@@ -191,6 +194,25 @@ def var_drilldown():
 
     with open(ALE_INTERVALS_PATH, "r") as ale_i:
         ale_i = json.load(ale_i)
+
+    ale_labels = [" to ".join(i) for i in ale_i[mapped_name]]
+
+    # except:
+
+    #     print("FAILED AT VARIABLE: ", mapped_name)
+
+    #     mapped_name = 'sum_income'
+
+    #     # Get ALE data on the variable
+    #     ale_df = pd.read_csv(ALE_PATH)
+    #     ale = list(ale_df[mapped_name].values)
+    #     ale = [round(i / 5, 0) for i in ale]
+
+    #     with open(ALE_INTERVALS_PATH, "r") as ale_i:
+    #         ale_i = json.load(ale_i)
+
+    #     ale_labels = [" to ".join(i) for i in ale_i[mapped_name]]
+
     
     # Send back to server
     return {'var_rank': str(var_rank + 1),
@@ -199,7 +221,7 @@ def var_drilldown():
             'num_cat_vars': str(len(cat_df)),
             'quant': var_quant,
             'ale_values': ale,
-            'ale_labels': [" to ".join(i) for i in ale_i[mapped_name]],
+            'ale_labels': ale_labels,
             }
             
 

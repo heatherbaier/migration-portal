@@ -114,6 +114,15 @@
               {% endfor %}
           </div>
 
+          <button class="dropdown-btn"><i class="material-icons">home</i><span style="padding-left: 20px;">Crime Variables</span><i class="fa fa-caret-down"></i></button>
+          <div class="dropdown-container">
+              {% for crime_var in crime_data %}
+                  <input type="number" id="{{ crime_var }}" value="100" style="display: inline;">
+                  <label id="label_{{ crime_var }}" style="font-weight: normal; display: inline;">{{ crime_var }}</label>
+                  <i class="material-icons info" id="info_{{ crime_var }}" onclick="var_drilldown(this)" style="display: inline;">info</i><br><br>          
+              {% endfor %}
+          </div>
+
           <br><br>
           <div id='pb-div'><button class="predict-button" id='submit' onclick="predict_migration()">Predict new migration pattern</button></div>
           <!-- <h2 id="status"></h2> -->

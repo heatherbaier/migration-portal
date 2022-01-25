@@ -23,13 +23,14 @@ from model.graphsage import *
 # Path variables
 GEOJSON_PATH = "./data/ipumns_simple_wgs_wdata8.geojson"
 SHP_PATH = "./data/useforportal2.shp"
-DATA_PATH = "./data/mexico2010.csv"
+DATA_PATH = "./data/mexico2010_wcrime.csv"
 MIGRATION_PATH = "./data/migration_data.json"
 CORR_TABLE_PATH = "./data/corr_table.csv"
 MATCH_PATH = "./data/gB_IPUMS_match.csv"
-IMPACT_PATH = "./data/impact.csv"
-ALE_PATH = "./data/ale_v10.csv"
-ALE_INTERVALS_PATH = "./data/ale_intervals.json"
+IMPACT_PATH = "./data/impact_subevent.csv"
+IMPACT_PATH2 = "./data/impact.csv"
+ALE_PATH = "./data/ale_wcrime_v7.csv"
+ALE_INTERVALS_PATH = "./data/ale_interval_wcrime_v5.json"
 BORDER_STATIONS_PATH = "./data/border_stations7.geojson"
 GRAPH_MODEL = "./trained_model/trained_graph_model_fc2_v4.torch"
 # BAD_IDS = ["105", "115", "122", "126", "147", "153", "1622", "1684", "2027", "2043", "104", "1630", "113", "640", "400", "1631", "2054", "1693", "152", "1608"]
@@ -266,8 +267,13 @@ def get_column_lists(df, var_names, grouped_vars):
     hhold = df[hh_vars]
     hhold = map_column_names(var_names, hhold)
     hhold = hhold.columns
+
+    c_vars = [i for i in grouped_vars['Crime'] if i in df.columns]
+    crime = df[c_vars]
+    crime = map_column_names(var_names, crime)
+    crime = crime.columns
     
-    return econ, demog, family, health, edu, employ, hhold
+    return econ, demog, family, health, edu, employ, hhold, crime
 
 
 def convert_to_pandas(geodata_collection, MATCH_PATH, DATA_PATH):

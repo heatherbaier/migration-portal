@@ -110,7 +110,26 @@
     "perc_single_parent_hhtype" : "Percentage of population living as a single-parent family",
     "perc_extended_family_hhtype" : "Percentage of population living with extended family (relatives only)",
     "perc_composite_hhytpe" : "Percentage of population living with a composite household (family and non-relatives)",
-    "perc_non_family_hhtype" : "Percentage of population living as a non-family household"
+    "perc_non_family_hhtype" : "Percentage of population living as a non-family household",
+    "abduction_forced_disappearance": "Abduction/Forced Disappearance",
+    "agreement": "Agreement",
+    "air_drone_strike": "Air Drone Strike",
+    "armed_clash": "Armed Clash",
+    "arrests": "Arrests",
+    "attack": "Attacks",
+    "change_to_group_activity": "Change to Group Activity",
+    "disrupted_weapons_use": "Disrupted Weapons Use",
+    "excessive_force_against_protesters": "Excessive Force Against Protesters",
+    "grenade": "Grenade",
+    "headquarters_or_base_established": "Headquarters of Base Established",
+    "looting_property_destruction": "Looting/Property Destruction",
+    "mob_violence": "Mob Violence",
+    "other": "Other",
+    "peaceful_protest": "Peaceful Protest",
+    "protest_with_intervention": "Protest with Intervention",
+    "remote_explosive_landmine_ied": "Remote Explosive Landmine/IED",
+    "sexual_violence": "Sexual Violence",
+    "violent_demonstration": "Violent Demonstration"
 }
 
 
