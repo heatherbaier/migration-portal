@@ -64,7 +64,6 @@ def index():
     # response.headers.add('Access-Control-Allow-Origin', '*')
     # return response
 
-
     # Merry Christmas HTML!!
     return flask.render_template('index1.html', 
                                   municipality_ids = municipality_ids, 
@@ -185,33 +184,33 @@ def var_drilldown():
     var_cat_rank = cat_df[cat_df['var'] == mapped_name]['rank'].values[0]
     var_quant = cat_df[cat_df['var'] == mapped_name]['quant'].values[0]
 
-    # try:
+    try:
 
-    # Get ALE data on the variable
-    ale_df = pd.read_csv(ALE_PATH)
-    ale = list(ale_df[mapped_name].values)
-    ale = [round(i / 5, 0) for i in ale]
+        # Get ALE data on the variable
+        ale_df = pd.read_csv(ALE_PATH)
+        ale = list(ale_df[mapped_name].values)
+        ale = [round(i / 5, 0) for i in ale]
 
-    with open(ALE_INTERVALS_PATH, "r") as ale_i:
-        ale_i = json.load(ale_i)
+        with open(ALE_INTERVALS_PATH, "r") as ale_i:
+            ale_i = json.load(ale_i)
 
-    ale_labels = [" to ".join(i) for i in ale_i[mapped_name]]
+        ale_labels = [" to ".join(i) for i in ale_i[mapped_name]]
 
-    # except:
+    except:
 
-    #     print("FAILED AT VARIABLE: ", mapped_name)
+        print("FAILED AT VARIABLE: ", mapped_name)
 
-    #     mapped_name = 'sum_income'
+        mapped_name = 'sum_income'
 
-    #     # Get ALE data on the variable
-    #     ale_df = pd.read_csv(ALE_PATH)
-    #     ale = list(ale_df[mapped_name].values)
-    #     ale = [round(i / 5, 0) for i in ale]
+        # Get ALE data on the variable
+        ale_df = pd.read_csv(ALE_PATH)
+        ale = list(ale_df[mapped_name].values)
+        ale = [round(i / 5, 0) for i in ale]
 
-    #     with open(ALE_INTERVALS_PATH, "r") as ale_i:
-    #         ale_i = json.load(ale_i)
+        with open(ALE_INTERVALS_PATH, "r") as ale_i:
+            ale_i = json.load(ale_i)
 
-    #     ale_labels = [" to ".join(i) for i in ale_i[mapped_name]]
+        ale_labels = [" to ".join(i) for i in ale_i[mapped_name]]
 
     
     # Send back to server

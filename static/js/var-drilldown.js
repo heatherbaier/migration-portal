@@ -96,6 +96,8 @@ function var_drilldown(elem) {
 
     console.log(elem.id)
 
+    mymap.setView([23.6345, -95.5528], zoom_start = 6);
+
     // Make edits to elements that don't have to be deleted first
     document.getElementById("nav").style.width = "25%"
     document.getElementById("drill").style.display = "block"
