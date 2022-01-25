@@ -4,5 +4,6 @@ data
 imagery
 delete
 .DS_Store
-*.ipynb
 data_old
+.ipynb_checkpoints
+*.ipynb

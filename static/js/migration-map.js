@@ -1,7 +1,7 @@
 // MIGRATION MAP
 // Create the map and add the basemap tiles
 var mymap = L.map('mapid').setView([23.6345, -102.5528], zoom_start = 6);
-L.tileLayer('https://tiles.stadiamaps.com/tiles/alidade_smooth_dark/{z}/{x}/{y}{r}.png', {
+L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
 	maxZoom: 20,
 	attribution: '&copy; <a href="https://stadiamaps.com/">Stadia Maps</a>, &copy; <a href="https://openmaptiles.org/">OpenMapTiles</a> &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors'
 }).addTo(mymap);
@@ -183,9 +183,13 @@ function resetHighlight(e) {
 }
 
 
+
+
 // Zooms to a clicked on polygon
 function zoomToFeature(e) {
     mymap.fitBounds(e.target.getBounds());
+    // window.drilldown_muni = 
+    drilldown(e.target);
 }
 
 
@@ -211,9 +215,9 @@ function highlightFeature(e) {
 // On each feature, highlight/remove highlight when hovered over, zoom when clicked and add popup
 function onEachFeature(feature, layer) {
 
-    layer.bindPopup('<h2>Municipality: ' + feature.properties.shapeName + '</h2>' + 
-                    '<h2>ID: ' + feature.properties.shapeID + '</h2>' + 
-                    '<h2>Value: ' + feature.properties.num_migrants + '</h2>');
+    layer.bindPopup('<h4>Municipality: ' + feature.properties.shapeName + '</h4>' + 
+                    '<h4>ID: ' + feature.properties.shapeID + '</h4>' + 
+                    '<h4>Value: ' + feature.properties.num_migrants + '</h4>');
 
     layer.on({
         mouseover: highlightFeature,

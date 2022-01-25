@@ -22,11 +22,15 @@ from model.graphsage import *
 
 # Path variables
 GEOJSON_PATH = "./data/ipumns_simple_wgs_wdata8.geojson"
-SHP_PATH = "./data/useforportal.shp"
-DATA_PATH = "./data/mexico2010.csv"
+SHP_PATH = "./data/useforportal2.shp"
+DATA_PATH = "./data/mexico2010_wcrime.csv"
 MIGRATION_PATH = "./data/migration_data.json"
 CORR_TABLE_PATH = "./data/corr_table.csv"
 MATCH_PATH = "./data/gB_IPUMS_match.csv"
+IMPACT_PATH = "./data/impact_subevent.csv"
+IMPACT_PATH2 = "./data/impact.csv"
+ALE_PATH = "./data/ale_wcrime_v7.csv"
+ALE_INTERVALS_PATH = "./data/ale_interval_wcrime_v5.json"
 BORDER_STATIONS_PATH = "./data/border_stations7.geojson"
 GRAPH_MODEL = "./trained_model/trained_graph_model_fc2_v4.torch"
 # BAD_IDS = ["105", "115", "122", "126", "147", "153", "1622", "1684", "2027", "2043", "104", "1630", "113", "640", "400", "1631", "2054", "1693", "152", "1608"]
@@ -41,7 +45,7 @@ munis_available = gdf["shapeID"].to_list()
 graph_checkpoint = torch.load(GRAPH_MODEL)
 graph_checkpoint = graph_checkpoint["model_state_dict"]
 
-with open("./data/graph (1).json") as g:
+with open("./data/graph_new.json") as g:
     graph = json.load(g)
 
 x, adj_lists, y = [], {}, []
@@ -94,10 +98,13 @@ def predict(graph, selected_muni_ref_dict, new_census_vals, selected_municipalit
 
     predictions = []
     for muni in selected_municipalities:
-        muni_ref = graph_id_dict[muni]        
-        input = [muni_ref]
-        prediction = int(model.forward(input).item())
-        predictions.append(prediction)
+        try:
+            muni_ref = graph_id_dict[muni]        
+            input = [muni_ref]
+            prediction = int(model.forward(input).item())
+            predictions.append(prediction)
+        except:
+            predictions.append(0)
 
     print("PREDICTIONS: ", predictions)
     
@@ -138,6 +145,8 @@ def prep_dataframes(dta, request, selected_municipalities):
     # Parse the edited input variables and conver them to percent format  #
     #######################################################################
     column_names, percent_changes = request.json['column_names'], request.json['percent_changes']
+    column_names = [i for i in column_names if i not in ['sum_num_intmig_button', 'perc_migrants_button', 'absolute_change_button', 'perc_change_button']]
+    percent_changes = [i for i in percent_changes if i not in ['sum_num_intmig', 'perc_migrants', 'absolute_change', 'perc_change']]
     percent_changes = [(float(i) - 100) * .01 if i != '100' else 100 * .01 for i in percent_changes]
     print("PERCENT CHANGES: ", percent_changes)
 
@@ -258,8 +267,13 @@ def get_column_lists(df, var_names, grouped_vars):
     hhold = df[hh_vars]
     hhold = map_column_names(var_names, hhold)
     hhold = hhold.columns
+
+    c_vars = [i for i in grouped_vars['Crime'] if i in df.columns]
+    crime = df[c_vars]
+    crime = map_column_names(var_names, crime)
+    crime = crime.columns
     
-    return econ, demog, family, health, edu, employ, hhold
+    return econ, demog, family, health, edu, employ, hhold, crime
 
 
 def convert_to_pandas(geodata_collection, MATCH_PATH, DATA_PATH):
