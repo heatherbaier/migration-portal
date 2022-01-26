@@ -212,6 +212,10 @@ def var_drilldown():
 
         ale_labels = [" to ".join(i) for i in ale_i[mapped_name]]
 
+    print("ALE: ", ale)
+
+    # ale = [i if i is not ]
+
     
     # Send back to server
     return {'var_rank': str(var_rank + 1),
