@@ -28,10 +28,10 @@ CORR_TABLE_PATH = "./data/corr_table.csv"
 MATCH_PATH = "./data/gB_IPUMS_match.csv"
 IMPACT_PATH = "./data/impact_subevent.csv"
 IMPACT_PATH2 = "./data/impact.csv"
-# ALE_PATH = "./data/ale_wcrime_v7.csv"
-ALE_PATH = "./data/merged_ale_v8.csv"
-ALE_INTERVALS_PATH = "./data/merged_ale_intervals_v8.json"
-# ALE_INTERVALS_PATH = "./data/ale_interval_wcrime_v5.json"
+ALE_PATH = "./data/ale_wcrime_v7.csv"
+# ALE_PATH = "./data/merged_ale_v8.csv"
+# ALE_INTERVALS_PATH = "./data/merged_ale_intervals_v8.json"
+ALE_INTERVALS_PATH = "./data/ale_interval_wcrime_v7.json"
 BORDER_STATIONS_PATH = "./data/border_stations7.geojson"
 GRAPH_MODEL = "./trained_model/trained_graph_model_fc2_v4.torch"
 # BAD_IDS = ["105", "115", "122", "126", "147", "153", "1622", "1684", "2027", "2043", "104", "1630", "113", "640", "400", "1631", "2054", "1693", "152", "1608"]
@@ -189,7 +189,7 @@ def prep_dataframes(dta, request, selected_municipalities):
 
     #######################################################################
     # For each of the columns, If it's in the list of edited variables,   #
-    # multiply it by the user-defined changed. If it's not in the list    #
+    # multiply it by the user-defined change. If it's not in the list     #
     # that means  we're editing it by the correlated change, so grab that #
     # from the corr dict we created above.                                #
     #######################################################################
@@ -199,7 +199,8 @@ def prep_dataframes(dta, request, selected_municipalities):
             change = dta_selected[column_names[i]] * edited_p_changes[change_index]
             # print("CHANGING USER EDITED COLUMN NAME: ", column_names[i], " by ", np.mean(change))
             dta_selected[column_names[i]] = dta_selected[column_names[i]] + change
-        elif column_names[i] != "GEO2_MX":
+        elif (column_names[i] in edited_variables) and (column_names[i] != "GEO2_MX"):
+            # print(column_names[i], dta_selected.columns)
             change = dta_selected[column_names[i]] * corr_dict[column_names[i]]
             # print("CHANGING CORRELATED COLUMN NAME: ", column_names[i], " by ", np.mean(change))
             dta_selected[column_names[i]] = dta_selected[column_names[i]] + change
